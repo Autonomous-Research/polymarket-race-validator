@@ -1,0 +1,19 @@
+{
+  "name": "polymarket-race-validator",
+  "version": "1.0.0",
+  "description": "Production-grade Polymarket race condition validator",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "probe": "node src/probe.js",
+    "test": "node --test test/utils.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "ws": "^8.16.0"
+  }
+}
