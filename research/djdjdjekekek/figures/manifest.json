@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T18:19:49.344025+00:00",
+  "generatedAt": "2026-08-25T18:44:01.627322+00:00",
   "source": {
     "edge": "research/djdjdjekekek/edge_analysis.json",
     "features": "research/djdjdjekekek/edge_features.csv",
@@ -29,7 +29,31 @@
     "figures/copy_execution_surface.png",
     "figures/copy_execution_surface.svg",
     "figures/copy_break_even_frontier.png",
-    "figures/copy_break_even_frontier.svg"
+    "figures/copy_break_even_frontier.svg",
+    "figures/copy_latency_curves.png",
+    "figures/copy_latency_curves.svg",
+    "figures/copy_cost_curves.png",
+    "figures/copy_cost_curves.svg",
+    "figures/fee_cost_surface.png",
+    "figures/fee_cost_surface.svg",
+    "figures/execution_print_coverage.png",
+    "figures/execution_print_coverage.svg",
+    "figures/breadth_threshold_cost_surface.png",
+    "figures/breadth_threshold_cost_surface.svg",
+    "figures/breadth_threshold_latency_surface.png",
+    "figures/breadth_threshold_latency_surface.svg",
+    "figures/maker_breadth_distribution.png",
+    "figures/maker_breadth_distribution.svg",
+    "figures/breadth_notional_scatter.png",
+    "figures/breadth_notional_scatter.svg",
+    "figures/alpha_equity_drawdown.png",
+    "figures/alpha_equity_drawdown.svg",
+    "figures/alpha_subgroup_robustness.png",
+    "figures/alpha_subgroup_robustness.svg",
+    "figures/alpha_daily_pnl.png",
+    "figures/alpha_daily_pnl.svg",
+    "figures/alpha_leave_one_discipline_out.png",
+    "figures/alpha_leave_one_discipline_out.svg"
   ],
   "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content."
 }

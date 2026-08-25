@@ -6,7 +6,7 @@ Transaction-level investigation of a high-volume Polymarket account. The reposit
 
 **[Read the illustrated plain-English essay (PDF)](research/djdjdjekekek/plain_english_essay.pdf)**
 
-The PDF explains what blind copying would have done, the atomic-liquidity fingerprint that best identifies the trader's edge, what a same-second copy bot changes, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
+The 24-figure PDF explains what blind copying would have done across a 1,444-cell parameter atlas, the atomic-liquidity fingerprint that best identifies the trader's alpha, the exact paper-only rule, drawdown risk, what a same-second copy bot changes, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
 
 Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
@@ -55,14 +55,18 @@ The correction was noticed while inspecting final-period losses. It is domain-co
 
 The old prototype used the target's next future BUY as an execution proxy. The rebuilt test uses 143,507 market-wide taker prints across 149 signal markets:
 
-- test same-second, 1, 2, 5, 10, 15, 30, 60, 120, and 300-second entry;
+- test same-second, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, and 300-second entry;
 - use the first direction-neutral unrelated public print in the next minute;
 - force no-print signals into the test with a trigger-price fallback;
-- cross each delay with 0, 0.5, 1, 2, 3, 5, 7, 10, 15, and 20 cents of adverse price, plus the account-observed 3% fee curve;
+- cross each delay with 17 adverse-price assumptions from zero through 30 cents;
+- separately cross six fee-curve rates from 0% through 5% with the same cost grid;
+- cross maker-breadth cutoffs from 5 through 30 with both cost and latency;
 - retain only the first eligible condition per canonical event;
 - use equal stakes so target sizing cannot leak into the result.
 
-The historical tape has one-second timestamps, so 0.1-second and 0.5-second bots cannot be distinguished. The clock starts when the transaction is mined because maker breadth requires decoded on-chain calldata; Polymarket's earlier off-chain `MATCHED` state is a different, untested signal. Same-second/no-penalty blind copy returns only +3.4%; one second plus one cent returns +1.0%; one second plus two cents returns -0.9%. Blind copying has no measured sub-minute latency cliff. It has an execution-price cliff near two cents.
+The historical tape has one-second timestamps, so 0.1-second and 0.5-second bots cannot be distinguished. The clock starts when the transaction is mined because maker breadth requires decoded on-chain calldata; Polymarket's earlier off-chain `MATCHED` state is a different, untested signal. Same-second/no-penalty blind copy returns only +3.4%; one second plus one cent returns +1.0%; one second plus 1.5 cents is approximately flat; one second plus two cents returns -0.9%. Blind copying has no measured sub-minute latency cliff. It has an execution-price cliff near two cents.
+
+The literal observable alpha is `realized outcome - public execution-proxy probability`, conditioned on an eligible target BUY taker transaction matching at least 18 distinct `makerOrders[].maker` addresses. That calibration residual is +23.21 points over all 30 broad sweeps and +16.41 points in the post-selection half, versus -0.59 points below the cutoff. This identifies the public footprint of conviction, not the hidden information source.
 
 The nested universe test identifies where the result comes from:
 
@@ -190,8 +194,9 @@ npm run research:monitor
 - one condition per canonical event;
 - decoded V2 `matchOrders` calldata with the target as BUY taker;
 - at least 18 distinct `makerOrders[].maker` addresses in that trigger;
-- immediate paper submission with actual end-to-end latency and depth recorded;
-- a declared maximum adverse price, fixed before seeing the outcome;
+- no artificial wait after decoding, with block-to-detection and detection-to-order latency recorded separately;
+- a paper-only $100 marketable FOK limit capped one cent above the first live best ask and never above 0.90;
+- rejection rather than an assumed fill when displayed depth is insufficient;
 - a fixed $100 paper stake with no outcome-dependent sizing.
 
 At least 80% of target taker flow in the final minute is a confidence tag, not a second hard gate. The current JavaScript monitor predates trigger-calldata decoding and must not be represented as an implementation of this frozen rule. The next prospective runner must reject undecoded triggers and record FOK failures, partial fills, indexer delay, and actual depth.

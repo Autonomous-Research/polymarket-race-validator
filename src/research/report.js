@@ -695,6 +695,18 @@ function breakthroughReport(analysis, edge) {
         row.lagSeconds === 1 && row.slippageCents === 2);
     const blindBreakEven = blind.executionBreakEven.find((row) => row.lagSeconds === 1);
     const breadthBreakEven = atomic.executionBreakEven.find((row) => row.lagSeconds === 1);
+    const atlas = edge.copyParameterAtlas;
+    const atlasCells = atlas.scenarioCounts.latencyByAdversePriceBothStrategies
+        + atlas.scenarioCounts.feeByAdversePricePerStrategy
+        + atlas.scenarioCounts.breadthByAdversePrice
+        + atlas.scenarioCounts.breadthByLatency;
+    const breadthFast = atomic.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 1);
+    const breadthFastHeldOutRoi = 100 * (
+        breadthFast.validation.profitUsdc + breadthFast.finalTest.profitUsdc
+    ) / (
+        breadthFast.validation.stakeUsdc + breadthFast.finalTest.stakeUsdc
+    );
 
     return `# Breakthrough Audit: Atomic Breadth
 
@@ -730,7 +742,7 @@ Distinct signed accounts are not proven distinct humans. The fact is contract-le
 
 ## Realistic Copy Speed
 
-The execution audit crosses ten delays from same-second through 300 seconds with ten adverse-price assumptions from zero through 20 cents. Historical timestamps are only one second precise, so 0.1-second and 0.5-second bots cannot be distinguished. Same-second is an optimistic bound because ordering inside that second is unknown. The clock starts at the mined block: maker breadth cannot be decoded at Polymarket's earlier off-chain MATCHED state from this public history.
+The execution audit crosses ${number(atlas.latenciesSeconds.length)} delays from same-second through 300 seconds with ${number(atlas.adversePriceCents.length)} adverse-price assumptions from zero through 30 cents. Historical timestamps are only one second precise, so 0.1-second and 0.5-second bots cannot be distinguished. Same-second is an optimistic bound because ordering inside that second is unknown. The clock starts at the mined block: maker breadth cannot be decoded at Polymarket's earlier off-chain MATCHED state from this public history.
 
 At one second plus one cent, blind copying returned ${signedPercent(blindFast.all.roiPct, 2)}. At one second plus two cents, it returned ${signedPercent(blindTwoCent.all.roiPct, 2)}. Its solved one-second break-even allowance is only ${number(blindBreakEven.allMaxAdverseCents, 2)} cents. The breadth rule's held-out allowance is ${number(breadthBreakEven.heldOutMaxAdverseCents, 2)} cents.
 
@@ -739,6 +751,39 @@ There is no measured sub-minute latency cliff. Price impact is the cliff: a fast
 ![Latency and adverse-price surface](./figures/copy_execution_surface.png)
 
 ![Break-even execution frontier](./figures/copy_break_even_frontier.png)
+
+## Full Parameter Atlas
+
+The exported audit contains ${number(atlasCells)} grid cells across four sensitivity families:
+
+- ${number(atlas.scenarioCounts.latencyByAdversePriceBothStrategies)} latency-by-price results across blind and alpha-filtered copying;
+- ${number(atlas.scenarioCounts.feeByAdversePricePerStrategy)} fee-by-price settings for each strategy view;
+- ${number(atlas.scenarioCounts.breadthByAdversePrice)} breadth-cutoff-by-price settings;
+- ${number(atlas.scenarioCounts.breadthByLatency)} breadth-cutoff-by-latency settings.
+
+At one second plus one cent, the held-out breadth sample returned ${signedPercent(breadthFastHeldOutRoi, 2)}. The dense atlas is a fragility map, not ${number(atlasCells)} independent confirmations.
+
+![All measured latency curves](./figures/copy_latency_curves.png)
+
+![All execution-cost curves](./figures/copy_cost_curves.png)
+
+![Fee and price-cost surface](./figures/fee_cost_surface.png)
+
+## Alpha, Literally
+
+The recoverable alpha is a conditional market-pricing residual:
+
+\`\`\`text
+B(tx) = count(distinct makerOrders[].maker)
+Signal(tx) = eligible first-event BUY taker transaction AND B(tx) >= 18
+Probability alpha = realized outcome - public execution-proxy probability
+\`\`\`
+
+Measured probability alpha was ${signedPoints(atomic.allCalibration.calibrationGapPctPoints, 2)} across all 30 broad sweeps and ${signedPoints(heldOutCalibration.calibrationGapPctPoints, 2)} after development selection. Below 18 makers it was ${signedPoints(atomic.belowThresholdCalibration.calibrationGapPctPoints, 2)}. This identifies the public footprint of conviction, not the private information source.
+
+![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.png)
+
+![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.png)
 
 ## Falsification And Controls
 
@@ -767,14 +812,15 @@ The source of information is unknown. Public evidence cannot distinguish a super
 3. Require concentration of at least 70% and trigger price from 0.30 through 0.85.
 4. Decode the mined V2 \`matchOrders\` call and verify the target is BUY taker for the signaled token.
 5. Require at least 18 distinct \`makerOrders[].maker\` addresses.
-6. Submit immediately in paper mode with a fixed price ceiling; record actual latency, depth, partial fills, and failures.
-7. Use a fixed $100 stake. Do not martingale or infer the whale's eventual size.
+6. Add no artificial delay. Snapshot the first live best ask and displayed depth after the mined call is decoded.
+7. Create a $100 paper-only marketable FOK limit capped one cent above that ask and never above 0.90; record insufficient depth, rejection, partial fill, latency, and fees rather than assuming execution.
+8. Hold accepted paper fills to resolution. Do not martingale or infer the whale's eventual size.
 
 ## Decision And Limits
 
 Freeze \`atomic-breadth-18\` and collect at least 200 genuinely new eligible signals in paper mode. Do not deploy capital before the unseen sample remains profitable after costs and after removing its largest winners.
 
-This is a two-month, retrospectively selected wallet and feature family. The threshold simulation corrects the declared maker-count search, not every research choice. Public prints do not reconstruct historical order-book depth or publication latency. This is research, not financial advice.
+This is a two-month, retrospectively selected wallet and feature family. The threshold simulation corrects the declared maker-count search, not every research choice. The held-out half becomes negative after removing its five best winners. Public prints do not reconstruct historical order-book depth or publication latency. This is research, not financial advice.
 
 ## Evidence
 
@@ -801,6 +847,7 @@ function executiveReport(analysis, stats, onchain, edge, peers) {
     const atomic = edge.atomicBreadthEdge;
     const breadth = atomic.all;
     const heldOut = atomic.chronology.heldOutAfterDevelopment;
+    const atlas = edge.copyParameterAtlas;
 
     return `# @djdjdjekekek: Investigation And Replication Research
 
@@ -829,7 +876,7 @@ The account is a two-layer automated operation: ${percent(execution.makerFillPct
 
 The original classifier treated BO1 as a series. Correcting it moves ${number(format.bo1.markets)} markets that lost ${money(Math.abs(format.bo1.realizedPnlUsdc))} into the single-map failure bucket. This correction was found while inspecting final losses and is explicitly not claimed as an untouched discovery.
 
-The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses ${number(edge.coverage.publicTakerPrints)} unrelated market-wide prints, forces no-print signals into the test, and crosses ten delays from same-second to five minutes with ten adverse-price assumptions from zero to 20 cents. The clock starts when settlement is mined because maker breadth is not available at the earlier off-chain MATCHED state. One-second blind copying breaks even after only ${number(blind.executionBreakEven.find((row) => row.lagSeconds === 1).allMaxAdverseCents, 2)} cents.
+The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses ${number(edge.coverage.publicTakerPrints)} unrelated market-wide prints, forces no-print signals into the test, and crosses ${number(atlas.latenciesSeconds.length)} delays from same-second to five minutes with ${number(atlas.adversePriceCents.length)} adverse-price assumptions from zero to 30 cents. The clock starts when settlement is mined because maker breadth is not available at the earlier off-chain MATCHED state. One-second blind copying breaks even after only ${number(blind.executionBreakEven.find((row) => row.lagSeconds === 1).allMaxAdverseCents, 2)} cents.
 
 No stable leader wallet was identified. Early-selected peer confirmation returned ${signedPercent(peerAudit.knownPeerAlignedLater.roiPct, 2)} on later bets, below the ${signedPercent(peerAudit.knownPeerNotAlignedLater.roiPct, 2)} return without confirmation. Eventual target size was also unpredictable. Neither peer identity nor inferred final size belongs in the model.
 
@@ -839,7 +886,7 @@ The type-3 Deposit Wallet resolves to controller EOA \`${onchain.wallet.owner}\`
 
 ## Read In Order
 
-1. [Illustrated plain-English essay](./plain_english_essay.pdf): the result, realistic copy-speed surface, charts, and caveats without requiring code.
+1. [Illustrated plain-English essay](./plain_english_essay.pdf): the literal alpha definition, ${number(atlas.scenarioCounts.latencyByAdversePriceBothStrategies + atlas.scenarioCounts.feeByAdversePricePerStrategy + atlas.scenarioCounts.breadthByAdversePrice + atlas.scenarioCounts.breadthByLatency)}-cell parameter atlas, 24 charts, risk diagnostics, and caveats without requiring code.
 2. [Breakthrough audit](./breakthrough_report.md): atomic-breadth signal, falsification tests, and promotion criteria.
 3. [Replication report](./replication_report.md): the earlier monitor and its exact execution assumptions.
 4. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.

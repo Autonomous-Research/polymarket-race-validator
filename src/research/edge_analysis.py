@@ -32,8 +32,11 @@ CORE_DISCIPLINES = {
     "Tennis", "Soccer", "Dota 2", "Counter-Strike", "League of Legends", "Valorant"
 }
 EXCLUDED_MARKET_TYPES = {"single-game/map", "short-horizon binary"}
-LAGS = (0, 1, 2, 5, 10, 15, 30, 60, 120, 300)
-EXECUTION_SLIPPAGE_CENTS = (0, 0.5, 1, 2, 3, 5, 7, 10, 15, 20)
+LAGS = (0, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300)
+EXECUTION_SLIPPAGE_CENTS = (
+    0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30
+)
+FEE_RATES = (0, 0.01, 0.02, 0.03, 0.04, 0.05)
 MODEL_NUMERIC = [
     "triggerPrice", "concentration", "triggerFillShare", "takerBurst60Share",
     "makerShareBeforeSignal", "signalAgeSeconds", "preMomentum300",
@@ -419,9 +422,13 @@ def build_features(
     return pd.DataFrame(features).sort_values("signalTimestamp").reset_index(drop=True), leader_events
 
 
-def all_in_price(observed_price: float, slippage_cents: float) -> float:
+def all_in_price(
+    observed_price: float,
+    slippage_cents: float,
+    fee_rate: float = TARGET_FEE_RATE,
+) -> float:
     execution = min(0.99, max(0.01, observed_price + slippage_cents / 100))
-    return execution + TARGET_FEE_RATE * execution * (1 - execution)
+    return execution + fee_rate * execution * (1 - execution)
 
 
 def prepare_bets(
@@ -430,6 +437,7 @@ def prepare_bets(
     slippage_cents: float = 5,
     price_source: str = "any",
     force_fallback: bool = True,
+    fee_rate: float = TARGET_FEE_RATE,
 ) -> pd.DataFrame:
     mark_column = f"alignedExecutionMark{lag}" if price_source == "aligned" else f"executionMark{lag}"
     bets = frame.copy()
@@ -440,7 +448,10 @@ def prepare_bets(
         bets = bets[np.isfinite(bets[mark_column])].copy()
         bets["observedExecutionPrice"] = bets[mark_column]
     bets["executionPrice"] = (bets["observedExecutionPrice"] + slippage_cents / 100).clip(0.01, 0.99)
-    bets["allInPrice"] = bets["executionPrice"] + TARGET_FEE_RATE * bets["executionPrice"] * (1 - bets["executionPrice"])
+    bets["allInPrice"] = (
+        bets["executionPrice"]
+        + fee_rate * bets["executionPrice"] * (1 - bets["executionPrice"])
+    )
     if not np.isfinite(bets["allInPrice"]).all():
         raise ValueError("Every forced simulation must have a finite all-in execution price")
     bets["return"] = np.where(bets["won"] == 1, 1 / bets["allInPrice"] - 1, -1)
@@ -448,6 +459,7 @@ def prepare_bets(
     bets["stakeUsdc"] = 100.0
     bets["lagSeconds"] = lag
     bets["slippageCents"] = slippage_cents
+    bets["feeRate"] = fee_rate
     return bets
 
 
@@ -1525,7 +1537,7 @@ def breadth_edge_audit(base: pd.DataFrame, final_split_timestamp: int) -> dict:
                 "target concentration at least 0.70",
             ],
             "trigger": "Decode the target's mined CTF Exchange V2 matchOrders transaction and count distinct maker addresses in its makerOrders array.",
-            "entry": f"Paper entry only when at least {threshold} distinct maker accounts were matched; submit immediately after the mined transaction is decoded, enforce a predeclared maximum adverse price, and record actual end-to-end latency, depth, partial fills, failures, and fees. The historical registered reference remains 60 seconds plus five cents, with the full same-second-to-five-minute execution surface reported.",
+            "entry": f"Paper entry only when at least {threshold} distinct maker accounts were matched. Add no artificial delay: after the mined transaction is decoded, snapshot the live best ask and displayed depth, then create a $100 paper-only marketable FOK limit capped one cent above that first ask and never above 0.90. Record block-to-detection and detection-to-order latency, insufficient depth, rejections, partial fills, and fees. The historical registered reference remains 60 seconds plus five cents, with the full same-second-to-five-minute execution surface reported.",
             "confidenceTag": "Mark signals with at least 80% of prior target taker buying in the final minute as high confidence, but do not discard slower broad sweeps until prospective data supports that extra gate.",
             "stake": "Equal $100 paper stake per eligible canonical event; no martingale or outcome-dependent sizing.",
         },
@@ -1707,6 +1719,197 @@ def blind_copy_audit(features: pd.DataFrame, split_timestamp: int) -> dict:
     }
 
 
+def risk_summary(bets: pd.DataFrame) -> dict:
+    if bets.empty:
+        return {"bets": 0}
+    ordered = bets.sort_values("signalTimestamp").copy()
+    losses = ordered["won"].eq(0).astype(int).to_numpy()
+    longest_loss_streak = 0
+    current_loss_streak = 0
+    for loss in losses:
+        current_loss_streak = current_loss_streak + 1 if loss else 0
+        longest_loss_streak = max(longest_loss_streak, current_loss_streak)
+    daily = ordered.assign(
+        day=pd.to_datetime(ordered["signalTime"], utc=True).dt.strftime("%Y-%m-%d")
+    ).groupby("day", as_index=False).agg(
+        profitUsdc=("profitUsdc", "sum"),
+        stakeUsdc=("stakeUsdc", "sum"),
+        bets=("won", "size"),
+        wins=("won", "sum"),
+    )
+    returns = ordered["return"].to_numpy(dtype=float) * 100
+    rolling_five = ordered["return"].rolling(5).mean().dropna() * 100
+    return {
+        **summarize_bets(ordered),
+        "tradingDays": int(len(daily)),
+        "profitableDays": int((daily["profitUsdc"] > 0).sum()),
+        "longestLossStreak": int(longest_loss_streak),
+        "worstFiveBetRoiPct": finite(rolling_five.min()) if len(rolling_five) else None,
+        "bestFiveBetRoiPct": finite(rolling_five.max()) if len(rolling_five) else None,
+        "perBetReturnPct": {
+            "p10": finite(np.quantile(returns, 0.10)),
+            "median": finite(np.median(returns)),
+            "p90": finite(np.quantile(returns, 0.90)),
+        },
+        "daily": [{
+            "day": row.day,
+            "profitUsdc": finite(row.profitUsdc),
+            "stakeUsdc": finite(row.stakeUsdc),
+            "bets": int(row.bets),
+            "wins": int(row.wins),
+        } for row in daily.itertuples(index=False)],
+    }
+
+
+def alpha_subgroup_atlas(bets: pd.DataFrame, threshold: int) -> dict:
+    rows = bets.copy()
+    rows["priceBand"] = pd.cut(
+        rows["observedExecutionPrice"],
+        [0, 0.45, 0.60, 0.70, 1.0],
+        labels=["30-45c", "45-60c", "60-70c", "70-85c"],
+        include_lowest=True,
+    ).astype(str)
+    rows["notionalBand"] = pd.qcut(
+        rows["onchainTargetNotionalUsdc"],
+        3,
+        labels=["lower notional third", "middle notional third", "upper notional third"],
+    ).astype(str)
+    rows["timing"] = np.where(rows["pregame"] == 1, "pregame", "in-play")
+    rows["urgency"] = np.where(
+        rows["takerBurst60Share"] >= 0.80, "rapid", "slower"
+    )
+
+    def comparison(group: pd.DataFrame) -> dict:
+        broad = group[group["onchainUniqueMakers"] >= threshold]
+        narrow = group[group["onchainUniqueMakers"] < threshold]
+        broad_calibration = calibration_summary(broad)
+        narrow_calibration = calibration_summary(narrow)
+        broad_gap = broad_calibration.get("calibrationGapPctPoints")
+        narrow_gap = narrow_calibration.get("calibrationGapPctPoints")
+        return {
+            "bets": int(len(group)),
+            "broad": summarize_bets(broad),
+            "broadCalibration": broad_calibration,
+            "narrow": summarize_bets(narrow),
+            "narrowCalibration": narrow_calibration,
+            "broadMinusNarrowCalibrationPctPoints": finite(
+                broad_gap - narrow_gap
+            ) if broad_gap is not None and narrow_gap is not None else None,
+        }
+
+    output = {}
+    for column in ("discipline", "priceBand", "notionalBand", "timing", "urgency"):
+        output[column] = [{
+            "group": str(name),
+            **comparison(group),
+        } for name, group in rows.groupby(column, observed=True, sort=False)]
+    return output
+
+
+def copy_parameter_atlas(features: pd.DataFrame, base: pd.DataFrame) -> dict:
+    blind_universe = features[features["concentration"] >= 0.70].sort_values(
+        "signalTimestamp"
+    ).drop_duplicates("eventKey", keep="first").reset_index(drop=True)
+    ordered_base = base.sort_values("signalTimestamp").reset_index(drop=True)
+    development_end = int(len(ordered_base) * 0.50)
+    development_end_timestamp = int(
+        ordered_base.iloc[development_end]["signalTimestamp"]
+    )
+    broad_base = ordered_base[
+        ordered_base["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    ]
+    broad_held_out = broad_base[
+        broad_base["signalTimestamp"] >= development_end_timestamp
+    ]
+
+    fee_cost_grid = []
+    for fee_rate in FEE_RATES:
+        for slippage in EXECUTION_SLIPPAGE_CENTS:
+            fee_cost_grid.append({
+                "lagSeconds": 1,
+                "feeRatePct": fee_rate * 100,
+                "slippageCents": slippage,
+                "blindAll": summarize_bets(prepare_bets(
+                    blind_universe, 1, slippage, fee_rate=fee_rate
+                )),
+                "breadthAll": summarize_bets(prepare_bets(
+                    broad_base, 1, slippage, fee_rate=fee_rate
+                )),
+                "breadthHeldOut": summarize_bets(prepare_bets(
+                    broad_held_out, 1, slippage, fee_rate=fee_rate
+                )),
+            })
+
+    threshold_cost_grid = []
+    threshold_latency_grid = []
+    for threshold in ONCHAIN_BREADTH_CANDIDATES:
+        selected = ordered_base[ordered_base["onchainUniqueMakers"] >= threshold]
+        held_out = selected[selected["signalTimestamp"] >= development_end_timestamp]
+        for slippage in EXECUTION_SLIPPAGE_CENTS:
+            threshold_cost_grid.append({
+                "minimumUniqueMakers": threshold,
+                "lagSeconds": 1,
+                "slippageCents": slippage,
+                "all": summarize_bets(prepare_bets(selected, 1, slippage)),
+                "heldOut": summarize_bets(prepare_bets(held_out, 1, slippage)),
+            })
+        for lag in LAGS:
+            threshold_latency_grid.append({
+                "minimumUniqueMakers": threshold,
+                "lagSeconds": lag,
+                "slippageCents": 1,
+                "all": summarize_bets(prepare_bets(selected, lag, 1)),
+                "heldOut": summarize_bets(prepare_bets(held_out, lag, 1)),
+            })
+
+    fixed_bets = prepare_bets(ordered_base, 60, 5)
+    broad_fixed = fixed_bets[
+        fixed_bets["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    ]
+    broad_fixed_held_out = broad_fixed[
+        broad_fixed["signalTimestamp"] >= development_end_timestamp
+    ]
+    narrow_fixed = fixed_bets[
+        fixed_bets["onchainUniqueMakers"] < ONCHAIN_BREADTH_THRESHOLD
+    ]
+    blind_fixed = prepare_bets(blind_universe, 60, 5)
+
+    disciplines = sorted(broad_fixed["discipline"].unique())
+    leave_one_discipline_out = [{
+        "excludedDiscipline": discipline,
+        "all": summarize_bets(broad_fixed[broad_fixed["discipline"] != discipline]),
+        "heldOut": summarize_bets(
+            broad_fixed_held_out[broad_fixed_held_out["discipline"] != discipline]
+        ),
+    } for discipline in disciplines]
+
+    return {
+        "definition": "A reproducible descriptive atlas around the frozen atomic-breadth-18 rule. Only the 18-maker result is the declared algorithm; neighboring cells are sensitivity checks, not separately discovered strategies.",
+        "latenciesSeconds": list(LAGS),
+        "adversePriceCents": list(EXECUTION_SLIPPAGE_CENTS),
+        "feeRatesPct": [rate * 100 for rate in FEE_RATES],
+        "scenarioCounts": {
+            "latencyByAdversePricePerStrategy": len(LAGS) * len(EXECUTION_SLIPPAGE_CENTS),
+            "latencyByAdversePriceBothStrategies": 2 * len(LAGS) * len(EXECUTION_SLIPPAGE_CENTS),
+            "feeByAdversePricePerStrategy": len(FEE_RATES) * len(EXECUTION_SLIPPAGE_CENTS),
+            "breadthByAdversePrice": len(ONCHAIN_BREADTH_CANDIDATES) * len(EXECUTION_SLIPPAGE_CENTS),
+            "breadthByLatency": len(ONCHAIN_BREADTH_CANDIDATES) * len(LAGS),
+        },
+        "feeCostGrid": fee_cost_grid,
+        "thresholdCostGrid": threshold_cost_grid,
+        "thresholdLatencyGrid": threshold_latency_grid,
+        "subgroups": alpha_subgroup_atlas(fixed_bets, ONCHAIN_BREADTH_THRESHOLD),
+        "risk": {
+            "blindCopy": risk_summary(blind_fixed),
+            "breadthAll": risk_summary(broad_fixed),
+            "breadthHeldOut": risk_summary(broad_fixed_held_out),
+            "belowThreshold": risk_summary(narrow_fixed),
+            "leaveOneDisciplineOut": leave_one_discipline_out,
+        },
+        "warning": "All cells reuse the same short historical sample. Dense parameter sweeps reveal fragility and plateaus; they do not create independent evidence or identify executable historical order-book depth.",
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--snapshot", default="research/djdjdjekekek/snapshot.json")
@@ -1738,7 +1941,7 @@ def main() -> None:
         "methodology": {
             "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
             "atomicBreadth": "Decode the mined CTF Exchange V2 matchOrders calldata at the trigger and count distinct maker addresses in the transaction's makerOrders array.",
-            "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-20-cent adverse-price grid, and the observed 3% fee curve. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents.",
+            "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-30-cent adverse-price grid, and fee-curve stress from 0% through 5%. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents; the prospective paper convention is immediate observation with a one-cent marketable-limit buffer and actual depth recorded.",
             "eventLeakage": "Eligible conditions are sorted by signal time and only the first condition per canonical event is retained.",
             "labelTiming": "Walk-forward labels become available at Gamma market closedTime, not the ambiguous closed-positions timestamp.",
             "selection": (
@@ -1815,6 +2018,7 @@ def main() -> None:
         "walkForwardModel": walk_forward_model(base),
         "mechanismAudit": mechanism_audit(base, fixed["splitTimestamp"]),
         "atomicBreadthEdge": breadth_edge_audit(base, fixed["splitTimestamp"]),
+        "copyParameterAtlas": copy_parameter_atlas(features, base),
     }
 
     output_path = Path(args.output)

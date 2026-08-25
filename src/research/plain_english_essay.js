@@ -79,20 +79,37 @@ function renderHtml(analysis, edge) {
         row.lagSeconds === 0 && row.slippageCents === 0);
     const blindOneSecondOneCent = blind.executionSensitivity.find((row) =>
         row.lagSeconds === 1 && row.slippageCents === 1);
+    const blindOneSecondOneHalf = blind.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 1.5);
     const blindOneSecondTwoCent = blind.executionSensitivity.find((row) =>
         row.lagSeconds === 1 && row.slippageCents === 2);
     const breadthOneSecondOneCent = atomic.executionSensitivity.find((row) =>
         row.lagSeconds === 1 && row.slippageCents === 1);
+    const breadthOneSecondSeventeenHalf = atomic.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 17.5);
+    const breadthOneSecondTwenty = atomic.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 20);
     const blindOneSecondBreakEven = blind.executionBreakEven.find((row) => row.lagSeconds === 1);
     const breadthOneSecondBreakEven = atomic.executionBreakEven.find((row) => row.lagSeconds === 1);
+    const atlas = edge.copyParameterAtlas;
+    const atlasCells = atlas.scenarioCounts.latencyByAdversePriceBothStrategies
+        + atlas.scenarioCounts.feeByAdversePricePerStrategy
+        + atlas.scenarioCounts.breadthByAdversePrice
+        + atlas.scenarioCounts.breadthByLatency;
+    const blindRisk = atlas.risk.blindCopy;
+    const breadthRisk = atlas.risk.breadthAll;
+    const heldOutRisk = atlas.risk.breadthHeldOut;
+    const weakestLeaveOneOut = atlas.risk.leaveOneDisciplineOut.reduce(
+        (weakest, row) => row.heldOut.roiPct < weakest.heldOut.roiPct ? row : weakest
+    );
 
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A plain-English, illustrated investigation of a Polymarket trader's atomic liquidity-sweep edge and realistic copy-trading execution.">
-<title>Copying the Whale Would Have Lost Money: We Found the Filter</title>
+<meta name="description" content="A detailed, illustrated investigation of a Polymarket trader's atomic liquidity-sweep alpha across broad copy-trading execution parameters.">
+<title>Inside the Whale's Alpha: Copying Loses, Atomic Breadth Wins</title>
 <style>
     :root {
         --ink: #172026;
@@ -212,6 +229,32 @@ function renderHtml(analysis, edge) {
         font-size: 20px;
     }
     .plain-language b { color: var(--teal); }
+    .alpha-definition {
+        margin: 28px 0;
+        padding: 26px 0;
+        border-top: 3px solid var(--ink);
+        border-bottom: 1px solid var(--ink);
+    }
+    .alpha-definition .equation {
+        margin: 18px 0;
+        padding: 18px 20px;
+        background: var(--soft);
+        font-family: Consolas, 'Liberation Mono', monospace;
+        font-size: 17px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+    .parameter-summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin: 26px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+    }
+    .parameter-summary div { padding: 16px 14px 14px 0; }
+    .parameter-summary div + div { padding-left: 14px; border-left: 1px solid var(--line); }
+    .parameter-summary strong { display: block; font-size: 24px; line-height: 1.1; }
+    .parameter-summary span { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; line-height: 1.35; }
     ol.steps { margin: 24px 0 28px; padding: 0; counter-reset: method; }
     ol.steps li {
         list-style: none;
@@ -288,7 +331,8 @@ function renderHtml(analysis, edge) {
         .headline-fact, .headline-fact + .headline-fact { padding: 16px 0; border-left: 0; }
         .headline-fact + .headline-fact { border-top: 1px solid var(--line); }
         h2 { font-size: 32px; }
-        .two-column, .confidence-row { grid-template-columns: 1fr; gap: 6px; }
+        .two-column, .confidence-row, .parameter-summary { grid-template-columns: 1fr; gap: 6px; }
+        .parameter-summary div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
         .contents a { display: inline-block; margin-bottom: 8px; }
         table { font-size: 14px; }
         th, td { padding-left: 7px; padding-right: 7px; }
@@ -309,22 +353,24 @@ function renderHtml(analysis, edge) {
         section { margin-top: 14mm; }
         .contents { display: none; }
         .headline-fact strong { font-size: 22pt; }
-        .bottom-line, .warning, .finding, .plain-language, .rule, .verdict { break-inside: avoid; page-break-inside: avoid; }
+        .bottom-line, .warning, .finding, .plain-language, .alpha-definition, .parameter-summary, .rule, .verdict { break-inside: avoid; page-break-inside: avoid; }
         figure img { max-height: 178mm; object-fit: contain; }
         a { color: inherit; }
-        .sources { font-size: 10pt; }
-        .sources p { margin-bottom: 8px; }
-        .sources li { margin-bottom: 2px; }
-        footer { padding-bottom: 0; }
+        .sources { font-size: 9pt; line-height: 1.32; }
+        .sources h2 { font-size: 22pt; }
+        .sources p { margin-bottom: 5px; }
+        .sources ul { margin-top: 5px; margin-bottom: 8px; }
+        .sources li { margin-bottom: 0; }
+        footer { padding-top: 12px; padding-bottom: 0; font-size: 8pt; }
     }
 </style>
 </head>
 <body>
 <header class="masthead">
     <div class="page">
-        <p class="kicker">Plain-English blockchain investigation</p>
-        <h1>Copying the whale would have lost money. We found the filter.</h1>
-        <p class="dek">The public feed makes one trade look like one number. The blockchain shows what happened inside it. The trader's strongest observable signal was an atomic sweep across many maker accounts, not merely a large bet.</p>
+        <p class="kicker">Plain-English alpha and execution dossier</p>
+        <h1>Inside the whale's alpha: copying loses, atomic breadth wins.</h1>
+        <p class="dek">A transaction-level investigation, ${number(atlasCells)}-cell parameter atlas, and literal specification of the strongest public alpha footprint we could recover from the chain.</p>
         <p class="dateline">Public-data study covering ${isoDate(analysis.coverage.firstTrade)} to ${isoDate(analysis.coverage.lastTrade)}. Analysis generated ${isoDate(edge.generatedAt)}.</p>
         <div class="headline-facts" aria-label="Headline findings">
             <div class="headline-fact"><strong class="negative">${pct(blind.all.roiPct, 2)}</strong><span>return from blindly copying all ${number(blind.all.bets)} large signals</span></div>
@@ -338,11 +384,14 @@ function renderHtml(analysis, edge) {
     <nav class="contents" aria-label="Essay contents">
         <a href="#answer">The answer</a>
         <a href="#copying">Blind copying</a>
+        <a href="#parameter-atlas">Parameter atlas</a>
         <a href="#chain">Inside the trade</a>
         <a href="#discovery">The discovery</a>
         <a href="#speed">Copy speed</a>
+        <a href="#alpha">His alpha</a>
         <a href="#algorithm">The rule</a>
         <a href="#tests">Stress tests</a>
+        <a href="#risk">Risk</a>
         <a href="#verdict">Verdict</a>
     </nav>
 
@@ -388,20 +437,63 @@ function renderHtml(analysis, edge) {
     <section id="speed">
         <h2>What if a copy bot is nearly instant?</h2>
         <p class="lead">Speed helps, but the broad replay finds no sharp 1-second-versus-5-second cliff. The dangerous variable is the price paid after the whale has consumed the available offers.</p>
-        <p>The new audit crosses ten delays, from the trigger's own second through five minutes, with ten adverse-price assumptions from zero through 20 cents. Every cell includes fees. At the most optimistic same-second price with no extra adverse movement, blind copying returns only ${pct(blindSameSecond.all.roiPct, 1)}. At one second plus one cent it returns ${pct(blindOneSecondOneCent.all.roiPct, 1)}. At one second plus two cents it is already negative at ${pct(blindOneSecondTwoCent.all.roiPct, 1)}.</p>
+        <p>The expanded audit crosses <strong>${number(atlas.latenciesSeconds.length)} delays</strong>, from the trigger's own second through five minutes, with <strong>${number(atlas.adversePriceCents.length)} adverse-price assumptions</strong> from zero through 30 cents. That is ${number(atlas.scenarioCounts.latencyByAdversePriceBothStrategies)} latency-by-price results across blind and alpha-filtered copies before the fee and maker-threshold atlases. Every primary cell includes the observed fee curve. At the most optimistic same-second price with no extra adverse movement, blind copying returns only ${pct(blindSameSecond.all.roiPct, 1)}. At one second plus one cent it returns ${pct(blindOneSecondOneCent.all.roiPct, 1)}. At one second plus two cents it is already negative at ${pct(blindOneSecondTwoCent.all.roiPct, 1)}.</p>
         <div class="plain-language"><b>The practical threshold:</b> at one-second latency, blind copying historically breaks even at only about ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents of additional adverse price. Under one second plus one cent, the breadth-filtered held-out sample returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)}. Being fast is not enough if the whale just removed the cheap liquidity; selecting the right trigger matters more.</div>
         <p>The timestamps impose an important limit. Polygon block timestamps and the historical public tape are recorded to whole seconds. A 0.1-second bot and a 0.5-second bot cannot be separated honestly. The same-second scenario may also include unrelated prints whose exact within-second order is unknown, so it is an optimistic lower bound rather than a reproducible fill.</p>
         <p>Polymarket's official lifecycle separates an off-chain <code>MATCHED</code> state from <code>MINED</code> on-chain settlement. This strategy needs the mined <code>matchOrders</code> calldata to count maker addresses, so its clock starts at the block timestamp. A bot with private or earlier CLOB-match information is testing a different signal and is not represented by this public-wallet replay.</p>
     </section>
 
     <figure>
-        <img src="figures/copy_execution_surface.png" alt="Two heatmaps showing copy-trading returns across ten latency and ten adverse-price scenarios for blind copying and the breadth rule.">
+        <img src="figures/copy_execution_surface.png" alt="Two heatmaps showing representative copy-trading returns across latency and adverse-price scenarios for blind copying and the breadth rule.">
         <figcaption><strong>Read across for execution quality; read down for speed.</strong> Blind copying flips from pale green to red at roughly two cents in almost every sub-minute row. The held-out breadth strategy remains green much farther across. A 0.1-second or 0.5-second bot lies between the first two rows because the source timestamps are only one second precise.</figcaption>
     </figure>
 
     <figure>
         <img src="figures/copy_break_even_frontier.png" alt="Two line charts showing the maximum adverse price compatible with break-even returns at each copy delay.">
         <figcaption>The blind copier has roughly ${number(blindOneSecondBreakEven.allMaxAdverseCents, 1)} cents of room at one second. The 18-maker filter has roughly ${number(breadthOneSecondBreakEven.heldOutMaxAdverseCents, 1)} cents in the held-out half. The near-flat lines mean this dataset does not support a claim that sub-five-second speed is the main edge.</figcaption>
+    </figure>
+
+    <section id="parameter-atlas">
+        <h2>The full copy-trading parameter atlas</h2>
+        <p class="lead">A backtest should show the whole neighborhood, not one convenient assumption. This atlas varies delay, price deterioration, fees, and the maker-breadth cutoff while keeping equal stakes and event deduplication fixed.</p>
+        <div class="parameter-summary">
+            <div><strong>${number(atlas.latenciesSeconds.length)}</strong><span>delays from same-second through 300 seconds</span></div>
+            <div><strong>${number(atlas.adversePriceCents.length)}</strong><span>adverse-price assumptions from 0c through 30c</span></div>
+            <div><strong>${number(atlas.feeRatesPct.length)}</strong><span>fee-curve rates from 0% through 5%</span></div>
+            <div><strong>26</strong><span>maker-breadth cutoffs from 5 through 30</span></div>
+        </div>
+        <table class="comparison">
+            <thead><tr><th>One-second scenario</th><th class="number">Blind copy</th><th class="number">18-maker held out</th></tr></thead>
+            <tbody>
+                <tr><td>No extra adverse price</td><td class="number positive">${pct(blind.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 0).all.roiPct, 1)}</td><td class="number positive">${pct(heldOutScenarioRoi(atomic.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 0)), 1)}</td></tr>
+                <tr><td>One cent worse</td><td class="number positive">${pct(blindOneSecondOneCent.all.roiPct, 1)}</td><td class="number positive">${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)}</td></tr>
+                <tr><td>1.5 cents worse</td><td class="number">${pct(blindOneSecondOneHalf.all.roiPct, 1)}</td><td class="number positive">${pct(heldOutScenarioRoi(atomic.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 1.5)), 1)}</td></tr>
+                <tr><td>Two cents worse</td><td class="number negative">${pct(blindOneSecondTwoCent.all.roiPct, 1)}</td><td class="number positive">${pct(heldOutScenarioRoi(atomic.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 2)), 1)}</td></tr>
+                <tr><td>17.5 cents worse</td><td class="number negative">${pct(blind.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 17.5).all.roiPct, 1)}</td><td class="number positive">${pct(heldOutScenarioRoi(breadthOneSecondSeventeenHalf), 1)}</td></tr>
+                <tr><td>Twenty cents worse</td><td class="number negative">${pct(blind.executionSensitivity.find((row) => row.lagSeconds === 1 && row.slippageCents === 20).all.roiPct, 1)}</td><td class="number negative">${pct(heldOutScenarioRoi(breadthOneSecondTwenty), 1)}</td></tr>
+            </tbody>
+        </table>
+        <div class="finding"><strong>What the spectrum says:</strong> blind copying is a thin-margin trade that flips near 1.5 to 2 cents. The held-out alpha filter does not flip until roughly 19 to 20 cents. The major difference comes from selecting the transaction, not shaving a few seconds from the bot.</div>
+    </section>
+
+    <figure>
+        <img src="figures/copy_latency_curves.png" alt="Line atlas showing blind-copy and breadth-filtered ROI at fifteen delays for seven execution-cost levels.">
+        <figcaption><strong>All fifteen measured delays:</strong> each line holds the adverse price constant. The lines barely move through the sub-minute region, while moving between price-cost lines changes the answer immediately.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/copy_cost_curves.png" alt="Line atlas showing ROI across seventeen adverse-price assumptions at representative copy delays.">
+        <figcaption><strong>All seventeen cost assumptions:</strong> blind-copy curves cross zero near two cents regardless of delay. The held-out breadth curves cross near twenty cents.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/fee_cost_surface.png" alt="Heatmaps showing ROI across six fee rates and seventeen adverse-price assumptions for blind and breadth-filtered copying.">
+        <figcaption>Fees shift the result gradually. Paying through the book shifts it much faster. The primary replay uses the account-observed 3% fee curve; every other fee row is a labeled counterfactual.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/execution_print_coverage.png" alt="Line chart showing public execution-proxy coverage at each latency for blind and breadth-filtered signals.">
+        <figcaption>Fast scenarios still have roughly 99% public-print coverage. Missing prints are kept with a fallback instead of being dropped, but a public print still does not prove historical ask depth or queue position.</figcaption>
     </figure>
 
     <section id="chain">
@@ -444,6 +536,16 @@ function renderHtml(analysis, edge) {
         <figcaption>Public prices expected similar difficulty after filtering. Broad atomic sweeps won far more often than their prices implied; narrower triggers landed almost exactly where the market predicted.</figcaption>
     </figure>
 
+    <figure>
+        <img src="figures/maker_breadth_distribution.png" alt="Two charts showing wins, losses, actual win rates, and market-implied probabilities across maker-breadth bands.">
+        <figcaption>The 18-maker rule sits inside a graded transaction pattern. Outcomes begin separating from public probabilities around the broad-sweep region; stricter bins eventually become too small to trust.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/breadth_notional_scatter.png" alt="Scatter plot comparing trigger notional with distinct maker breadth, colored by resolved outcome.">
+        <figcaption>Large notional appears above and below the line and among winners and losers. The informative dimension is how broadly one order consumed standing liquidity, not simply how many dollars it represented.</figcaption>
+    </figure>
+
     <section>
         <h2>Did it hold up after discovery?</h2>
         <p>The 18-maker threshold was selected using only the first half of eligible history. Integer cutoffs from 5 through 30 were compared, each requiring at least eight development bets. The next half was then scored without changing the rule.</p>
@@ -459,6 +561,33 @@ function renderHtml(analysis, edge) {
     <figure>
         <img src="figures/breadth_threshold_lock.png" alt="Chart showing development calibration across maker-breadth cutoffs and the held-out result at the selected threshold of 18.">
         <figcaption>The dashed line marks the cutoff chosen on development data. The held-out curve was not used to select 18. Nearby cutoffs tell a similar story, while very strict cutoffs leave too few bets.</figcaption>
+    </figure>
+
+    <section id="alpha">
+        <h2>His alpha, literally</h2>
+        <p class="lead"><strong>The recoverable alpha is a conditional probability error:</strong> public prices understate how often the target's side wins when one eligible BUY transaction consumes liquidity from at least 18 distinct maker accounts.</p>
+        <div class="alpha-definition">
+            <h3>Observable alpha definition</h3>
+            <div class="equation">B(tx) = count(distinct makerOrders[].maker)<br>
+Eligible(tx) = first canonical event AND core discipline AND full-event market<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND concentration &gt;= 70% AND trigger price in [0.30, 0.85]<br>
+Signal(tx) = Eligible(tx) AND target is BUY taker AND B(tx) &gt;= 18<br>
+Probability alpha = realized outcome - public execution-proxy probability</div>
+            <p><strong>Measured probability alpha:</strong> ${pp(breadthCalibration.calibrationGapPctPoints, 2)} over all 30 broad sweeps and ${pp(heldOutCalibration.calibrationGapPctPoints, 2)} over the 21 signals after development selection. Below 18 makers, the corresponding gap was ${pp(narrowCalibration.calibrationGapPctPoints, 2)}.</p>
+            <p><strong>Measured economic alpha:</strong> ${pct(breadth.roiPct, 2)} under the original 60-second plus five-cent stress; ${pct(heldOut.roiPct, 2)} in the post-selection half; ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 2)} under the realistic one-second plus one-cent scenario.</p>
+        </div>
+        <div class="plain-language"><b>In ordinary words:</b> most large buys are not special. The special-looking ones are single decisions that clear offers from many signed accounts at once. That is the public footprint of conviction. The private model, information, or judgment that produced the conviction is still hidden.</div>
+        <p>This distinction matters. We did not reverse-engineer his sports model or prove private information. We recovered an <strong>observable gating variable</strong> that identifies when his action historically contained information beyond the market price. That is the most literal alpha statement public evidence supports.</p>
+    </section>
+
+    <figure>
+        <img src="figures/breadth_threshold_cost_surface.png" alt="Heatmap showing held-out ROI for maker-breadth cutoffs from five through thirty and adverse execution costs from zero through thirty cents.">
+        <figcaption><strong>Breadth by cost:</strong> the dark horizontal outline is the frozen 18-maker row. Neighboring cutoffs form a broad profitable region at realistic costs; very strict rows are based on tiny samples and are not alternative strategies.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/breadth_threshold_latency_surface.png" alt="Heatmap showing held-out ROI for maker-breadth cutoffs and all fifteen measured copy delays at one cent adverse execution.">
+        <figcaption><strong>Breadth by latency:</strong> horizontal bands dominate vertical changes. Choosing broad sweeps mattered much more than whether the historical proxy entered at one, five, or sixty seconds.</figcaption>
     </figure>
 
     <section>
@@ -489,11 +618,12 @@ function renderHtml(analysis, edge) {
                 <li>Require the target to be at least 70% concentrated on one outcome and the trigger price to be 30 through 85 cents.</li>
                 <li>Decode the mined V2 <code>matchOrders</code> transaction and verify that the target is the BUY taker for the signaled token.</li>
                 <li>Count distinct addresses in <code>makerOrders[].maker</code>. Continue only when the count is at least <strong>18</strong>.</li>
-                <li>Submit immediately after decoding, but reject the paper fill if the executable price is more than a declared maximum above the observed reference. Record actual latency, depth, partial fills, and failures.</li>
-                <li>Use a fixed ${money(100)} paper stake. Mark at least 80% final-minute taker flow as high confidence, but do not make it a second gate yet.</li>
+                <li>Do not add an artificial delay. Snapshot the live best ask and displayed depth as soon as the mined call is decoded. Record block-to-detection and detection-to-order latency separately.</li>
+                <li>Create a paper-only marketable FOK limit for a fixed ${money(100)} stake, capped at one cent above the first observed best ask and never above 0.90. Record a rejection when displayed depth is insufficient; never assume a fill.</li>
+                <li>Hold accepted paper fills to resolution. Mark at least 80% final-minute taker flow as high confidence, but do not make it a second gate yet.</li>
             </ol>
         </div>
-        <p>The historical report keeps the original 60-second plus five-cent case for comparison, but the live paper specification does not intentionally wait. It records the real delay and reports every result on the full latency-and-price surface. No martingale, no use of eventual whale position, and no threshold changes after a bad result.</p>
+        <p>The one-cent FOK buffer is a prospective paper convention, not a claim that historical depth existed. The replay's one-second plus one-cent cell is the closest available proxy and returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)} in the held-out half. The original 60-second plus five-cent case remains the registered comparison. No live orders, martingale, inferred eventual whale size, discretionary exits, or threshold changes after a bad result.</p>
     </section>
 
     <section id="tests">
@@ -523,6 +653,44 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
+        <img src="figures/alpha_subgroup_robustness.png" alt="Horizontal bars showing the broad-minus-narrow calibration advantage across disciplines, price bands, notional bands, timing, and flow speed.">
+        <figcaption>Most descriptive slices retain a positive breadth advantage. The clear weak spot is the 70-85 cent entry-price band, and several sport cells are tiny. This chart is a map of where to challenge the rule, not a menu for subgroup optimization.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/alpha_leave_one_discipline_out.png" alt="Bar chart showing all-period and held-out breadth ROI after removing each discipline in turn.">
+        <figcaption>The weakest held-out leave-one-discipline-out result was still ${pct(weakestLeaveOneOut.heldOut.roiPct, 1)} after excluding ${weakestLeaveOneOut.excludedDiscipline}. No single sport or esport category creates the aggregate sign.</figcaption>
+    </figure>
+
+    <section id="risk">
+        <h2>What the equity curve and drawdowns actually look like</h2>
+        <p class="lead">Alpha is not the same as a smooth return stream. Losing contracts still lose the entire ${money(100)} stake, and a short sample can look stable by accident.</p>
+        <table class="comparison">
+            <thead><tr><th>Risk view</th><th class="number">Blind copy</th><th class="number">18+ makers</th><th class="number">Held out</th></tr></thead>
+            <tbody>
+                <tr><td>Bets</td><td class="number">${number(blindRisk.bets)}</td><td class="number">${number(breadthRisk.bets)}</td><td class="number">${number(heldOutRisk.bets)}</td></tr>
+                <tr><td>ROI</td><td class="number negative">${pct(blindRisk.roiPct, 1)}</td><td class="number positive">${pct(breadthRisk.roiPct, 1)}</td><td class="number positive">${pct(heldOutRisk.roiPct, 1)}</td></tr>
+                <tr><td>Maximum drawdown</td><td class="number">${money(blindRisk.maxDrawdownUsdc, 0)}</td><td class="number">${money(breadthRisk.maxDrawdownUsdc, 0)}</td><td class="number">${money(heldOutRisk.maxDrawdownUsdc, 0)}</td></tr>
+                <tr><td>Longest losing streak</td><td class="number">${number(blindRisk.longestLossStreak)}</td><td class="number">${number(breadthRisk.longestLossStreak)}</td><td class="number">${number(heldOutRisk.longestLossStreak)}</td></tr>
+                <tr><td>Worst rolling five bets</td><td class="number negative">${pct(blindRisk.worstFiveBetRoiPct, 1)}</td><td class="number negative">${pct(breadthRisk.worstFiveBetRoiPct, 1)}</td><td class="number negative">${pct(heldOutRisk.worstFiveBetRoiPct, 1)}</td></tr>
+                <tr><td>Profitable trading days</td><td class="number">${number(blindRisk.profitableDays)} / ${number(blindRisk.tradingDays)}</td><td class="number">${number(breadthRisk.profitableDays)} / ${number(breadthRisk.tradingDays)}</td><td class="number">${number(heldOutRisk.profitableDays)} / ${number(heldOutRisk.tradingDays)}</td></tr>
+                <tr><td>ROI after top five winners</td><td class="number negative">${pct(blindRisk.roiWithoutTopWinnersPct['5'], 1)}</td><td class="number positive">${pct(breadthRisk.roiWithoutTopWinnersPct['5'], 1)}</td><td class="number negative">${pct(heldOutRisk.roiWithoutTopWinnersPct['5'], 1)}</td></tr>
+            </tbody>
+        </table>
+        <div class="warning"><strong>The most important risk caveat:</strong> the full 30-trade breadth sample remains positive after removing its five best winners, but the 21-trade held-out half does not. That does not erase the discovery; it shows why 200 genuinely new paper signals are required before any live-money claim.</div>
+    </section>
+
+    <figure>
+        <img src="figures/alpha_equity_drawdown.png" alt="Chronological equity and drawdown charts for broad and narrow trigger transactions.">
+        <figcaption>The broad curve separates early and stays positive through validation and final test. Narrow triggers deteriorate sharply. Vertical lines show the development and validation boundaries.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/alpha_daily_pnl.png" alt="Daily breadth-strategy profit bars with a cumulative profit line.">
+        <figcaption>Profits arrive on clusters of signal days rather than evenly. That dependence is why the report resamples whole trading days instead of pretending every event is independent.</figcaption>
+    </figure>
+
+    <figure>
         <img src="figures/breadth_execution_sensitivity.png" alt="Line chart showing broad-sweep returns under increasingly adverse execution assumptions.">
         <figcaption>At the original 60-second mark, the breadth rule remains positive as the assumed price penalty rises. At ten cents, all broad signals return ${pct(stressTen.all.roiPct, 1)} and the held-out half returns ${pct(stressTenHeldOutRoi, 1)}. The held-out line reaches break-even near 20 cents.</figcaption>
     </figure>
@@ -533,7 +701,7 @@ function renderHtml(analysis, edge) {
     </figure>
 
     <section>
-        <h2>What his edge probably is, and what remains hidden</h2>
+        <h2>What the alpha reveals, and what remains hidden</h2>
         <div class="confidence-row">
             <div class="confidence-label high">Chain fact</div>
             <div><strong>The wallet selectively takes broad liquidity.</strong> The triggering calldata directly names the maker orders consumed. Breadth is observable once the transaction is mined.</div>
@@ -567,8 +735,10 @@ function renderHtml(analysis, edge) {
             <li><strong>Thirty is small.</strong> The full breadth result has 30 bets; only 21 occurred after threshold selection.</li>
             <li><strong>The held-out win-count test is suggestive, not decisive.</strong> Its one-sided Poisson-binomial p-value is ${number(heldOutCalibration.poissonBinomialUpperTailPValue, 3)}.</li>
             <li><strong>The threshold-search simulation is barely below 0.05.</strong> Its p-value is ${number(thresholdNull.oneSidedPValue, 3)}, not overwhelming evidence.</li>
+            <li><strong>The ${number(atlasCells)} atlas cells are not ${number(atlasCells)} confirmations.</strong> They map sensitivity around one frozen rule. Treating the best cell as a new discovery would be parameter mining.</li>
             <li><strong>The wallet and feature family were chosen retrospectively.</strong> The null simulation corrects the stated maker-count cutoff search, not every idea considered during the investigation.</li>
             <li><strong>The history spans roughly two months.</strong> A market regime, one operator, or one sports calendar can change.</li>
+            <li><strong>The held-out result is winner-concentrated.</strong> Removing its five most profitable winners changes held-out ROI to ${pct(heldOutRisk.roiWithoutTopWinnersPct['5'], 1)}.</li>
             <li><strong>Execution is still a proxy.</strong> Public prints show activity, not guaranteed historical ask depth, queue position, partial fills, or API publication latency.</li>
         </ul>
         <div class="warning"><strong>Correct conclusion:</strong> this is a real, testable discovery in the available sample, not proof of future profit. It earns a frozen prospective paper test. It does not earn live capital yet.</div>
@@ -619,7 +789,7 @@ function renderHtml(analysis, edge) {
         <h2>Where the facts came from</h2>
         <p>This essay is a human-readable rendering of committed machine-readable evidence. The core calculations can be audited in:</p>
         <ul>
-            <li><a href="edge_analysis.json">edge_analysis.json</a>: blind-copy and atomic-breadth backtests, chronology, null simulation, controls, latency-cost surface, and break-even frontiers.</li>
+            <li><a href="edge_analysis.json">edge_analysis.json</a>: blind-copy and atomic-breadth backtests, chronology, null simulation, controls, ${number(atlasCells)} parameter-atlas cells, risk diagnostics, and break-even frontiers.</li>
             <li><a href="edge_features.csv">edge_features.csv</a>: one row per reconstructed signal, including decoded maker breadth and information available by signal time.</li>
             <li><a href="trigger_transactions.json">trigger_transactions.json</a>: decoded <code>matchOrders</code> calldata and derived fill anatomy for all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions.</li>
             <li><a href="deep_analysis.json">deep_analysis.json</a>: wallet-level execution, market format, profit, fee, and concentration facts.</li>
@@ -639,7 +809,7 @@ function renderHtml(analysis, edge) {
 </main>
 
 <footer>
-    <div class="page">Polymarket trader investigation &middot; Atomic-breadth edition &middot; Generated from committed evidence</div>
+    <div class="page">Polymarket trader investigation &middot; 24-figure alpha and execution dossier &middot; Generated from committed evidence</div>
 </footer>
 </body>
 </html>`;

@@ -279,25 +279,38 @@ test('copy execution audit spans same-second through five minutes and solves bre
     const atomic = edgeAnalysis.atomicBreadthEdge;
     const lags = new Set(blind.executionSensitivity.map((row) => row.lagSeconds));
     const costs = new Set(blind.executionSensitivity.map((row) => row.slippageCents));
-    assert.deepStrictEqual([...lags], [0, 1, 2, 5, 10, 15, 30, 60, 120, 300]);
-    assert.deepStrictEqual([...costs], [0, 0.5, 1, 2, 3, 5, 7, 10, 15, 20]);
-    assert.strictEqual(blind.executionSensitivity.length, 100);
-    assert.strictEqual(atomic.executionSensitivity.length, 100);
+    assert.deepStrictEqual(
+        [...lags], [0, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300]
+    );
+    assert.deepStrictEqual(
+        [...costs], [0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30]
+    );
+    assert.strictEqual(blind.executionSensitivity.length, 255);
+    assert.strictEqual(atomic.executionSensitivity.length, 255);
     const blindOneSecond = blind.executionBreakEven.find((row) => row.lagSeconds === 1);
     const breadthOneSecond = atomic.executionBreakEven.find((row) => row.lagSeconds === 1);
     assert.ok(blindOneSecond.allMaxAdverseCents > 1);
     assert.ok(blindOneSecond.allMaxAdverseCents < 2);
     assert.ok(breadthOneSecond.heldOutMaxAdverseCents > 15);
     assert.match(atomic.executionTimingLimits.subsecondScenario, /cannot be distinguished/);
+    assert.deepStrictEqual(edgeAnalysis.copyParameterAtlas.scenarioCounts, {
+        latencyByAdversePricePerStrategy: 255,
+        latencyByAdversePriceBothStrategies: 510,
+        feeByAdversePricePerStrategy: 102,
+        breadthByAdversePrice: 442,
+        breadthByLatency: 390
+    });
 });
 
 test('plain-English essay renders the key claim, caveat, and every chart', () => {
     const html = renderHtml(deepAnalysis, edgeAnalysis);
-    assert.match(html, /Copying the whale would have lost money/);
+    assert.match(html, /Inside the whale's alpha/);
     assert.match(html, /-6\.15%/);
     assert.match(html, /\+41\.94%/);
     assert.match(html, /\+27\.32%/);
     assert.match(html, /1\.53 cents/);
+    assert.match(html, /His alpha, literally/);
+    assert.match(html, /1,444-cell parameter atlas/);
     assert.match(html, /0\.1-second bot and a 0\.5-second bot cannot be separated honestly/);
     assert.match(html, /p=0\.046/);
     for (const figure of [
@@ -312,7 +325,19 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
         'atomic_sweep_anatomy',
         'breadth_execution_sensitivity',
         'copy_execution_surface',
-        'copy_break_even_frontier'
+        'copy_break_even_frontier',
+        'copy_latency_curves',
+        'copy_cost_curves',
+        'fee_cost_surface',
+        'execution_print_coverage',
+        'breadth_threshold_cost_surface',
+        'breadth_threshold_latency_surface',
+        'maker_breadth_distribution',
+        'breadth_notional_scatter',
+        'alpha_equity_drawdown',
+        'alpha_subgroup_robustness',
+        'alpha_daily_pnl',
+        'alpha_leave_one_discipline_out'
     ]) {
         assert.match(html, new RegExp(`figures/${figure}\\.png`));
     }

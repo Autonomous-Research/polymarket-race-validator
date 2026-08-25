@@ -25,7 +25,7 @@ The account is a two-layer automated operation: 92.8% of fills are maker executi
 
 The original classifier treated BO1 as a series. Correcting it moves 9 markets that lost $1.78M into the single-map failure bucket. This correction was found while inspecting final losses and is explicitly not claimed as an untouched discovery.
 
-The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses 143,507 unrelated market-wide prints, forces no-print signals into the test, and crosses ten delays from same-second to five minutes with ten adverse-price assumptions from zero to 20 cents. The clock starts when settlement is mined because maker breadth is not available at the earlier off-chain MATCHED state. One-second blind copying breaks even after only 1.53 cents.
+The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses 143,507 unrelated market-wide prints, forces no-print signals into the test, and crosses 15 delays from same-second to five minutes with 17 adverse-price assumptions from zero to 30 cents. The clock starts when settlement is mined because maker breadth is not available at the earlier off-chain MATCHED state. One-second blind copying breaks even after only 1.53 cents.
 
 No stable leader wallet was identified. Early-selected peer confirmation returned +7.62% on later bets, below the +29.67% return without confirmation. Eventual target size was also unpredictable. Neither peer identity nor inferred final size belongs in the model.
 
@@ -35,7 +35,7 @@ The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEE
 
 ## Read In Order
 
-1. [Illustrated plain-English essay](./plain_english_essay.pdf): the result, realistic copy-speed surface, charts, and caveats without requiring code.
+1. [Illustrated plain-English essay](./plain_english_essay.pdf): the literal alpha definition, 1,444-cell parameter atlas, 24 charts, risk diagnostics, and caveats without requiring code.
 2. [Breakthrough audit](./breakthrough_report.md): atomic-breadth signal, falsification tests, and promotion criteria.
 3. [Replication report](./replication_report.md): the earlier monitor and its exact execution assumptions.
 4. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.

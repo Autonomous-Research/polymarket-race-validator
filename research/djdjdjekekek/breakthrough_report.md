@@ -1,6 +1,6 @@
 # Breakthrough Audit: Atomic Breadth
 
-Generated 2026-08-25T18:25:07.734385+00:00. For the illustrated, nontechnical version, read [the plain-English essay](./plain_english_essay.pdf).
+Generated 2026-08-25T18:47:53.344546+00:00. For the illustrated, nontechnical version, read [the plain-English essay](./plain_english_essay.pdf).
 
 ## Discovery
 
@@ -32,7 +32,7 @@ Distinct signed accounts are not proven distinct humans. The fact is contract-le
 
 ## Realistic Copy Speed
 
-The execution audit crosses ten delays from same-second through 300 seconds with ten adverse-price assumptions from zero through 20 cents. Historical timestamps are only one second precise, so 0.1-second and 0.5-second bots cannot be distinguished. Same-second is an optimistic bound because ordering inside that second is unknown. The clock starts at the mined block: maker breadth cannot be decoded at Polymarket's earlier off-chain MATCHED state from this public history.
+The execution audit crosses 15 delays from same-second through 300 seconds with 17 adverse-price assumptions from zero through 30 cents. Historical timestamps are only one second precise, so 0.1-second and 0.5-second bots cannot be distinguished. Same-second is an optimistic bound because ordering inside that second is unknown. The clock starts at the mined block: maker breadth cannot be decoded at Polymarket's earlier off-chain MATCHED state from this public history.
 
 At one second plus one cent, blind copying returned +1.04%. At one second plus two cents, it returned -0.90%. Its solved one-second break-even allowance is only 1.53 cents. The breadth rule's held-out allowance is 19.12 cents.
 
@@ -41,6 +41,39 @@ There is no measured sub-minute latency cliff. Price impact is the cliff: a fast
 ![Latency and adverse-price surface](./figures/copy_execution_surface.png)
 
 ![Break-even execution frontier](./figures/copy_break_even_frontier.png)
+
+## Full Parameter Atlas
+
+The exported audit contains 1,444 grid cells across four sensitivity families:
+
+- 510 latency-by-price results across blind and alpha-filtered copying;
+- 102 fee-by-price settings for each strategy view;
+- 442 breadth-cutoff-by-price settings;
+- 390 breadth-cutoff-by-latency settings.
+
+At one second plus one cent, the held-out breadth sample returned +35.60%. The dense atlas is a fragility map, not 1,444 independent confirmations.
+
+![All measured latency curves](./figures/copy_latency_curves.png)
+
+![All execution-cost curves](./figures/copy_cost_curves.png)
+
+![Fee and price-cost surface](./figures/fee_cost_surface.png)
+
+## Alpha, Literally
+
+The recoverable alpha is a conditional market-pricing residual:
+
+```text
+B(tx) = count(distinct makerOrders[].maker)
+Signal(tx) = eligible first-event BUY taker transaction AND B(tx) >= 18
+Probability alpha = realized outcome - public execution-proxy probability
+```
+
+Measured probability alpha was +23.21 pp across all 30 broad sweeps and +16.41 pp after development selection. Below 18 makers it was -0.59 pp. This identifies the public footprint of conviction, not the private information source.
+
+![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.png)
+
+![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.png)
 
 ## Falsification And Controls
 
@@ -69,14 +102,15 @@ The source of information is unknown. Public evidence cannot distinguish a super
 3. Require concentration of at least 70% and trigger price from 0.30 through 0.85.
 4. Decode the mined V2 `matchOrders` call and verify the target is BUY taker for the signaled token.
 5. Require at least 18 distinct `makerOrders[].maker` addresses.
-6. Submit immediately in paper mode with a fixed price ceiling; record actual latency, depth, partial fills, and failures.
-7. Use a fixed $100 stake. Do not martingale or infer the whale's eventual size.
+6. Add no artificial delay. Snapshot the first live best ask and displayed depth after the mined call is decoded.
+7. Create a $100 paper-only marketable FOK limit capped one cent above that ask and never above 0.90; record insufficient depth, rejection, partial fill, latency, and fees rather than assuming execution.
+8. Hold accepted paper fills to resolution. Do not martingale or infer the whale's eventual size.
 
 ## Decision And Limits
 
 Freeze `atomic-breadth-18` and collect at least 200 genuinely new eligible signals in paper mode. Do not deploy capital before the unseen sample remains profitable after costs and after removing its largest winners.
 
-This is a two-month, retrospectively selected wallet and feature family. The threshold simulation corrects the declared maker-count search, not every research choice. Public prints do not reconstruct historical order-book depth or publication latency. This is research, not financial advice.
+This is a two-month, retrospectively selected wallet and feature family. The threshold simulation corrects the declared maker-count search, not every research choice. The held-out half becomes negative after removing its five best winners. Public prints do not reconstruct historical order-book depth or publication latency. This is research, not financial advice.
 
 ## Evidence
 
