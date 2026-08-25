@@ -2,6 +2,12 @@
 
 Transaction-level investigation of a high-volume Polymarket account. The repository reconstructs wallet control, cash flows, maker/taker roles, market outcomes, external execution prices, peer activity, and a leakage-controlled paper strategy.
 
+## Start Here: No Code Required
+
+**[Read the illustrated plain-English essay (PDF)](research/djdjdjekekek/plain_english_essay.pdf)**
+
+The PDF explains what blind copying would have done, what the trader's possible edge is, which facts support it, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
+
 Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
 ## Read This First

@@ -16,7 +16,9 @@ const {
     simulateMarket
 } = require('../src/research/backtest');
 const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
+const deepAnalysis = require('../research/djdjdjekekek/deep_analysis.json');
 const edgeAnalysis = require('../research/djdjdjekekek/edge_analysis.json');
+const { renderHtml } = require('../src/research/plain_english_essay');
 const {
     activeEventKeys,
     buildReplicatorConfig,
@@ -199,6 +201,24 @@ test('committed edge artifact preserves the blind-copy rejection and tight falsi
     assert.ok(mechanism.calibration.slower.calibrationGapPctPoints < 0);
     assert.ok(mechanism.compositionControls.broadCmh.twoSidedPValue < 0.05);
     assert.ok(mechanism.compositionControls.finePermutation.oneSidedPValue > 0.05);
+});
+
+test('plain-English essay renders the key claim, caveat, and every chart', () => {
+    const html = renderHtml(deepAnalysis, edgeAnalysis);
+    assert.match(html, /Copying the whale would have lost money/);
+    assert.match(html, /-6\.15%/);
+    assert.match(html, /\+24\.37%/);
+    assert.match(html, /p=0\.239/);
+    for (const figure of [
+        'blind_copy_funnel',
+        'strategy_equity',
+        'urgency_calibration',
+        'burst_threshold_sensitivity',
+        'execution_sensitivity'
+    ]) {
+        assert.match(html, new RegExp(`figures/${figure}\\.png`));
+    }
+    assert.doesNotMatch(html, /\b(?:undefined|NaN)\b/);
 });
 
 test('active positions reserve their canonical event in the paper monitor', () => {
