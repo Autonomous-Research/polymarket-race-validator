@@ -1,0 +1,305 @@
+[
+  {
+    "mode": "dry-run",
+    "action": "CLONE_ACTIVE_POSITION",
+    "reason": "Target currently holds 55,706.545 shares with $24,232.35 current value and $869.96 cash PnL.",
+    "market": "mlb-bos-mia-2026-08-24",
+    "title": "Boston Red Sox vs. Miami Marlins",
+    "family": "sports",
+    "outcome": "Boston Red Sox",
+    "targetSize": 55706.5451,
+    "targetAvgPrice": 0.4193,
+    "targetCurrentPrice": 0.435,
+    "maxOrderUsdc": 2423.23471,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $23,362.52 observed market notional on Boston Red Sox. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "mlb-bos-mia-2026-08-24",
+    "title": "Boston Red Sox vs. Miami Marlins",
+    "family": "sports",
+    "outcome": "Boston Red Sox",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $1,089,244.93 observed market notional on  Phantom Academy. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "cs2-all-phanto-2026-08-24",
+    "title": "Counter-Strike: Alliance vs  Phantom Academy (BO3) - United21 Group D",
+    "family": "esports",
+    "outcome": " Phantom Academy",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $83,511.06 observed market notional on Andrej Nedic. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "atp-nedic-estevez-2026-08-24",
+    "title": "Augsburg: Andrej Nedic vs Juan Estevez",
+    "family": "sports",
+    "outcome": "Andrej Nedic",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $112,500 observed market notional on Oleksandra Oliynykova. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "wta-sherif-oliynyk-2026-08-23",
+    "title": "Monterrey Open: Mayar Sherif vs Oleksandra Oliynykova",
+    "family": "sports",
+    "outcome": "Oleksandra Oliynykova",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $302,780.29 observed market notional on Nikola Bartunkova. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "wta-ruzic-bartunk-2026-08-23",
+    "title": "Monterrey Open: Antonia Ruzic vs Nikola Bartunkova",
+    "family": "sports",
+    "outcome": "Nikola Bartunkova",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $271,121.54 observed market notional on Yulia Starodubtseva. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "wta-tagger-starodu-2026-08-23",
+    "title": "Monterrey Open: Lilli Tagger vs Yulia Starodubtseva",
+    "family": "sports",
+    "outcome": "Yulia Starodubtseva",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $98,791.23 observed market notional on Seahawks. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "nfl-sea-ten-2026-08-24",
+    "title": "Seahawks vs. Titans",
+    "family": "sports",
+    "outcome": "Seahawks",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $716,719.39 observed market notional on Spirit. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "cs2-fut-ts7-2026-08-23",
+    "title": "Counter-Strike: FUT Esports vs Spirit (BO5) - Esports World Cup Playoffs",
+    "family": "esports",
+    "outcome": "Spirit",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $2,509,104.74 observed market notional on Team Spirit. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-vsn2-ts8-2026-08-23",
+    "title": "Dota 2: TEAM VISION vs Team Spirit (BO5) - The International Playoffs",
+    "family": "esports",
+    "outcome": "Team Spirit",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $1,116,668.88 observed market notional on Team Yandex. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-ty-ts8-2026-08-22-game2",
+    "title": "Dota 2: Team Yandex vs Team Spirit - Game 2 Winner",
+    "family": "esports",
+    "outcome": "Team Yandex",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $367,110.17 observed market notional on Team Yandex. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-ty-ts8-2026-08-22-game1",
+    "title": "Dota 2: Team Yandex vs Team Spirit - Game 1 Winner",
+    "family": "esports",
+    "outcome": "Team Yandex",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 85.8% of $535,346.37 observed market notional on Team Yandex. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-ty-ts8-2026-08-22",
+    "title": "Dota 2: Team Yandex vs Team Spirit (BO3) - The International Playoffs",
+    "family": "esports",
+    "outcome": "Team Yandex",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $245,919.27 observed market notional on Eagles. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "nfl-phi-ne-2026-08-22",
+    "title": "Eagles vs. Patriots",
+    "family": "sports",
+    "outcome": "Eagles",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $384,399.89 observed market notional on Tampa Bay Rays. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "mlb-tb-bal-2026-08-22",
+    "title": "Tampa Bay Rays vs. Baltimore Orioles",
+    "family": "sports",
+    "outcome": "Tampa Bay Rays",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $198,940.24 observed market notional on Iga Swiatek. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "wta-pegula-swiatek-2026-08-22",
+    "title": "Cincinnati Open: Jessica Pegula vs Iga Swiatek",
+    "family": "sports",
+    "outcome": "Iga Swiatek",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $1,024,470.62 observed market notional on Spirit. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "cs2-lgc-ts7-2026-08-22",
+    "title": "Counter-Strike: Legacy vs Spirit (BO3) - Esports World Cup Playoffs",
+    "family": "esports",
+    "outcome": "Spirit",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $2,102,427.49 observed market notional on FUT Esports. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "cs2-furia-fut-2026-08-22",
+    "title": "Counter-Strike: FURIA vs FUT Esports (BO3) - Esports World Cup Playoffs",
+    "family": "esports",
+    "outcome": "FUT Esports",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $523,164.99 observed market notional on BoomBoys. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-boombo-ts8-2026-08-22",
+    "title": "Dota 2: BoomBoys vs Team Spirit (BO3) - The International Playoffs",
+    "family": "esports",
+    "outcome": "BoomBoys",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  },
+  {
+    "mode": "dry-run",
+    "action": "WATCH_NEXT_SIMILAR_SETUP",
+    "reason": "Historical pattern: target concentrated 100.0% of $1,357,950.7 observed market notional on TEAM VISION. Use as a template for the next live similar setup, not as a stale-market order.",
+    "market": "dota2-vsn2-ty-2026-08-22",
+    "title": "Dota 2: TEAM VISION vs Team Yandex (BO3) - The International Playoffs",
+    "family": "esports",
+    "outcome": "TEAM VISION",
+    "maxOrderUsdc": 2500,
+    "guards": {
+      "maxCopyLagSeconds": 300,
+      "maxSlippageCents": 3,
+      "noChaseAbovePrice": 0.75
+    }
+  }
+]

@@ -1,11 +1,15 @@
 {
-  "name": "polymarket-race-validator",
+  "name": "polymarket-trader-research",
   "version": "1.0.0",
-  "description": "Production-grade Polymarket race condition validator",
+  "private": true,
+  "description": "Polymarket trader reverse-engineering and dry-run replication research",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "probe": "node src/probe.js",
+    "research:collect": "node src/trader_research.js collect",
+    "research:analyze": "node src/trader_research.js analyze",
+    "research:replicate": "node src/trader_research.js replicate",
     "test": "node --test test/utils.test.js"
   },
   "author": "",
