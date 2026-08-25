@@ -14,12 +14,14 @@ matplotlib.use("Agg")
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 import pandas as pd
 
 from edge_analysis import (
     CORE_DISCIPLINES,
     EXCLUDED_MARKET_TYPES,
+    base_universe,
     prepare_bets,
 )
 
@@ -242,9 +244,12 @@ def execution_sensitivity(edge: dict, output_dir: Path) -> list[str]:
     for label, values, color in series:
         axis.plot(slippage, values, marker="o", linewidth=2.2, markersize=6, color=color, label=label)
         for x_value, y_value in zip(slippage, values):
+            if x_value not in {0, 5, 10, 20}:
+                continue
             axis.text(x_value, y_value + (1.4 if y_value >= 0 else -2.2), f"{y_value:+.1f}%", ha="center", color=color, fontsize=9)
     axis.axhline(0, color=INK, linewidth=1.0)
-    axis.set_xticks(slippage, [f"{value}c" for value in slippage])
+    shown_ticks = [0, 1, 2, 3, 5, 7, 10, 15, 20]
+    axis.set_xticks(shown_ticks, [f"{value}c" for value in shown_ticks])
     axis.set_xlabel("Adverse execution stress after the 60-second lag")
     axis.set_ylabel("Equal-stake ROI")
     axis.set_title("Execution cost can consume the aggregate edge", loc="left")
@@ -290,16 +295,336 @@ def burst_threshold_sensitivity(edge: dict, output_dir: Path) -> list[str]:
     return save_figure(fig, output_dir, "burst_threshold_sensitivity")
 
 
+def atomic_breadth_calibration(edge: dict, output_dir: Path) -> list[str]:
+    atomic = edge["atomicBreadthEdge"]
+    groups = [
+        ("Narrow trigger", atomic["belowThresholdCalibration"], atomic["belowThreshold"]),
+        ("Broad trigger", atomic["allCalibration"], atomic["all"]),
+        ("Broad, held out", atomic["chronology"]["heldOutCalibration"],
+         atomic["chronology"]["heldOutAfterDevelopment"]),
+    ]
+    labels = [f"{name}\nn={calibration['bets']}" for name, calibration, _ in groups]
+    implied = [calibration["meanImpliedProbabilityPct"] for _, calibration, _ in groups]
+    actual = [calibration["actualWinRatePct"] for _, calibration, _ in groups]
+    roi = [summary["roiPct"] for _, _, summary in groups]
+
+    fig, axis = plt.subplots(figsize=(11.8, 7.0))
+    positions = np.arange(len(groups))
+    width = 0.34
+    axis.bar(positions - width / 2, implied, width, color=SECONDARY, label="Public-price implied")
+    axis.bar(positions + width / 2, actual, width, color=POSITIVE, label="Actual win rate")
+    for index, (_, calibration, _) in enumerate(groups):
+        axis.text(
+            index, max(implied[index], actual[index]) + 2.5,
+            f"gap {calibration['calibrationGapPctPoints']:+.1f} pp\nROI {roi[index]:+.1f}%",
+            ha="center", va="bottom", fontsize=10, color=INK, fontweight="bold"
+        )
+    axis.set_xticks(positions, labels)
+    axis.set_ylim(0, 96)
+    axis.set_ylabel("Probability / realized win rate")
+    axis.set_title("The edge appears when one trigger reaches many maker accounts", loc="left")
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="upper left", ncols=2)
+    fig.text(
+        0.01, 0.01,
+        "Broad means at least 18 distinct maker addresses in the mined trigger transaction. Held out combines validation and final test after development-only threshold selection.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "atomic_breadth_calibration")
+
+
+def breadth_chronology(features: pd.DataFrame, output_dir: Path) -> list[str]:
+    bets = prepare_bets(base_universe(features), 60, 5).sort_values(
+        "signalTimestamp"
+    ).reset_index(drop=True)
+    first = int(len(bets) * 0.50)
+    second = int(len(bets) * 0.70)
+    segments = [
+        ("Development", bets.iloc[:first]),
+        ("Validation", bets.iloc[first:second]),
+        ("Final test", bets.iloc[second:]),
+    ]
+    definitions = [
+        ("Old rapid proxy", lambda rows: rows["takerBurst60Share"] >= 0.80, SECONDARY),
+        ("Atomic breadth >=18", lambda rows: rows["onchainUniqueMakers"] >= 18, POSITIVE),
+    ]
+    fig, axis = plt.subplots(figsize=(12.2, 7.0))
+    positions = np.arange(len(segments))
+    width = 0.34
+    for offset, (name, mask, color) in zip((-width / 2, width / 2), definitions):
+        values = []
+        counts = []
+        for _, segment in segments:
+            selected = segment[mask(segment)]
+            values.append(selected["return"].mean() * 100)
+            counts.append(len(selected))
+        bars = axis.bar(positions + offset, values, width, color=color, label=name)
+        for bar, value, count in zip(bars, values, counts):
+            axis.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + (2.2 if value >= 0 else -3.3),
+                f"{value:+.1f}%\nn={count}", ha="center",
+                va="bottom" if value >= 0 else "top", fontsize=9.5,
+                color=INK, fontweight="bold"
+            )
+    axis.axhline(0, color=INK, linewidth=1.0)
+    axis.set_xticks(positions, [name for name, _ in segments])
+    axis.set_ylim(-42, 92)
+    axis.set_ylabel("Equal-stake ROI after lag, price stress, and fees")
+    axis.set_title("Transaction breadth fixes the rapid proxy's middle-period failure", loc="left")
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="upper right")
+    fig.text(
+        0.01, 0.01,
+        "The breadth cutoff was selected only from development. Validation and final outcomes were not used to choose 18.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "breadth_chronology")
+
+
+def breadth_threshold_lock(edge: dict, output_dir: Path) -> list[str]:
+    candidates = edge["atomicBreadthEdge"]["thresholdSelection"]["candidates"]
+    rows = [row for row in candidates if row["minimumUniqueMakers"] <= 23]
+    thresholds = [row["minimumUniqueMakers"] for row in rows]
+    development = [
+        row["developmentCalibration"].get("calibrationGapPctPoints", np.nan)
+        for row in rows
+    ]
+    held_out = []
+    counts = []
+    for row in rows:
+        validation = row["validationCalibration"]
+        final = row["finalTestCalibration"]
+        bets = validation.get("bets", 0) + final.get("bets", 0)
+        excess = (
+            validation.get("excessWins", 0) + final.get("excessWins", 0)
+        )
+        held_out.append(excess / bets * 100 if bets else np.nan)
+        counts.append(bets)
+
+    fig, axis = plt.subplots(figsize=(12.4, 7.0))
+    second = axis.twinx()
+    axis.plot(thresholds, development, marker="o", linewidth=2.0, color=SECONDARY, label="Development")
+    axis.plot(thresholds, held_out, marker="s", linewidth=2.2, color=POSITIVE, label="Held out")
+    second.bar(thresholds, counts, width=0.72, color=GRID, alpha=0.52, label="Held-out bets")
+    axis.axvline(18, color=ACCENT, linewidth=1.8, linestyle="--", label="Locked at 18")
+    axis.axhline(0, color=INK, linewidth=1.0)
+    axis.set_xticks(thresholds)
+    axis.set_xlabel("Minimum distinct maker accounts in trigger")
+    axis.set_ylabel("Win rate minus public-price probability (points)")
+    second.set_ylabel("Held-out bets")
+    axis.set_title("The first half selected 18; nearby breadth cutoffs tell the same story", loc="left")
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    second.spines[["top", "left"]].set_visible(False)
+    handles, labels = axis.get_legend_handles_labels()
+    second_handles, second_labels = second.get_legend_handles_labels()
+    axis.legend(handles + second_handles, labels + second_labels, loc="upper left", ncols=4)
+    fig.text(
+        0.01, 0.01,
+        "The gray bars shrink as the rule becomes stricter. The formal market-null simulation repeats the threshold search rather than treating every cutoff as an independent test.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "breadth_threshold_lock")
+
+
+def atomic_sweep_anatomy(
+    trigger_data: dict, features: pd.DataFrame, output_dir: Path
+) -> list[str]:
+    example_feature = features[
+        features["title"].str.contains("FURIA vs FUT Esports", case=False, na=False)
+    ].iloc[0]
+    example = next(
+        row for row in trigger_data["transactions"]
+        if row["conditionId"] == example_feature["conditionId"]
+    )
+    fills = pd.DataFrame(example["sweep"]["fills"])
+    fills["priceLevel"] = fills["targetPrice"].round(4)
+    levels = fills.groupby("priceLevel", sort=True).agg(
+        notional=("targetNotionalUsdc", "sum"),
+        orders=("maker", "size"),
+        makers=("maker", "nunique"),
+    ).reset_index()
+    labels = [f"{price * 100:.0f}c" for price in levels["priceLevel"]]
+
+    fig, axis = plt.subplots(figsize=(12.0, 7.0))
+    bars = axis.barh(labels, levels["notional"] / 1000, color=POSITIVE)
+    for bar, row in zip(bars, levels.itertuples()):
+        axis.text(
+            bar.get_width() + max(levels["notional"] / 1000) * 0.015,
+            bar.get_y() + bar.get_height() / 2,
+            f"${row.notional / 1000:,.1f}k | {row.orders} orders | {row.makers} accounts",
+            va="center", fontsize=9.5, color=INK
+        )
+    sweep = example["sweep"]
+    axis.set_xlabel("Target-side notional matched at each price level ($ thousands)")
+    axis.set_ylabel("FUT Esports contract price")
+    axis.set_title("One public trade was actually a 35-order atomic book sweep", loc="left")
+    axis.grid(axis="x")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.set_xlim(0, max(levels["notional"] / 1000) * 1.42)
+    fig.text(
+        0.01, 0.01,
+        f"Illustrative winning trigger: {sweep['makerOrderCount']} maker orders, {sweep['uniqueMakers']} distinct maker accounts, {sweep['uniquePriceLevels']} price levels, ${sweep['targetNotionalUsdc'] / 1_000_000:.2f}m target notional, median resting-order age {sweep['restingAgeMedianSeconds']:.0f}s. Example only; the statistical result uses all eligible events.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "atomic_sweep_anatomy")
+
+
+def breadth_execution_sensitivity(edge: dict, output_dir: Path) -> list[str]:
+    rows = sorted(
+        [row for row in edge["atomicBreadthEdge"]["executionSensitivity"]
+         if row["lagSeconds"] == 60],
+        key=lambda row: row["slippageCents"]
+    )
+    slippage = [row["slippageCents"] for row in rows]
+    all_values = [row["all"]["roiPct"] for row in rows]
+    final_values = [row["finalTest"]["roiPct"] for row in rows]
+    held_out_values = []
+    for row in rows:
+        profit = row["validation"]["profitUsdc"] + row["finalTest"]["profitUsdc"]
+        stake = row["validation"]["stakeUsdc"] + row["finalTest"]["stakeUsdc"]
+        held_out_values.append(profit / stake * 100)
+
+    fig, axis = plt.subplots(figsize=(11.6, 6.8))
+    for label, values, color, text_offset, alignment in [
+        ("All breadth signals", all_values, POSITIVE, -1.8, "top"),
+        ("Held-out half", held_out_values, SECONDARY, 1.5, "bottom"),
+        ("Final test", final_values, ACCENT, 1.5, "bottom"),
+    ]:
+        axis.plot(slippage, values, marker="o", linewidth=2.2, markersize=6, color=color, label=label)
+        for x_value, y_value in zip(slippage, values):
+            if x_value not in {0, 5, 10, 20}:
+                continue
+            axis.text(
+                x_value, y_value + text_offset, f"{y_value:+.1f}%",
+                ha="center", va=alignment, fontsize=9, color=color
+            )
+    axis.axhline(0, color=INK, linewidth=1.0)
+    shown_ticks = [0, 1, 2, 3, 5, 7, 10, 15, 20]
+    axis.set_xticks(shown_ticks, [f"{value}c" for value in shown_ticks])
+    axis.set_ylim(-3, max(final_values) + 12)
+    axis.set_xlabel("Adverse price movement after the 60-second wait")
+    axis.set_ylabel("Equal-stake ROI")
+    axis.set_title("The breadth rule remains positive under severe execution stress", loc="left")
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="upper right")
+    return save_figure(fig, output_dir, "breadth_execution_sensitivity")
+
+
+def copy_execution_surface(edge: dict, output_dir: Path) -> list[str]:
+    blind_rows = edge["blindCopyCounterfactual"]["executionSensitivity"]
+    breadth_rows = edge["atomicBreadthEdge"]["executionSensitivity"]
+    lags = sorted({row["lagSeconds"] for row in blind_rows})
+    slippage = sorted({row["slippageCents"] for row in blind_rows})
+
+    def matrix(rows: list[dict], held_out: bool = False) -> np.ndarray:
+        lookup = {(row["lagSeconds"], row["slippageCents"]): row for row in rows}
+        values = []
+        for lag in lags:
+            line = []
+            for cost in slippage:
+                row = lookup[(lag, cost)]
+                if held_out:
+                    profit = row["validation"]["profitUsdc"] + row["finalTest"]["profitUsdc"]
+                    stake = row["validation"]["stakeUsdc"] + row["finalTest"]["stakeUsdc"]
+                    line.append(profit / stake * 100)
+                else:
+                    line.append(row["all"]["roiPct"])
+            values.append(line)
+        return np.asarray(values)
+
+    panels = [
+        ("Blind copy: all 139 signals", matrix(blind_rows), "No selection edge"),
+        ("Atomic breadth: held-out 21", matrix(breadth_rows, held_out=True), "18+ maker accounts"),
+    ]
+    fig, axes = plt.subplots(1, 2, figsize=(15.2, 7.8), constrained_layout=True)
+    normalization = TwoSlopeNorm(vmin=-26, vcenter=0, vmax=42)
+    image = None
+    for axis, (title, values, subtitle) in zip(axes, panels):
+        image = axis.imshow(values, cmap="RdYlGn", norm=normalization, aspect="auto")
+        for row_index in range(len(lags)):
+            for column_index in range(len(slippage)):
+                value = values[row_index, column_index]
+                color = "white" if value <= -13 or value >= 27 else INK
+                axis.text(
+                    column_index, row_index, f"{value:+.0f}",
+                    ha="center", va="center", fontsize=7.4,
+                    color=color, fontweight="bold"
+                )
+        axis.set_xticks(range(len(slippage)), [f"{value:g}c" for value in slippage], rotation=45, ha="right")
+        axis.set_yticks(range(len(lags)), ["same sec" if value == 0 else f"{value}s" for value in lags])
+        axis.set_xlabel("Extra adverse price paid")
+        axis.set_title(f"{title}\n{subtitle}", loc="left", fontsize=14)
+        axis.tick_params(length=0)
+        axis.spines[:].set_visible(False)
+    axes[0].set_ylabel("Delay after the trigger's block timestamp")
+    colorbar = fig.colorbar(image, ax=axes, shrink=0.86, pad=0.02)
+    colorbar.set_label("Equal-stake ROI (%)")
+    fig.suptitle("Speed is not the cliff; paying more than the edge is", x=0.01, ha="left", fontsize=18, fontweight="bold")
+    fig.text(
+        0.01, -0.025,
+        "Same-second is an optimistic bound because ordering inside a one-second timestamp is unknown. A 0.1s or 0.5s bot lies between same-second and 1s here. Every cell includes the observed fee curve.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "copy_execution_surface")
+
+
+def copy_break_even_frontier(edge: dict, output_dir: Path) -> list[str]:
+    blind = edge["blindCopyCounterfactual"]["executionBreakEven"]
+    breadth = edge["atomicBreadthEdge"]["executionBreakEven"]
+    lags = [row["lagSeconds"] for row in blind]
+    positions = np.arange(len(lags))
+    labels = ["same\nsecond" if value == 0 else f"{value}s" for value in lags]
+
+    fig, axes = plt.subplots(1, 2, figsize=(14.4, 6.8), sharex=True)
+    panels = [
+        (axes[0], [
+            ("All history", [row["allMaxAdverseCents"] for row in blind], NEGATIVE),
+            ("Later period", [row["laterMaxAdverseCents"] for row in blind], SECONDARY),
+        ], 6, "Blind copy"),
+        (axes[1], [
+            ("All breadth signals", [row["allMaxAdverseCents"] for row in breadth], POSITIVE),
+            ("Held-out half", [row["heldOutMaxAdverseCents"] for row in breadth], SECONDARY),
+        ], 32, "18-maker breadth rule"),
+    ]
+    for axis, series, upper, title in panels:
+        for label, values, color in series:
+            axis.plot(positions, values, marker="o", linewidth=2.2, markersize=5, color=color, label=label)
+        axis.set_xticks(positions, labels)
+        axis.set_ylim(0, upper)
+        axis.set_xlabel("Delay after trigger block timestamp")
+        axis.set_title(title, loc="left")
+        axis.grid(axis="y")
+        axis.spines[["top", "right", "left"]].set_visible(False)
+        axis.legend(loc="upper left")
+    axes[0].set_ylabel("Maximum adverse price before modeled ROI falls below zero (cents)")
+    fig.suptitle("Blind copying has about two cents of room; breadth has about twenty", x=0.01, ha="left", fontsize=18, fontweight="bold")
+    fig.subplots_adjust(bottom=0.19, top=0.82, wspace=0.18)
+    fig.text(
+        0.01, 0.02,
+        "Break-even values are solved from the same equal-stake replay and include fees. The near-flat lines show no measured sub-minute latency cliff; exact historical order-book depth remains unavailable.",
+        color=MUTED, fontsize=9
+    )
+    return save_figure(fig, output_dir, "copy_break_even_frontier")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--edge", default="research/djdjdjekekek/edge_analysis.json")
     parser.add_argument("--features", default="research/djdjdjekekek/edge_features.csv")
+    parser.add_argument("--triggers", default="research/djdjdjekekek/trigger_transactions.json")
     parser.add_argument("--output", default="research/djdjdjekekek/figures")
     args = parser.parse_args()
 
     with Path(args.edge).open(encoding="utf-8") as handle:
         edge = json.load(handle)
     features = pd.read_csv(args.features)
+    with Path(args.triggers).open(encoding="utf-8") as handle:
+        trigger_data = json.load(handle)
     output_dir = Path(args.output)
     configure_style()
     files = []
@@ -308,11 +633,19 @@ def main() -> None:
     files.extend(strategy_equity(features, output_dir))
     files.extend(execution_sensitivity(edge, output_dir))
     files.extend(burst_threshold_sensitivity(edge, output_dir))
+    files.extend(atomic_breadth_calibration(edge, output_dir))
+    files.extend(breadth_chronology(features, output_dir))
+    files.extend(breadth_threshold_lock(edge, output_dir))
+    files.extend(atomic_sweep_anatomy(trigger_data, features, output_dir))
+    files.extend(breadth_execution_sensitivity(edge, output_dir))
+    files.extend(copy_execution_surface(edge, output_dir))
+    files.extend(copy_break_even_frontier(edge, output_dir))
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": {
             "edge": args.edge,
             "features": args.features,
+            "triggers": args.triggers,
         },
         "files": [str(Path(path).relative_to(output_dir.parent)) for path in files],
         "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content.",

@@ -49,28 +49,50 @@ function isoDate(value) {
 
 function renderHtml(analysis, edge) {
     const blind = edge.blindCopyCounterfactual;
-    const fixed = edge.fixedExternalTapeBacktest;
-    const chronology = edge.subgroupChronology;
-    const mechanism = edge.mechanismAudit;
-    const rapid = mechanism.calibration.burst60;
-    const slow = mechanism.calibration.slower;
-    const clustered = mechanism.calibration.dayClusterBootstrap;
-    const broad = mechanism.compositionControls.broadCmh;
-    const fine = mechanism.compositionControls.finePermutation;
-    const model = edge.walkForwardModel;
+    const urgencyChronology = edge.subgroupChronology;
     const format = analysis.performance.formatAudit;
-    const rapidPregame = mechanism.byTimingAndUrgency.find((row) =>
-        row.key === 'pregame' && row.urgency === 'rapid');
-    const rapidLive = mechanism.byTimingAndUrgency.find((row) =>
-        row.key === 'in-play' && row.urgency === 'rapid');
+    const atomic = edge.atomicBreadthEdge;
+    const breadth = atomic.all;
+    const breadthCalibration = atomic.allCalibration;
+    const narrow = atomic.belowThreshold;
+    const narrowCalibration = atomic.belowThresholdCalibration;
+    const breadthChronology = atomic.chronology;
+    const heldOut = breadthChronology.heldOutAfterDevelopment;
+    const heldOutCalibration = breadthChronology.heldOutCalibration;
+    const heldOutCluster = breadthChronology.heldOutDayClusterBootstrap;
+    const thresholdNull = atomic.thresholdSelection.marketNullSimulation;
+    const breadthPermutation = atomic.compositionControlledPermutation;
+    const dayContrast = atomic.dayClusterCalibrationContrast.broadMinusNarrow;
+    const controlledModel = atomic.probabilityOffsetModels.sizeAndPeriodControlled;
+    const breadthCoefficient = controlledModel.coefficients.find((row) => row.name === 'broadSweep');
+    const notionalCoefficient = controlledModel.coefficients.find((row) => row.name === 'logNotionalCentered');
+    const rapidValidation = edge.lockedRefinement.candidates.find((row) => row.name === 'burst-60').validation;
+    const stressTen = atomic.executionSensitivity.find((row) =>
+        row.lagSeconds === 60 && row.slippageCents === 10);
+    const heldOutScenarioRoi = (row) => 100 * (
+        row.validation.profitUsdc + row.finalTest.profitUsdc
+    ) / (
+        row.validation.stakeUsdc + row.finalTest.stakeUsdc
+    );
+    const stressTenHeldOutRoi = heldOutScenarioRoi(stressTen);
+    const blindSameSecond = blind.executionSensitivity.find((row) =>
+        row.lagSeconds === 0 && row.slippageCents === 0);
+    const blindOneSecondOneCent = blind.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 1);
+    const blindOneSecondTwoCent = blind.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 2);
+    const breadthOneSecondOneCent = atomic.executionSensitivity.find((row) =>
+        row.lagSeconds === 1 && row.slippageCents === 1);
+    const blindOneSecondBreakEven = blind.executionBreakEven.find((row) => row.lagSeconds === 1);
+    const breadthOneSecondBreakEven = atomic.executionBreakEven.find((row) => row.lagSeconds === 1);
 
     return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A plain-English, illustrated investigation of what would have happened when copying a high-volume Polymarket trader.">
-<title>Copying the Whale Would Have Lost Money</title>
+<meta name="description" content="A plain-English, illustrated investigation of a Polymarket trader's atomic liquidity-sweep edge and realistic copy-trading execution.">
+<title>Copying the Whale Would Have Lost Money: We Found the Filter</title>
 <style>
     :root {
         --ink: #172026;
@@ -100,6 +122,7 @@ function renderHtml(analysis, edge) {
     }
     a { color: #205f8f; text-decoration-thickness: 1px; text-underline-offset: 3px; }
     a:hover { color: var(--teal); }
+    code { font-family: Consolas, 'Liberation Mono', monospace; font-size: 0.9em; }
     .page { width: min(100% - 40px, 980px); margin: 0 auto; }
     .masthead {
         border-top: 8px solid var(--red);
@@ -274,6 +297,8 @@ function renderHtml(analysis, edge) {
     @media print {
         @page { size: A4; margin: 14mm 13mm 15mm; }
         body { font-size: 11pt; line-height: 1.48; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+        p, li { orphans: 3; widows: 3; }
+        h2, h3 { break-after: avoid; page-break-after: avoid; }
         .page { width: 100%; }
         .masthead { padding: 18mm 0 8mm; }
         h1 { font-size: 39pt; }
@@ -297,14 +322,14 @@ function renderHtml(analysis, edge) {
 <body>
 <header class="masthead">
     <div class="page">
-        <p class="kicker">Plain-English investigation</p>
-        <h1>Copying the whale would have lost money.</h1>
-        <p class="dek">The trader made millions. A delayed follower copying every large signal would still have lost. The useful clue was not how much he eventually bet, but how quickly he crossed the market.</p>
+        <p class="kicker">Plain-English blockchain investigation</p>
+        <h1>Copying the whale would have lost money. We found the filter.</h1>
+        <p class="dek">The public feed makes one trade look like one number. The blockchain shows what happened inside it. The trader's strongest observable signal was an atomic sweep across many maker accounts, not merely a large bet.</p>
         <p class="dateline">Public-data study covering ${isoDate(analysis.coverage.firstTrade)} to ${isoDate(analysis.coverage.lastTrade)}. Analysis generated ${isoDate(edge.generatedAt)}.</p>
         <div class="headline-facts" aria-label="Headline findings">
             <div class="headline-fact"><strong class="negative">${pct(blind.all.roiPct, 2)}</strong><span>return from blindly copying all ${number(blind.all.bets)} large signals</span></div>
-            <div class="headline-fact"><strong class="positive">${pct(chronology.all.burst60.roiPct, 2)}</strong><span>return from the rapid-signal subset in the same stressed simulation</span></div>
-            <div class="headline-fact"><strong class="neutral">${pp(clustered.burstMinusSlower.estimatePctPoints, 1)}</strong><span>rapid-versus-slow probability gap before the strictest control</span></div>
+            <div class="headline-fact"><strong class="positive">${pct(breadth.roiPct, 2)}</strong><span>return when one trigger matched at least 18 maker accounts</span></div>
+            <div class="headline-fact"><strong class="neutral">${pct(heldOut.roiPct, 2)}</strong><span>return from those signals after the threshold was selected</span></div>
         </div>
     </div>
 </header>
@@ -313,156 +338,241 @@ function renderHtml(analysis, edge) {
     <nav class="contents" aria-label="Essay contents">
         <a href="#answer">The answer</a>
         <a href="#copying">Blind copying</a>
-        <a href="#discovery">The clue</a>
-        <a href="#edge">Possible edge</a>
-        <a href="#doubt">Reasons for doubt</a>
+        <a href="#chain">Inside the trade</a>
+        <a href="#discovery">The discovery</a>
+        <a href="#speed">Copy speed</a>
+        <a href="#algorithm">The rule</a>
+        <a href="#tests">Stress tests</a>
         <a href="#verdict">Verdict</a>
     </nav>
 
     <section id="answer">
         <h2>The answer in thirty seconds</h2>
-        <p class="lead">This wallet is genuinely exceptional, but the visible headline &ldquo;large winning trader&rdquo; is not itself a tradable signal.</p>
-        <div class="bottom-line"><strong>Bottom line:</strong> copying every large buy lost money. The only repeatable-looking clue was a sudden burst of aggressive buying in full-event markets before the public price fully caught up. That clue is promising enough to test on paper, but not strong enough to risk real money.</div>
+        <p class="lead">His observable edge is <strong>selective, informed-looking liquidity consumption</strong>. The important trades do not just spend more money. In one mined transaction, they take offers from an unusually broad set of accounts already waiting in the order book.</p>
+        <div class="bottom-line"><strong>Bottom line:</strong> among otherwise eligible events, transactions that matched at least <strong>18 distinct maker accounts</strong> won 23 of 30 and returned ${pct(breadth.roiPct, 1)} after the original conservative execution assumptions. Transactions below 18 returned ${pct(narrow.roiPct, 1)}. That is the clearest public fingerprint of when this trader appears to mean the trade.</div>
         <ol class="steps">
-            <li><strong>The trader made ${money(analysis.performance.realizedPnlUsdc)}.</strong> But the top five winners produced ${plainPct(analysis.concentration.top5ContributionPct, 0)} of total net profit. Without those five, the wallet would be down ${money(Math.abs(analysis.concentration.pnlWithoutTop5Usdc))}.</li>
-            <li><strong>A follower cannot buy at the trader's old price.</strong> The fair copy test waits 60 seconds, uses another public trade as the price, adds five cents of adverse movement, and charges the observed fee curve.</li>
-            <li><strong>Blind copying failed.</strong> ${number(blind.all.bets)} equal ${money(100)} bets lost ${money(Math.abs(blind.all.profitUsdc), 2)} and suffered a ${money(blind.all.maxDrawdownUsdc, 2)} maximum drawdown.</li>
-            <li><strong>Speed separated the good signals from the bad ones.</strong> Rapid signals returned ${pct(chronology.all.burst60.roiPct, 2)}; slow signals returned ${pct(chronology.all.slower.roiPct, 2)}.</li>
+            <li><strong>The headline is misleading.</strong> The wallet made ${money(analysis.performance.realizedPnlUsdc)}, but its top five winners produced ${plainPct(analysis.concentration.top5ContributionPct, 0)} of net profit. Removing those five makes the wallet negative.</li>
+            <li><strong>Blind copying is not the edge.</strong> ${number(blind.all.bets)} delayed ${money(100)} copies lost ${money(Math.abs(blind.all.profitUsdc), 2)}. The later sample also lost ${pct(blind.later.roiPct, 2)}.</li>
+            <li><strong>The public trade feed hides structure.</strong> We decoded all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions. Every one was a successful V2 <code>matchOrders</code> call with the target as the BUY taker.</li>
+            <li><strong>Breadth separated signal from noise.</strong> Broad sweeps beat the market price by ${pp(breadthCalibration.calibrationGapPctPoints, 1)}; narrower transactions missed it by ${pp(narrowCalibration.calibrationGapPctPoints, 1)}.</li>
         </ol>
     </section>
 
     <figure>
-        <img src="figures/blind_copy_funnel.png" alt="Bar chart showing blind copying losing money and rapid, format, discipline, and price filters progressively improving the result.">
-        <figcaption><strong>How to read this:</strong> the first row is the naive strategy. It loses both over the full history and after the fixed date split. The first rule that turns the result positive is urgency. Discipline and price filters improve it further, but those last two filters were discovered in this same sample and deserve less trust.</figcaption>
+        <img src="figures/blind_copy_funnel.png" alt="Bar chart showing blind copying losing money and filtered strategies improving the result.">
+        <figcaption><strong>What blind copying would have done:</strong> the first row is the naive strategy. It loses over the full history and after the fixed date split. Earlier behavioral filters found useful clues, but they did not expose what was inside the triggering blockchain transaction.</figcaption>
     </figure>
 
     <section id="copying">
-        <h2>What &ldquo;blind copying&rdquo; actually means</h2>
-        <p>We did not pretend a follower could magically enter at the whale's price. The copy test was deliberately ordinary and mechanical:</p>
+        <h2>First, the painful result: copying loses</h2>
+        <p>The original registered test was deliberately harsh, but ordinary: it did not give the follower the whale's old price.</p>
         <ol class="steps">
             <li>Wait until the target has crossed <strong>${money(25000)}</strong> of aggressive buying and at least 70% of its net direction points to one outcome.</li>
             <li>Keep only the first signal for each underlying match, so a series and its individual maps cannot be counted as independent ideas.</li>
             <li>Wait <strong>60 seconds</strong>, then use the first unrelated public trade in the following minute as the available price. If none appears, retain the trigger price.</li>
             <li>Make the price five cents worse, include the account-observed fee curve, and place the same <strong>${money(100)}</strong> stake every time.</li>
         </ol>
-        <p>The total stake across all bets was ${money(blind.all.stakeUsdc)}. That is turnover across the test, not necessarily ${money(blind.all.stakeUsdc)} tied up at once. The result was ${number(blind.all.wins)} wins, ${number(blind.all.bets - blind.all.wins)} losses, and ${money(blind.all.profitUsdc, 2)} net profit.</p>
-        <div class="warning"><strong>The important fact:</strong> the later ${number(blind.later.bets)} signals also lost money at ${pct(blind.later.roiPct, 2)}. The loss was not confined to an early learning period.</div>
+        <p>The result was ${number(blind.all.wins)} wins and ${number(blind.all.bets - blind.all.wins)} losses, yet ${money(blind.all.profitUsdc, 2)} net profit on ${money(blind.all.stakeUsdc)} of turnover. The maximum historical drawdown was ${money(blind.all.maxDrawdownUsdc, 2)}.</p>
+        <div class="warning"><strong>This is what blind faith costs:</strong> even a spectacular trader can be a bad signal to copy. The follower sees the action late, pays a worse price, does not know final position size, and cannot reproduce inventory management, maker fills, exits, or rebates.</div>
 
         <h3>Why winning more than half the bets was not enough</h3>
         <p>Prediction-market prices already contain a probability. Buying a contract at 60 cents means paying roughly as if it has a 60% chance to win. A strategy can win 58% of its bets and still lose if it repeatedly pays prices that require a higher hit rate.</p>
-        <p>Blind copying won ${number(blind.calibration.wins)} times. The public prices implied about ${number(blind.calibration.expectedWinsFromExecutionProxy, 2)} wins. That difference was only ${pp(blind.calibration.calibrationGapPctPoints, 1)}, with a diagnostic probability of <strong>${number(blind.calibration.poissonBinomialUpperTailPValue * 100, 1)}%</strong>. In ordinary language: the extra wins were not unusual enough to show a generic large-bet edge.</p>
+        <p>Blind copying won ${number(blind.calibration.wins)} times. The public prices implied about ${number(blind.calibration.expectedWinsFromExecutionProxy, 2)} wins. The gap was only ${pp(blind.calibration.calibrationGapPctPoints, 1)}. In ordinary language, the extra wins were neither large enough nor valuable enough to establish a generic &ldquo;copy his big buys&rdquo; edge.</p>
     </section>
 
     <figure>
         <img src="figures/strategy_equity.png" alt="Chronological cumulative profit chart comparing blind copying with progressively filtered strategies.">
-        <figcaption>The red blind-copy line remains underwater. The filtered lines improve, but their stronger performance comes from taking fewer, more specific signals. This chart is historical attribution, not a promise about the next trade.</figcaption>
+        <figcaption>The red blind-copy line remains underwater. More selective rules improve because they reject most trades. This was the clue that the wallet's value lives in selection, not in its address.</figcaption>
+    </figure>
+
+    <section id="speed">
+        <h2>What if a copy bot is nearly instant?</h2>
+        <p class="lead">Speed helps, but the broad replay finds no sharp 1-second-versus-5-second cliff. The dangerous variable is the price paid after the whale has consumed the available offers.</p>
+        <p>The new audit crosses ten delays, from the trigger's own second through five minutes, with ten adverse-price assumptions from zero through 20 cents. Every cell includes fees. At the most optimistic same-second price with no extra adverse movement, blind copying returns only ${pct(blindSameSecond.all.roiPct, 1)}. At one second plus one cent it returns ${pct(blindOneSecondOneCent.all.roiPct, 1)}. At one second plus two cents it is already negative at ${pct(blindOneSecondTwoCent.all.roiPct, 1)}.</p>
+        <div class="plain-language"><b>The practical threshold:</b> at one-second latency, blind copying historically breaks even at only about ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents of additional adverse price. Under one second plus one cent, the breadth-filtered held-out sample returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)}. Being fast is not enough if the whale just removed the cheap liquidity; selecting the right trigger matters more.</div>
+        <p>The timestamps impose an important limit. Polygon block timestamps and the historical public tape are recorded to whole seconds. A 0.1-second bot and a 0.5-second bot cannot be separated honestly. The same-second scenario may also include unrelated prints whose exact within-second order is unknown, so it is an optimistic lower bound rather than a reproducible fill.</p>
+        <p>Polymarket's official lifecycle separates an off-chain <code>MATCHED</code> state from <code>MINED</code> on-chain settlement. This strategy needs the mined <code>matchOrders</code> calldata to count maker addresses, so its clock starts at the block timestamp. A bot with private or earlier CLOB-match information is testing a different signal and is not represented by this public-wallet replay.</p>
+    </section>
+
+    <figure>
+        <img src="figures/copy_execution_surface.png" alt="Two heatmaps showing copy-trading returns across ten latency and ten adverse-price scenarios for blind copying and the breadth rule.">
+        <figcaption><strong>Read across for execution quality; read down for speed.</strong> Blind copying flips from pale green to red at roughly two cents in almost every sub-minute row. The held-out breadth strategy remains green much farther across. A 0.1-second or 0.5-second bot lies between the first two rows because the source timestamps are only one second precise.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/copy_break_even_frontier.png" alt="Two line charts showing the maximum adverse price compatible with break-even returns at each copy delay.">
+        <figcaption>The blind copier has roughly ${number(blindOneSecondBreakEven.allMaxAdverseCents, 1)} cents of room at one second. The 18-maker filter has roughly ${number(breadthOneSecondBreakEven.heldOutMaxAdverseCents, 1)} cents in the held-out half. The near-flat lines mean this dataset does not support a claim that sub-five-second speed is the main edge.</figcaption>
+    </figure>
+
+    <section id="chain">
+        <h2>The breakthrough came from looking inside the trade</h2>
+        <p class="lead">A public feed row says the whale bought one outcome. Polygon calldata says exactly how that buy was assembled.</p>
+        <p>Polymarket's V2 exchange accepts one taker order and an array of maker orders in a call named <code>matchOrders</code>. The taker demands immediate execution. Each maker had already signed an offer. One public-looking trade can therefore be an atomic sweep through many counterparties and several prices.</p>
+        <div class="plain-language"><b>One public print is not necessarily one simple trade.</b> It can be one urgent order consuming a large section of the order book in the same mined transaction.</div>
+        <p>We fetched and decoded every one of the ${number(edge.coverage.targetSignals)} trigger hashes. All ${number(edge.coverage.targetAsDecodedTaker)} showed this wallet as the decoded taker buying the signaled token. The typical trigger matched ${number(edge.coverage.medianMakerOrdersPerTrigger)} maker orders from ${number(edge.coverage.medianUniqueMakersPerTrigger)} distinct maker accounts. ${number(edge.coverage.multiPriceLevelTriggers)} triggers crossed more than one price level. The reconstructed notional agreed with the signal to within less than one millionth of one percent.</p>
+        <div class="finding"><strong>Why this matters:</strong> the final dollar amount says how much was bought. Maker breadth says how much standing liquidity the trader chose to consume at once. Those are different behaviors.</div>
+    </section>
+
+    <figure>
+        <img src="figures/atomic_sweep_anatomy.png" alt="Bar chart showing the individual price levels and maker orders consumed by one winning FURIA trigger transaction.">
+        <figcaption>An illustrative winning FURIA trigger matched 35 maker orders from 25 distinct signed accounts across four price levels, from 43 to 46 cents. The target consumed about ${money(1005518.93, 2)} of notional; the median resting order was 36 seconds old. This example explains the mechanism. The statistical result uses every eligible event.</figcaption>
     </figure>
 
     <section id="discovery">
-        <h2>The useful clue: conviction compression</h2>
-        <p class="lead">The best plain-English description is: <strong>the trader looks more informative when he buys suddenly, not merely when he buys big.</strong></p>
-        <div class="plain-language"><b>Size</b> tells us how loud the final bet became. <b>Compression</b> tells us how urgently the trader was willing to pay the market's price right now.</div>
-        <p>A signal is called <strong>rapid</strong> when at least 80% of the target's aggressive buying observed at the trigger arrived in the final 60 seconds. Everything else is called <strong>slow</strong>. Both groups use the same delayed public-price method, five-cent stress, and fees.</p>
+        <h2>The discovery: atomic breadth</h2>
+        <p class="lead">The strongest observable fingerprint is simple: <strong>did the triggering transaction match at least 18 distinct maker accounts?</strong></p>
+        <p>The comparison starts with the same conservative event universe: first canonical signal only, core tennis, soccer, and esports disciplines, full-event contracts rather than maps or short markets, target concentration of at least 70%, and trigger prices between 30 and 85 cents. That leaves ${number(edge.coverage.baseEligibleEvents)} events. Breadth is the final split.</p>
 
         <table class="comparison">
-            <thead><tr><th>What happened</th><th class="number">Rapid</th><th class="number">Slow</th></tr></thead>
+            <thead><tr><th>What happened</th><th class="number">18+ makers</th><th class="number">Below 18</th></tr></thead>
             <tbody>
-                <tr><td>Number of bets</td><td class="number">${number(rapid.bets)}</td><td class="number">${number(slow.bets)}</td></tr>
-                <tr><td>Wins implied by public prices</td><td class="number">${number(rapid.expectedWinsFromExecutionProxy, 2)}</td><td class="number">${number(slow.expectedWinsFromExecutionProxy, 2)}</td></tr>
-                <tr><td>Actual wins</td><td class="number positive">${number(rapid.wins)}</td><td class="number negative">${number(slow.wins)}</td></tr>
-                <tr><td>Price-implied win rate</td><td class="number">${plainPct(rapid.meanImpliedProbabilityPct, 1)}</td><td class="number">${plainPct(slow.meanImpliedProbabilityPct, 1)}</td></tr>
-                <tr><td>Actual win rate</td><td class="number positive">${plainPct(rapid.actualWinRatePct, 1)}</td><td class="number negative">${plainPct(slow.actualWinRatePct, 1)}</td></tr>
-                <tr><td>Gap versus price</td><td class="number positive">${pp(rapid.calibrationGapPctPoints, 1)}</td><td class="number negative">${pp(slow.calibrationGapPctPoints, 1)}</td></tr>
-                <tr><td>Equal-stake return</td><td class="number positive">${pct(chronology.all.burst60.roiPct, 2)}</td><td class="number negative">${pct(chronology.all.slower.roiPct, 2)}</td></tr>
+                <tr><td>Number of bets</td><td class="number">${number(breadth.bets)}</td><td class="number">${number(narrow.bets)}</td></tr>
+                <tr><td>Wins implied by public prices</td><td class="number">${number(breadthCalibration.expectedWinsFromExecutionProxy, 2)}</td><td class="number">${number(narrowCalibration.expectedWinsFromExecutionProxy, 2)}</td></tr>
+                <tr><td>Actual wins</td><td class="number positive">${number(breadth.wins)}</td><td class="number">${number(narrow.wins)}</td></tr>
+                <tr><td>Price-implied win rate</td><td class="number">${plainPct(breadthCalibration.meanImpliedProbabilityPct, 1)}</td><td class="number">${plainPct(narrowCalibration.meanImpliedProbabilityPct, 1)}</td></tr>
+                <tr><td>Actual win rate</td><td class="number positive">${plainPct(breadth.winRatePct, 1)}</td><td class="number">${plainPct(narrow.winRatePct, 1)}</td></tr>
+                <tr><td>Gap versus price</td><td class="number positive">${pp(breadthCalibration.calibrationGapPctPoints, 1)}</td><td class="number negative">${pp(narrowCalibration.calibrationGapPctPoints, 1)}</td></tr>
+                <tr><td>Equal-stake return after costs</td><td class="number positive">${pct(breadth.roiPct, 2)}</td><td class="number negative">${pct(narrow.roiPct, 2)}</td></tr>
             </tbody>
         </table>
-
-        <p>The split did not appear only in one half of history. Earlier rapid signals returned ${pct(chronology.earlier70Pct.burst60.roiPct, 1)} versus ${pct(chronology.earlier70Pct.slower.roiPct, 1)} for slow signals. After the fixed date split, rapid signals returned ${pct(chronology.final30Pct.burst60.roiPct, 1)} versus ${pct(chronology.final30Pct.slower.roiPct, 1)}.</p>
-        <p>It also was not merely a live-score trick. Rapid pregame signals returned ${pct(rapidPregame.roiPct, 1)} and rapid in-play signals returned ${pct(rapidLive.roiPct, 1)}. That does not identify the information source, but it rules out the simplest story that the result comes only from reacting to a visible live score.</p>
-        <div class="finding"><strong>What the day-level check says:</strong> after resampling whole trading days, the estimated rapid-minus-slow probability gap was ${pp(clustered.burstMinusSlower.estimatePctPoints, 1)}, with a 95% interval from ${pp(clustered.burstMinusSlower.ci95LowPctPoints, 1)} to ${pp(clustered.burstMinusSlower.ci95HighPctPoints, 1)}. This protects against one busy day being counted as dozens of independent discoveries. It does not correct for the fact that we found the rule while studying this wallet.</div>
+        <p>At a ${money(100)} equal stake, the 30 broad sweeps made ${money(breadth.profitUsdc, 2)}. Even after removing the five most profitable winners, the remaining return was ${pct(breadth.roiWithoutTopWinnersPct['5'], 1)}. The narrower group lost ${money(Math.abs(narrow.profitUsdc), 2)}.</p>
+        <div class="finding"><strong>The market-price test:</strong> public prices expected about ${number(breadthCalibration.expectedWinsFromExecutionProxy, 2)} wins; 23 occurred. The one-sided Poisson-binomial probability of at least that many wins under those market probabilities is <strong>${plainPct(breadthCalibration.poissonBinomialUpperTailPValue * 100, 2)}</strong>. The same calculation finds no edge below 18 makers.</div>
     </section>
 
     <figure>
-        <img src="figures/urgency_calibration.png" alt="Bar chart comparing public implied probability with actual win rate for rapid and slow signals in the full, earlier, and later samples.">
-        <figcaption>The public execution price is similar across rapid and slow groups, but realized outcomes separate sharply. The later slow group has only five observations, so its bar is descriptive rather than reliable on its own.</figcaption>
+        <img src="figures/atomic_breadth_calibration.png" alt="Bar chart comparing price-implied and actual win rates for broad and narrow trigger transactions.">
+        <figcaption>Public prices expected similar difficulty after filtering. Broad atomic sweeps won far more often than their prices implied; narrower triggers landed almost exactly where the market predicted.</figcaption>
     </figure>
 
-    <section id="edge">
-        <h2>So what might his edge actually be?</h2>
-        <p>The evidence points to a <strong>decision process</strong>, not a magic wallet address. The trader appears to run a large maker or inventory operation most of the time, then cross liquidity aggressively when conviction spikes.</p>
+    <section>
+        <h2>Did it hold up after discovery?</h2>
+        <p>The 18-maker threshold was selected using only the first half of eligible history. Integer cutoffs from 5 through 30 were compared, each requiring at least eight development bets. The next half was then scored without changing the rule.</p>
+        <p>The broad-sweep rule returned ${pct(breadthChronology.development.roiPct, 1)} in development, ${pct(breadthChronology.validation.roiPct, 1)} in the next block, and ${pct(breadthChronology.finalTest.roiPct, 1)} in the final block. Combined after selection, 21 signals won 15 times and returned ${pct(heldOut.roiPct, 2)}.</p>
+        <div class="finding"><strong>Held-out calibration:</strong> public prices expected ${number(heldOutCalibration.expectedWinsFromExecutionProxy, 2)} wins; 15 occurred. Resampling whole trading days gave a held-out ROI interval from ${pct(heldOutCluster.ci95LowPct, 1)} to ${pct(heldOutCluster.ci95HighPct, 1)}.</div>
+    </section>
 
-        <div class="confidence-row">
-            <div class="confidence-label high">Strong fact</div>
-            <div><strong>Aggressive flow matters more than fill count.</strong> Maker orders were ${plainPct(analysis.execution.makerFillPct, 1)} of fills but only ${plainPct(analysis.execution.makerNotionalPct, 1)} of dollars. A small aggressive core carried most of the economic exposure.</div>
-        </div>
-        <div class="confidence-row">
-            <div class="confidence-label high">Strong fact</div>
-            <div><strong>Contract choice matters.</strong> True multi-map series earned ${money(format.multiMapSeries.realizedPnlUsdc)} at ${pct(format.multiMapSeries.roiPct, 1)}. Single games and maps lost ${money(Math.abs(format.singleGameOrMap.realizedPnlUsdc))} at ${pct(format.singleGameOrMap.roiPct, 1)}.</div>
-        </div>
-        <div class="confidence-row">
-            <div class="confidence-label medium">Best hypothesis</div>
-            <div><strong>Urgent buys may reveal fresh information, a superior model, or unusually strong conviction before the market reprices.</strong> The public tape often showed little median movement for several minutes, leaving a possible observation window.</div>
-        </div>
-        <div class="confidence-row">
-            <div class="confidence-label medium">Likely structure</div>
-            <div><strong>The edge looks like informed liquidity demand.</strong> In ordinary terms, the trader pays fees to get filled immediately only when waiting seems more dangerous than paying the spread.</div>
-        </div>
-        <div class="confidence-row">
-            <div class="confidence-label unknown">Unknown</div>
-            <div><strong>We do not know the information source.</strong> Public data cannot distinguish private information, better esports or sports models, faster public feeds, a syndicate, or disciplined discretionary judgment.</div>
-        </div>
+    <figure>
+        <img src="figures/breadth_chronology.png" alt="Three chronological bars showing returns for broad-sweep signals in development, validation, and final-test periods.">
+        <figcaption>The middle period was modest, but crucially stayed positive. The final block rebounded without changing the 18-maker rule.</figcaption>
+    </figure>
 
-        <h3>Why final bet size is not the answer</h3>
-        <p>The first observable buy poorly predicted how large the final position became. The chronological sizing model had an out-of-sample <strong>R-squared of ${number(edge.sizing.chronologicalTest.r2LogCost, 3)}</strong>, which is worse than using a simple baseline. Its mean error was ${money(edge.sizing.chronologicalTest.meanAbsoluteErrorUsdc)}. A follower can see urgency; a follower cannot reliably know the whale's eventual stake.</p>
+    <figure>
+        <img src="figures/breadth_threshold_lock.png" alt="Chart showing development calibration across maker-breadth cutoffs and the held-out result at the selected threshold of 18.">
+        <figcaption>The dashed line marks the cutoff chosen on development data. The held-out curve was not used to select 18. Nearby cutoffs tell a similar story, while very strict cutoffs leave too few bets.</figcaption>
+    </figure>
 
-        <h3>Why a winning whale can still be a losing copy</h3>
+    <section>
+        <h2>Speed was the clue, not the final answer</h2>
+        <p>The earlier investigation found &ldquo;conviction compression&rdquo;: at least 80% of observed taker buying arriving in the final minute. Across the full sample, rapid signals returned ${pct(urgencyChronology.all.burst60.roiPct, 1)} while slower signals returned ${pct(urgencyChronology.all.slower.roiPct, 1)}. That was useful, but incomplete.</p>
+        <p>The rapid rule lost ${plainPct(Math.abs(rapidValidation.roiPct), 1)} in its middle validation block. Atomic breadth returned ${pct(breadthChronology.validation.roiPct, 1)} in that stage and ${pct(breadthChronology.finalTest.roiPct, 1)} in the final test. Speed pointed toward urgency; calldata revealed the stronger form of urgency.</p>
+        <div class="plain-language"><b>Flow speed asks:</b> did the target accumulate quickly? <b>Atomic breadth asks:</b> did one executable decision consume offers from many different signed accounts? The second measure is closer to the act of demanding liquidity now.</div>
+    </section>
+
+    <figure>
+        <img src="figures/urgency_calibration.png" alt="Bar chart comparing public implied probability with actual win rate for rapid and slow signals.">
+        <figcaption>Rapid buying was the first useful behavioral clue. It remains a confidence tag, not a hard requirement, because its own middle validation period lost money.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/burst_threshold_sensitivity.png" alt="Line and bar chart showing urgency results across several rapid-flow definitions.">
+        <figcaption>The urgency clue was not one lucky exact cutoff, but these overlapping thresholds are descriptive rather than independent confirmations.</figcaption>
+    </figure>
+
+    <section id="algorithm">
+        <h2>The algorithm: atomic-breadth-18</h2>
+        <p class="lead">This is the discovery translated into a rule that can be frozen and tested prospectively.</p>
+        <div class="rule">
+            <h3>Paper-trading specification</h3>
+            <ol class="steps">
+                <li>Keep only the first signal for the real underlying event in core tennis, soccer, and esports.</li>
+                <li>Reject individual maps, single-game fragments, and short-horizon side markets.</li>
+                <li>Require the target to be at least 70% concentrated on one outcome and the trigger price to be 30 through 85 cents.</li>
+                <li>Decode the mined V2 <code>matchOrders</code> transaction and verify that the target is the BUY taker for the signaled token.</li>
+                <li>Count distinct addresses in <code>makerOrders[].maker</code>. Continue only when the count is at least <strong>18</strong>.</li>
+                <li>Submit immediately after decoding, but reject the paper fill if the executable price is more than a declared maximum above the observed reference. Record actual latency, depth, partial fills, and failures.</li>
+                <li>Use a fixed ${money(100)} paper stake. Mark at least 80% final-minute taker flow as high confidence, but do not make it a second gate yet.</li>
+            </ol>
+        </div>
+        <p>The historical report keeps the original 60-second plus five-cent case for comparison, but the live paper specification does not intentionally wait. It records the real delay and reports every result on the full latency-and-price surface. No martingale, no use of eventual whale position, and no threshold changes after a bad result.</p>
+    </section>
+
+    <section id="tests">
+        <h2>Could this just be luck, sport mix, or bet size?</h2>
+        <p>A promising pattern is easy to manufacture accidentally. The analysis attacked this one in several different ways.</p>
+        <div class="confidence-row">
+            <div class="confidence-label high">Chronology</div>
+            <div><strong>It stayed positive after selection.</strong> The 21 held-out signals returned ${pct(heldOut.roiPct, 1)}, including ${pct(breadthChronology.validation.roiPct, 1)} in validation and ${pct(breadthChronology.finalTest.roiPct, 1)} in the final block.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label high">Composition</div>
+            <div><strong>Similar markets still separated.</strong> Relabeling broad sweeps only within discipline, three price bands, and fixed time period produced an effect this large with one-sided <strong>p=${number(breadthPermutation.oneSidedPValue, 4)}</strong> across ${number(breadthPermutation.comparableBets)} comparable bets.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label high">Trading days</div>
+            <div><strong>One busy day did not create the result.</strong> Resampling whole days put the broad-minus-narrow probability gap at ${pp(dayContrast.estimatePctPoints, 1)}, with a 95% interval from ${pp(dayContrast.ci95LowPctPoints, 1)} to ${pp(dayContrast.ci95HighPctPoints, 1)}.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label medium">Threshold search</div>
+            <div><strong>The declared cutoff search was simulated under market probabilities.</strong> After repeating selection and held-out scoring ${number(thresholdNull.draws)} times, a held-out effect this large occurred with one-sided <strong>p=${number(thresholdNull.oneSidedPValue, 3)}</strong>.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label high">Dollar size</div>
+            <div><strong>Bigger notional did not explain breadth.</strong> A probability-offset model controlling for rapid flow, trigger notional, and time period estimated ${number(breadthCoefficient.oddsRatio, 2)} times the outcome odds for a broad sweep, robust p=${number(breadthCoefficient.robustPValue, 3)}. Trigger notional itself had odds ratio ${number(notionalCoefficient.oddsRatio, 2)} and p=${number(notionalCoefficient.robustPValue, 3)}.</div>
+        </div>
+        <div class="warning"><strong>Do not translate &ldquo;18 addresses&rdquo; into &ldquo;18 independent humans.&rdquo;</strong> They are distinct signed maker accounts. One person or market-making system can control multiple addresses. The feature measures real contract-level execution breadth, not human headcount.</div>
+    </section>
+
+    <figure>
+        <img src="figures/breadth_execution_sensitivity.png" alt="Line chart showing broad-sweep returns under increasingly adverse execution assumptions.">
+        <figcaption>At the original 60-second mark, the breadth rule remains positive as the assumed price penalty rises. At ten cents, all broad signals return ${pct(stressTen.all.roiPct, 1)} and the held-out half returns ${pct(stressTenHeldOutRoi, 1)}. The held-out line reaches break-even near 20 cents.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/execution_sensitivity.png" alt="Line chart showing the broader filtered universe losing return as adverse execution movement rises.">
+        <figcaption>The wider eligible universe is much less forgiving. This is why a realistic copy test must report price impact rather than assuming the bot receives the whale's fill.</figcaption>
+    </figure>
+
+    <section>
+        <h2>What his edge probably is, and what remains hidden</h2>
+        <div class="confidence-row">
+            <div class="confidence-label high">Chain fact</div>
+            <div><strong>The wallet selectively takes broad liquidity.</strong> The triggering calldata directly names the maker orders consumed. Breadth is observable once the transaction is mined.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label high">Sample fact</div>
+            <div><strong>Those broad sweeps contain the forecasting value.</strong> They won above public-price expectations; narrower triggers did not. Dollar size does not account for the difference.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label medium">Interpretation</div>
+            <div><strong>The behavior looks like informed liquidity demand.</strong> The trader is willing to clear many standing offers immediately when waiting appears more dangerous than crossing the book.</div>
+        </div>
+        <div class="confidence-row">
+            <div class="confidence-label unknown">Source</div>
+            <div><strong>The information source remains invisible.</strong> Public data cannot distinguish a superior sports model, faster public feeds, private information, coordinated research, or disciplined human judgment.</div>
+        </div>
+        <p>The discovery is not the trader's secret model. It is the best externally observable signature of when that hidden process is expressing unusually strong conviction.</p>
+
+        <h3>Why the rest of the wallet still matters</h3>
         <ul class="fact-list">
-            <li>The whale often entered earlier and at a better price.</li>
-            <li>The whale chose position size unevenly; the copy test deliberately did not know future conviction.</li>
-            <li>The wallet could manage inventory, sell, or collect maker rebates. A follower copying one visible buy cannot reproduce the whole operation.</li>
-            <li>Five huge winners supplied more than all net profit because other trades lost money.</li>
-            <li>Delay, spread, adverse movement, and fees turn a small forecasting edge into a trading loss.</li>
+            <li>Maker orders were ${plainPct(analysis.execution.makerFillPct, 1)} of fills but only ${plainPct(analysis.execution.makerNotionalPct, 1)} of dollars. Fill count alone exaggerates routine activity.</li>
+            <li>True multi-map series earned ${money(format.multiMapSeries.realizedPnlUsdc)} at ${pct(format.multiMapSeries.roiPct, 1)}. Single-game and map contracts lost ${money(Math.abs(format.singleGameOrMap.realizedPnlUsdc))}.</li>
+            <li>The first visible buy poorly predicted eventual position size; the chronological sizing model had out-of-sample R-squared ${number(edge.sizing.chronologicalTest.r2LogCost, 3)}.</li>
+            <li>The whale can size, make markets, sell, and manage inventory. A follower can reproduce none of that by copying a public feed row.</li>
         </ul>
     </section>
 
-    <figure>
-        <img src="figures/burst_threshold_sensitivity.png" alt="Line and bar chart showing returns, calibration gap, and sample size as the rapid-buy threshold changes from 50 to 99 percent.">
-        <figcaption>The rapid result stays positive across nearby definitions, so 80% is not one lucky exact cutoff. The same bets overlap across thresholds, however; this is one sensitivity check, not seven independent confirmations.</figcaption>
-    </figure>
-
-    <section id="doubt">
-        <h2>How hard did the idea get punched?</h2>
-        <p>A serious investigation must show the evidence against its favorite explanation. This one has a meaningful negative result.</p>
-        <div class="two-column">
-            <div>
-                <h3>What survived</h3>
-                <ul class="fact-list">
-                    <li>Blind copying was negative both before and after the fixed split.</li>
-                    <li>Rapid signals beat slow signals in both chronological periods.</li>
-                    <li>A broad comparison within discipline and broad price groups estimated ${number(broad.commonOddsRatio, 2)} times the win odds, with <strong>p=${number(broad.twoSidedPValue, 3)}</strong>.</li>
-                    <li>The rapid result appeared in both pregame and in-play signals.</li>
-                </ul>
-            </div>
-            <div>
-                <h3>What did not survive</h3>
-                <ul class="fact-list">
-                    <li>The strictest comparison kept only similar discipline, price band, and time-period groups.</li>
-                    <li>Only ${number(fine.comparableBets)} comparable bets remained.</li>
-                    <li>Randomly relabeling urgency within those groups did as well as the real labels about ${plainPct(fine.oneSidedPValue * 100, 1)} of the time.</li>
-                    <li>That is too common to call statistical confirmation. Composition may explain part of the raw gap.</li>
-                </ul>
-            </div>
-        </div>
-        <div class="warning"><strong>Plain-English meaning of p=${number(fine.oneSidedPValue, 3)}:</strong> after forcing tighter apples-to-apples comparisons, the result was no longer rare under random relabeling. The candidate may be real, but this dataset cannot prove it.</div>
-
-        <h3>Execution can consume the whole advantage</h3>
-        <p>The cleaned ${number(fixed.all.bets)}-event baseline returned ${pct(fixed.all.roiPct, 2)} at five cents of adverse movement. Near ten cents, the aggregate edge disappeared. A backtest that ignores available depth, failed fills, and changing prices would be fantasy.</p>
+    <section>
+        <h2>The honest reasons for doubt</h2>
+        <ul class="fact-list">
+            <li><strong>Thirty is small.</strong> The full breadth result has 30 bets; only 21 occurred after threshold selection.</li>
+            <li><strong>The held-out win-count test is suggestive, not decisive.</strong> Its one-sided Poisson-binomial p-value is ${number(heldOutCalibration.poissonBinomialUpperTailPValue, 3)}.</li>
+            <li><strong>The threshold-search simulation is barely below 0.05.</strong> Its p-value is ${number(thresholdNull.oneSidedPValue, 3)}, not overwhelming evidence.</li>
+            <li><strong>The wallet and feature family were chosen retrospectively.</strong> The null simulation corrects the stated maker-count cutoff search, not every idea considered during the investigation.</li>
+            <li><strong>The history spans roughly two months.</strong> A market regime, one operator, or one sports calendar can change.</li>
+            <li><strong>Execution is still a proxy.</strong> Public prints show activity, not guaranteed historical ask depth, queue position, partial fills, or API publication latency.</li>
+        </ul>
+        <div class="warning"><strong>Correct conclusion:</strong> this is a real, testable discovery in the available sample, not proof of future profit. It earns a frozen prospective paper test. It does not earn live capital yet.</div>
     </section>
-
-    <figure>
-        <img src="figures/execution_sensitivity.png" alt="Line chart showing returns falling as assumed adverse execution movement rises.">
-        <figcaption>The strategy is sensitive to the price actually paid. The later period looks strongest, but it also has the fewest observations. Public trades prove activity, not that a ${money(100)} fill was available at exactly that price and depth.</figcaption>
-    </figure>
 
     <section>
         <h2>Facts, interpretation, and speculation</h2>
@@ -470,10 +580,12 @@ function renderHtml(analysis, edge) {
             <thead><tr><th>Claim</th><th>Classification</th><th>Why</th></tr></thead>
             <tbody>
                 <tr><td>Blindly copying every large signal lost money.</td><td><strong class="positive">Observed fact</strong></td><td>${number(blind.all.bets)} forced bets under declared execution assumptions.</td></tr>
-                <tr><td>Rapid target buying separated winners from slow buying.</td><td><strong class="positive">Observed in sample</strong></td><td>${number(rapid.bets)} rapid and ${number(slow.bets)} slow eligible bets, with opposite calibration gaps.</td></tr>
-                <tr><td>Urgency is the trader's true causal edge.</td><td><strong class="neutral">Plausible hypothesis</strong></td><td>Chronology and broad controls support it; the strict permutation does not confirm it.</td></tr>
+                <tr><td>All trigger transactions made the wallet the BUY taker.</td><td><strong class="positive">On-chain fact</strong></td><td>${number(edge.coverage.targetAsDecodedTaker)} of ${number(edge.coverage.decodedTriggerTransactions)} decoded V2 transactions.</td></tr>
+                <tr><td>Sweeps across 18 or more makers carried the edge.</td><td><strong class="positive">Observed in sample</strong></td><td>23 wins from 30, ${pct(breadth.roiPct, 1)} ROI, with a positive held-out half.</td></tr>
+                <tr><td>Blind copy bots must be under one second.</td><td><strong class="negative">Not supported</strong></td><td>No sub-minute latency cliff appeared; roughly two cents of adverse price erased the blind-copy margin.</td></tr>
+                <tr><td>Breadth is only a disguise for dollar size.</td><td><strong class="negative">Not supported</strong></td><td>Notional was null after breadth, urgency, and period controls: p=${number(notionalCoefficient.robustPValue, 3)}.</td></tr>
                 <tr><td>The trader has private information.</td><td><strong class="negative">Not established</strong></td><td>Behavior is consistent with informed trading, but public data cannot identify the source.</td></tr>
-                <tr><td>The historical model is ready for live money.</td><td><strong class="negative">No</strong></td><td>The model selected only ${number(model.selected.bets)} bets; its day-clustered interval runs from ${pct(model.selectedDayClusterBootstrap.ci95LowPct, 1)} to ${pct(model.selectedDayClusterBootstrap.ci95HighPct, 1)}.</td></tr>
+                <tr><td>The algorithm is ready for live money.</td><td><strong class="negative">No</strong></td><td>Short history, 21 post-selection bets, and proxy execution still leave material uncertainty.</td></tr>
             </tbody>
         </table>
     </section>
@@ -481,9 +593,10 @@ function renderHtml(analysis, edge) {
     <section id="verdict" class="verdict">
         <h2>The honest verdict</h2>
         <p><strong>The discovery is not &ldquo;copy this whale.&rdquo;</strong> That strategy lost.</p>
-        <p>The useful discovery is narrower: when this trader's aggressive buying arrives in a compressed burst, in a full-match or multi-map contract, the chosen side has historically won much more often than the delayed public price implied.</p>
-        <p>That pattern is economically coherent and survived several checks. It also failed the strictest low-powered composition test, depends on a short two-month sample, and remains exposed to real execution costs.</p>
-        <p><strong>Decision:</strong> freeze the rule and collect at least 200 new eligible signals in paper mode, including actual order-book depth and failed fills. Do not deploy capital until a genuinely unseen sample stays profitable after costs and after removing the biggest winners.</p>
+        <p><strong>His edge, as far as public evidence can reveal it, is knowing when to demand a lot of liquidity from a lot of counterparties at once.</strong> The breadth of the atomic sweep is the footprint. The hidden model or information that causes him to do it remains private.</p>
+        <p>The frozen algorithm is <strong>atomic-breadth-18</strong>. Historical result: ${number(breadth.wins)} wins from ${number(breadth.bets)}, ${pct(breadth.roiPct, 2)} after the original stressed costs. Post-selection result: ${number(heldOut.wins)} wins from ${number(heldOut.bets)}, ${pct(heldOut.roiPct, 2)}.</p>
+        <p>For an indiscriminate bot, the historical break-even execution allowance at one second was only ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents. The lesson is not &ldquo;buy a faster server.&rdquo; It is &ldquo;reject weak signals and control the paid price.&rdquo;</p>
+        <p><strong>Decision:</strong> collect at least 200 new eligible signals in paper mode without changing the rule. Record actual order-book depth, rejected orders, partial fills, and end-to-end latency. Capital should wait until a genuinely unseen sample remains profitable after costs and after removing its biggest winners.</p>
     </section>
 
     <section>
@@ -491,6 +604,9 @@ function renderHtml(analysis, edge) {
         <dl class="glossary">
             <dt>Maker</dt><dd>A trader who leaves an order waiting in the book and provides liquidity.</dd>
             <dt>Taker</dt><dd>A trader who accepts an available price immediately. Takers usually reveal more urgency and pay more.</dd>
+            <dt>Atomic sweep</dt><dd>One mined transaction in which a taker order matches several already-signed maker orders together.</dd>
+            <dt>Maker breadth</dt><dd>The number of distinct maker addresses consumed by that transaction. It counts accounts, not verified people.</dd>
+            <dt>Adverse price</dt><dd>How many extra cents a follower pays above the first public execution reference because of spread, consumed depth, or market reaction.</dd>
             <dt>Implied probability</dt><dd>A 60-cent contract roughly represents a market-estimated 60% chance before trading costs.</dd>
             <dt>Calibration gap</dt><dd>The actual win rate minus the win rate implied by prices. Positive is good only if it survives costs and honest testing.</dd>
             <dt>ROI</dt><dd>Profit divided by total stake. A 10% ROI means ${money(10)} profit for each ${money(100)} staked.</dd>
@@ -503,25 +619,27 @@ function renderHtml(analysis, edge) {
         <h2>Where the facts came from</h2>
         <p>This essay is a human-readable rendering of committed machine-readable evidence. The core calculations can be audited in:</p>
         <ul>
-            <li><a href="edge_analysis.json">edge_analysis.json</a>: blind-copy backtest, calibration, chronology, controls, execution stress, and model results.</li>
-            <li><a href="edge_features.csv">edge_features.csv</a>: one row per reconstructed signal with only information available by signal time.</li>
+            <li><a href="edge_analysis.json">edge_analysis.json</a>: blind-copy and atomic-breadth backtests, chronology, null simulation, controls, latency-cost surface, and break-even frontiers.</li>
+            <li><a href="edge_features.csv">edge_features.csv</a>: one row per reconstructed signal, including decoded maker breadth and information available by signal time.</li>
+            <li><a href="trigger_transactions.json">trigger_transactions.json</a>: decoded <code>matchOrders</code> calldata and derived fill anatomy for all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions.</li>
             <li><a href="deep_analysis.json">deep_analysis.json</a>: wallet-level execution, market format, profit, fee, and concentration facts.</li>
             <li><a href="market_tape.json">market_tape.json</a>: ${number(edge.coverage.publicTakerPrints)} unrelated public prints used for execution proxies and market response.</li>
         </ul>
         <p>External context:</p>
         <ul>
-            <li><a href="https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets">Polymarket Data API trade documentation</a>.</li>
-            <li><a href="https://www.nber.org/papers/w6129">Engle and Lange, Measuring, Forecasting and Explaining Time Varying Liquidity</a>.</li>
-            <li><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527">Le, Beyond Liquidity: Informed Trading in Decentralized Prediction Markets</a>.</li>
-            <li><a href="https://arxiv.org/abs/2604.24366">Dubach, The Anatomy of a Decentralized Prediction Market</a>.</li>
+            <li><a href="https://github.com/Polymarket/ctf-exchange-v2">Official Polymarket CTF Exchange V2 repository</a>, including <a href="https://github.com/Polymarket/ctf-exchange-v2/blob/main/src/exchange/mixins/Trading.sol"><code>matchOrders</code> execution</a> and the <a href="https://github.com/Polymarket/ctf-exchange-v2/blob/main/src/exchange/libraries/Structs.sol">signed order structure</a>.</li>
+            <li><a href="https://docs.polymarket.com/concepts/order-lifecycle">Official Polymarket order lifecycle</a>, distinguishing off-chain <code>MATCHED</code>, on-chain <code>MINED</code>, and final <code>CONFIRMED</code> trade states.</li>
+            <li><a href="https://docs.polymarket.com/api-reference/wss/market">Official public market WebSocket</a>, documenting millisecond-stamped book and trade events available prospectively but absent from this historical second-resolution tape.</li>
+            <li><a href="https://arxiv.org/abs/2604.24366">Dubach, The Anatomy of a Decentralized Prediction Market</a>, supporting use of authoritative on-chain direction rather than potentially ambiguous public labels.</li>
+            <li><a href="https://doi.org/10.1016/0304-405X(87)90029-8">Easley and O'Hara, Price, Trade Size, and Information in Securities Markets</a>, classic context for why aggressive trade structure can contain information.</li>
             <li><a href="https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf">Bailey et al., The Probability of Backtest Overfitting</a>.</li>
         </ul>
-        <p><strong>Limit:</strong> this is public-wallet research, not proof of identity, private information, causality, or future profit. It is not financial advice.</p>
+        <p><strong>Limit:</strong> this is public-wallet research, not proof of identity, distinct human counterparties, private information, causality, historical executable depth, or future profit. It is not financial advice.</p>
     </section>
 </main>
 
 <footer>
-    <div class="page">Polymarket trader investigation &middot; Plain-English edition &middot; Generated from committed evidence</div>
+    <div class="page">Polymarket trader investigation &middot; Atomic-breadth edition &middot; Generated from committed evidence</div>
 </footer>
 </body>
 </html>`;

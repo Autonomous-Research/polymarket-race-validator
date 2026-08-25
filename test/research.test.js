@@ -19,6 +19,7 @@ const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
 const deepAnalysis = require('../research/djdjdjekekek/deep_analysis.json');
 const edgeAnalysis = require('../research/djdjdjekekek/edge_analysis.json');
 const { renderHtml } = require('../src/research/plain_english_essay');
+const { parseTriggerTransaction } = require('../src/research/trigger_transactions');
 const {
     activeEventKeys,
     buildReplicatorConfig,
@@ -203,18 +204,115 @@ test('committed edge artifact preserves the blind-copy rejection and tight falsi
     assert.ok(mechanism.compositionControls.finePermutation.oneSidedPValue > 0.05);
 });
 
+test('decoded trigger transaction separates maker breadth from public trade count', () => {
+    const target = '0x0000000000000000000000000000000000000001';
+    const tokenA = '101';
+    const tokenB = '202';
+    const order = (maker, tokenId, makerAmount, takerAmount, side) => [
+        '1', maker, maker, tokenId, String(makerAmount), String(takerAmount),
+        String(side), '0', '1780000000000', `0x${'0'.repeat(64)}`,
+        `0x${'0'.repeat(64)}`, '0x00'
+    ];
+    const transaction = {
+        hash: `0x${'1'.repeat(64)}`,
+        method: 'matchOrders',
+        timestamp: '2026-05-27T10:13:25.000000Z',
+        block_number: 1,
+        gas_used: '100000',
+        status: 'ok',
+        from: { hash: '0x0000000000000000000000000000000000000009' },
+        to: { hash: '0xE111180000d2663C0091e4f400237545B87B996B' },
+        decoded_input: { parameters: [
+            { name: 'conditionId', value: `0x${'2'.repeat(64)}` },
+            { name: 'takerOrder', value: order(target, tokenA, 40e6, 100e6, 0) },
+            { name: 'makerOrders', value: [
+                order('0x0000000000000000000000000000000000000002', tokenA, 100e6, 50e6, 1),
+                order('0x0000000000000000000000000000000000000003', tokenB, 60e6, 100e6, 0)
+            ] },
+            { name: 'takerFillAmount', value: String(13e6) },
+            { name: 'makerFillAmounts', value: [String(10e6), String(12e6)] },
+            { name: 'takerFeeAmount', value: '0' },
+            { name: 'makerFeeAmounts', value: ['0', '0'] }
+        ] }
+    };
+    const tape = {
+        targetWallet: target,
+        conditionId: `0x${'2'.repeat(64)}`,
+        eventKey: 'event',
+        tokens: [{ tokenId: tokenA, outcome: 'A' }, { tokenId: tokenB, outcome: 'B' }],
+        seedSignal: { timestamp: 1_780_000_005, outcome: 'A', triggerPrice: 13 / 30 }
+    };
+    const parsed = parseTriggerTransaction(transaction, tape);
+    assert.strictEqual(parsed.takerIsTarget, true);
+    assert.strictEqual(parsed.sweep.makerOrderCount, 2);
+    assert.strictEqual(parsed.sweep.uniqueMakers, 2);
+    assert.deepStrictEqual(new Set(parsed.sweep.matchTypes), new Set(['COMPLEMENTARY', 'MINT']));
+    assert.ok(Math.abs(parsed.sweep.targetShares - 30) < 1e-9);
+    assert.ok(Math.abs(parsed.sweep.targetNotionalUsdc - 13) < 1e-9);
+    assert.ok(Math.abs(parsed.sweep.notionalReconciliationPct) < 1e-9);
+
+    const unsupported = JSON.parse(JSON.stringify(transaction));
+    unsupported.decoded_input.parameters.find(
+        (parameter) => parameter.name === 'makerOrders'
+    ).value[0] = order(
+        '0x0000000000000000000000000000000000000002', tokenB, 100e6, 50e6, 1
+    );
+    assert.throws(
+        () => parseTriggerTransaction(unsupported, tape),
+        /Unsupported maker\/taker pairing/
+    );
+});
+
+test('committed atomic breadth edge is development-selected and held-out positive', () => {
+    const atomic = edgeAnalysis.atomicBreadthEdge;
+    assert.strictEqual(atomic.thresholdSelection.selectedFromDevelopment, 18);
+    assert.strictEqual(atomic.thresholdSelection.frozenAlgorithmThreshold, 18);
+    assert.ok(atomic.chronology.validation.roiPct > 0);
+    assert.ok(atomic.chronology.finalTest.roiPct > 0);
+    assert.ok(atomic.chronology.heldOutAfterDevelopment.roiPct > 0);
+    assert.ok(atomic.belowThreshold.roiPct < 0);
+    assert.ok(atomic.thresholdSelection.marketNullSimulation.oneSidedPValue < 0.05);
+});
+
+test('copy execution audit spans same-second through five minutes and solves break-even cost', () => {
+    const blind = edgeAnalysis.blindCopyCounterfactual;
+    const atomic = edgeAnalysis.atomicBreadthEdge;
+    const lags = new Set(blind.executionSensitivity.map((row) => row.lagSeconds));
+    const costs = new Set(blind.executionSensitivity.map((row) => row.slippageCents));
+    assert.deepStrictEqual([...lags], [0, 1, 2, 5, 10, 15, 30, 60, 120, 300]);
+    assert.deepStrictEqual([...costs], [0, 0.5, 1, 2, 3, 5, 7, 10, 15, 20]);
+    assert.strictEqual(blind.executionSensitivity.length, 100);
+    assert.strictEqual(atomic.executionSensitivity.length, 100);
+    const blindOneSecond = blind.executionBreakEven.find((row) => row.lagSeconds === 1);
+    const breadthOneSecond = atomic.executionBreakEven.find((row) => row.lagSeconds === 1);
+    assert.ok(blindOneSecond.allMaxAdverseCents > 1);
+    assert.ok(blindOneSecond.allMaxAdverseCents < 2);
+    assert.ok(breadthOneSecond.heldOutMaxAdverseCents > 15);
+    assert.match(atomic.executionTimingLimits.subsecondScenario, /cannot be distinguished/);
+});
+
 test('plain-English essay renders the key claim, caveat, and every chart', () => {
     const html = renderHtml(deepAnalysis, edgeAnalysis);
     assert.match(html, /Copying the whale would have lost money/);
     assert.match(html, /-6\.15%/);
-    assert.match(html, /\+24\.37%/);
-    assert.match(html, /p=0\.239/);
+    assert.match(html, /\+41\.94%/);
+    assert.match(html, /\+27\.32%/);
+    assert.match(html, /1\.53 cents/);
+    assert.match(html, /0\.1-second bot and a 0\.5-second bot cannot be separated honestly/);
+    assert.match(html, /p=0\.046/);
     for (const figure of [
         'blind_copy_funnel',
         'strategy_equity',
         'urgency_calibration',
         'burst_threshold_sensitivity',
-        'execution_sensitivity'
+        'execution_sensitivity',
+        'atomic_breadth_calibration',
+        'breadth_chronology',
+        'breadth_threshold_lock',
+        'atomic_sweep_anatomy',
+        'breadth_execution_sensitivity',
+        'copy_execution_surface',
+        'copy_break_even_frontier'
     ]) {
         assert.match(html, new RegExp(`figures/${figure}\\.png`));
     }

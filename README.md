@@ -1,12 +1,12 @@
 # Polymarket Trader Research: `@djdjdjekekek`
 
-Transaction-level investigation of a high-volume Polymarket account. The repository reconstructs wallet control, cash flows, maker/taker roles, market outcomes, external execution prices, peer activity, and a leakage-controlled paper strategy.
+Transaction-level investigation of a high-volume Polymarket account. The repository reconstructs wallet control, cash flows, maker/taker roles, decoded trigger calldata, market outcomes, realistic copy-execution surfaces, peer activity, and a leakage-controlled paper strategy.
 
 ## Start Here: No Code Required
 
 **[Read the illustrated plain-English essay (PDF)](research/djdjdjekekek/plain_english_essay.pdf)**
 
-The PDF explains what blind copying would have done, what the trader's possible edge is, which facts support it, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
+The PDF explains what blind copying would have done, the atomic-liquidity fingerprint that best identifies the trader's edge, what a same-second copy bot changes, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
 
 Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
@@ -22,7 +22,7 @@ Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
 The account has two execution layers. Small maker fills dominate row count, while large fee-paying taker sweeps dominate capital and carry the directional information.
 
-The deeper finding is more specific: **rapid, concentrated target taker sweeps in full-match or multi-map markets retain a delayed, execution-sensitive signal in unrelated public market prints.**
+The deeper finding is more specific: **one mined trigger transaction becomes unusually informative when it consumes offers from at least 18 distinct signed maker accounts.** All 149 trigger transactions were decoded from Polygon. Every one was a successful V2 `matchOrders` BUY with the target as taker, revealing structure hidden by the public trade feed.
 
 | Finding | Result |
 | --- | ---: |
@@ -35,12 +35,13 @@ The deeper finding is more specific: **rapid, concentrated target taker sweeps i
 | Single game/map including BO1 | -$4.89M, -57.55% ROI |
 | BO1 rows previously mislabeled as series | 9 markets, -$1.78M, -67.80% ROI |
 | Blindly copy every canonical $25K signal | 139 bets, -$855.28 P&L, -6.15% ROI; -6.68% later |
-| Forced external-tape test | 80 bets, +8.50% ROI |
-| Chronological final 30% | 24 bets, +26.36% ROI |
-| Keep BO1 eligible as originally classified | 84 bets, +5.27% overall; 28 later bets, +14.09% |
-| Expanding-window model | 15 selected bets, +27.54% ROI, 0.635 ROC-AUC |
+| Triggers matching fewer than 18 makers | 50 bets, 29 wins, -11.56% ROI |
+| Atomic breadth of at least 18 makers | 30 bets, 23 wins, +41.94% ROI |
+| Breadth rule after development selection | 21 bets, 15 wins, +27.32% ROI |
+| One-second blind-copy break-even allowance | 1.53 cents of adverse price |
+| One-second breadth held-out allowance | 19.12 cents of adverse price |
 
-These are research results, not production evidence. The final-period day-clustered 95% interval is -15.9% to +55.8%; the model interval is -13.3% to +69.4%. Both cross zero, and removing the top five winners makes aggregate and model ROI negative.
+These are research results, not production evidence. The breadth cutoff was selected on the first half only; the combined held-out half returned +27.32%, with a day-clustered interval of +0.73% to +58.28%. The threshold-search null simulation gives one-sided `p=0.046`, but it does not correct wallet or feature-family selection.
 
 ## What Changed In The Deep Pass
 
@@ -52,16 +53,16 @@ The correction was noticed while inspecting final-period losses. It is domain-co
 
 ### The Execution Backtest Was Rebuilt
 
-The old prototype used the target's next future BUY as an execution proxy. The new test uses 143,507 market-wide taker prints across 149 signal markets:
+The old prototype used the target's next future BUY as an execution proxy. The rebuilt test uses 143,507 market-wide taker prints across 149 signal markets:
 
-- wait 60 seconds after a fixed $25,000 concentrated target-taker signal;
+- test same-second, 1, 2, 5, 10, 15, 30, 60, 120, and 300-second entry;
 - use the first direction-neutral unrelated public print in the next minute;
 - force no-print signals into the test with a trigger-price fallback;
-- add five cents adverse slippage and the account-observed 3% fee curve;
+- cross each delay with 0, 0.5, 1, 2, 3, 5, 7, 10, 15, and 20 cents of adverse price, plus the account-observed 3% fee curve;
 - retain only the first eligible condition per canonical event;
 - use equal stakes so target sizing cannot leak into the result.
 
-The target side beats the opposite side (-46.03% ROI) and randomized sides (one-sided `p=0.0301`) in the final slice. At ten cents adverse stress, however, all-period ROI is approximately flat. Execution quality can consume the entire observed edge.
+The historical tape has one-second timestamps, so 0.1-second and 0.5-second bots cannot be distinguished. The clock starts when the transaction is mined because maker breadth requires decoded on-chain calldata; Polymarket's earlier off-chain `MATCHED` state is a different, untested signal. Same-second/no-penalty blind copy returns only +3.4%; one second plus one cent returns +1.0%; one second plus two cents returns -0.9%. Blind copying has no measured sub-minute latency cliff. It has an execution-price cliff near two cents.
 
 The nested universe test identifies where the result comes from:
 
@@ -77,17 +78,19 @@ This is a nested attribution ladder, not five independent trials. Discipline and
 
 ![Blind-copy attribution ladder](research/djdjdjekekek/figures/blind_copy_funnel.png)
 
-### The Mechanism Was Narrowed
+### The Mechanism Was Decoded
 
-Signals where most aggressive buying arrived within 60 seconds returned +24.37%; slower accumulation returned -24.46%. The split keeps the same sign both earlier (+14.90% versus -22.56%) and in the chronological final period (+41.82% versus -32.40%). Removing the burst feature lowers walk-forward AUC from 0.635 to 0.547; removing public-tape flow and momentum lowers it to 0.576. These are post-discovery diagnostics, not independent confirmation.
+Rapid buying was the first useful clue: signals where most aggressive buying arrived within 60 seconds returned +24.37%, versus -24.46% for slower accumulation. But the rapid rule lost -25.91% in its middle validation block, so urgency alone was not the final mechanism.
 
-Public-price median markout was essentially zero from 15 seconds through five minutes. This points to urgency without immediate market repricing, not to final wallet size.
+Decoding the V2 `matchOrders` maker array exposed the stronger feature. The typical trigger matched 19 maker orders from 14 distinct maker accounts; 66 of 149 crossed multiple price levels. At least 18 distinct makers selected 30 bets with 23 wins, versus 29 wins from 50 narrower triggers. Public prices implied 16.04 wins for the broad group and 29.30 for the narrow group.
 
-The sharper diagnostic is probability calibration. Rapid signals won 41 times against 31.24 wins implied by the forced execution proxy, a +18.08 percentage-point gap. Slower signals won 11 times against 14.09 implied, a -11.90 point gap. A day-cluster bootstrap puts the rapid-minus-slow gap at +29.98 points with a +10.06 to +51.44 interval.
+The breadth rule's calibration gap is +23.21 points, compared with -0.59 below the cutoff. A fine permutation within discipline, three price bands, and chronological period gives a +28.03-point effect across 63 comparable bets (`p=0.0064`). Resampling whole trading days puts the broad-minus-narrow gap at +23.80 points, with a +6.19 to +42.81 interval.
 
-That result is not a clean causal estimate. Broad discipline/price stratification retains 3.36x common win odds (`p=0.023`), but a tighter permutation within discipline, three price bands, and chronological period shrinks the effect to +9.64 points across 52 comparable bets (`p=0.239`). The candidate edge is therefore **conviction compression**, not proven private information: urgency appears informative before the market reprices, but composition explains part of the aggregate gap.
+The effect is not just a bigger dollar trade. A probability-offset model controlling rapid flow, trigger notional, and time period estimates 4.94 times the outcome odds for breadth (`p=0.043`); trigger notional itself is null (`p=0.858`). The candidate edge is therefore **informed liquidity demand expressed as atomic maker breadth**, not proven private information.
 
-![Urgency-conditioned probability calibration](research/djdjdjekekek/figures/urgency_calibration.png)
+![Atomic-breadth probability calibration](research/djdjdjekekek/figures/atomic_breadth_calibration.png)
+
+![Copy latency and execution-cost surface](research/djdjdjekekek/figures/copy_execution_surface.png)
 
 The target's eventual position cannot be inferred reliably from the initial signal. A chronological sizing model has negative out-of-sample `R^2`, so the paper prototype uses fixed fractional sizing.
 
@@ -114,8 +117,9 @@ Core pipeline:
 - `src/research/onchain.js` - wallet control, contract state, logs, and flow decoding.
 - `src/research/analyze.js` - fill reconstruction, accounting, format classification, timing, and event grouping.
 - `src/research/tape.js` - compact market-wide taker-tape collector.
+- `src/research/trigger_transactions.js` - Polygon V2 calldata decoder and atomic-sweep reconstruction.
 - `src/research/statistical_analysis.py` - robust regression and event-cluster bootstrap.
-- `src/research/edge_analysis.py` - external execution, falsification, sensitivity, sizing, and walk-forward modeling.
+- `src/research/edge_analysis.py` - external execution, latency-cost surfaces, atomic-breadth tests, falsification, sizing, and modeling.
 - `src/research/peer_analysis.py` - recurring-wallet and chronological leader audit.
 - `src/research/report_graphics.py` - reproducible PNG/SVG figures from committed artifacts.
 - `src/research/replicator.js` - model-scored paper-intent state machine.
@@ -125,6 +129,7 @@ Primary evidence:
 
 - `snapshot.json`, `enrichment.json`, and `deep_analysis.json` - source snapshot and reconstructed account behavior.
 - `market_tape.json` - 143,507 compact external public prints.
+- `trigger_transactions.json` - decoded V2 trigger calldata, maker arrays, prices, order ages, and reconciliation.
 - `edge_features.csv`, `edge_analysis.json`, and `edge_model.json` - signal table, tests, and frozen model.
 - `peer_evidence.json` - recurring-wallet evidence and chronology test.
 - `figures/` - strategy funnel, calibration, equity, threshold, and execution graphics.
@@ -169,25 +174,27 @@ npm run research:collect
 npm run research:enrich
 npm run research:onchain
 npm run research:tape
+npm run research:triggers
 npm run research:peers
 npm run research:monitor
 ```
 
-## Paper Strategy
+## Frozen Research Algorithm
 
-The frozen monitor requires:
+`atomic-breadth-18` requires:
 
 - at least $25,000 of concentrated target taker BUY flow;
 - at least 70% net directional concentration;
-- at least 80% of observed target taker BUY notional arriving in the final 60 seconds;
 - trigger price from 0.30 to 0.85;
 - an allowed discipline and no single-game/map, BO1, or short-horizon market;
 - one condition per canonical event;
-- a 60-second delay and a live ask no more than five cents above the trigger;
-- displayed ask depth sufficient for the fixed paper order;
-- model-predicted edge of at least five percentage points after fees.
+- decoded V2 `matchOrders` calldata with the target as BUY taker;
+- at least 18 distinct `makerOrders[].maker` addresses in that trigger;
+- immediate paper submission with actual end-to-end latency and depth recorded;
+- a declared maximum adverse price, fixed before seeing the outcome;
+- a fixed $100 paper stake with no outcome-dependent sizing.
 
-It emits a fixed-size `MARKETABLE_LIMIT_FOK` paper intent at the current ask. It does not sign or submit orders. FOK failures and actual depth still need to be measured in a forward test.
+At least 80% of target taker flow in the final minute is a confidence tag, not a second hard gate. The current JavaScript monitor predates trigger-calldata decoding and must not be represented as an implementation of this frozen rule. The next prospective runner must reject undecoded triggers and record FOK failures, partial fills, indexer delay, and actual depth.
 
 ## Verification
 

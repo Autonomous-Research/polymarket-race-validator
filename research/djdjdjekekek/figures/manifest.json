@@ -1,8 +1,9 @@
 {
-  "generatedAt": "2026-08-25T16:13:43.897154+00:00",
+  "generatedAt": "2026-08-25T18:19:49.344025+00:00",
   "source": {
     "edge": "research/djdjdjekekek/edge_analysis.json",
-    "features": "research/djdjdjekekek/edge_features.csv"
+    "features": "research/djdjdjekekek/edge_features.csv",
+    "triggers": "research/djdjdjekekek/trigger_transactions.json"
   },
   "files": [
     "figures/blind_copy_funnel.png",
@@ -14,7 +15,21 @@
     "figures/execution_sensitivity.png",
     "figures/execution_sensitivity.svg",
     "figures/burst_threshold_sensitivity.png",
-    "figures/burst_threshold_sensitivity.svg"
+    "figures/burst_threshold_sensitivity.svg",
+    "figures/atomic_breadth_calibration.png",
+    "figures/atomic_breadth_calibration.svg",
+    "figures/breadth_chronology.png",
+    "figures/breadth_chronology.svg",
+    "figures/breadth_threshold_lock.png",
+    "figures/breadth_threshold_lock.svg",
+    "figures/atomic_sweep_anatomy.png",
+    "figures/atomic_sweep_anatomy.svg",
+    "figures/breadth_execution_sensitivity.png",
+    "figures/breadth_execution_sensitivity.svg",
+    "figures/copy_execution_surface.png",
+    "figures/copy_execution_surface.svg",
+    "figures/copy_break_even_frontier.png",
+    "figures/copy_break_even_frontier.svg"
   ],
   "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content."
 }

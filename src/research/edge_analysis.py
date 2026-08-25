@@ -12,6 +12,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import statsmodels.api as sm
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, Ridge
@@ -25,11 +26,14 @@ from statsmodels.stats.contingency_tables import StratifiedTable
 SEED = 20260825
 BOOTSTRAP_DRAWS = 20_000
 TARGET_FEE_RATE = 0.03
+ONCHAIN_BREADTH_THRESHOLD = 18
+ONCHAIN_BREADTH_CANDIDATES = tuple(range(5, 31))
 CORE_DISCIPLINES = {
     "Tennis", "Soccer", "Dota 2", "Counter-Strike", "League of Legends", "Valorant"
 }
 EXCLUDED_MARKET_TYPES = {"single-game/map", "short-horizon binary"}
-LAGS = (15, 30, 60, 120, 300)
+LAGS = (0, 1, 2, 5, 10, 15, 30, 60, 120, 300)
+EXECUTION_SLIPPAGE_CENTS = (0, 0.5, 1, 2, 3, 5, 7, 10, 15, 20)
 MODEL_NUMERIC = [
     "triggerPrice", "concentration", "triggerFillShare", "takerBurst60Share",
     "makerShareBeforeSignal", "signalAgeSeconds", "preMomentum300",
@@ -252,8 +256,64 @@ def target_flow_features(trades: list[dict], signal: dict) -> dict:
     }
 
 
-def build_features(snapshot: dict, enrichment: dict, analysis: dict, tape_data: dict):
+def onchain_trigger_features(transaction: dict | None) -> dict:
+    if not transaction or transaction.get("error"):
+        return {
+            "onchainDecoded": 0,
+            "onchainMakerOrders": np.nan,
+            "onchainUniqueMakers": np.nan,
+            "onchainUniqueSigners": np.nan,
+            "onchainPriceLevels": np.nan,
+            "onchainPriceRangeCents": np.nan,
+            "onchainWeightedPrice": np.nan,
+            "onchainTargetNotionalUsdc": np.nan,
+            "onchainLargestMakerShare": np.nan,
+            "onchainMakerHhi": np.nan,
+            "onchainRestingAgeMedianSeconds": np.nan,
+            "onchainTakerOrderAgeSeconds": np.nan,
+            "onchainMintMakerOrders": np.nan,
+            "onchainComplementaryMakerOrders": np.nan,
+            "onchainMixedSettlement": np.nan,
+            "onchainNotionalReconciliationPct": np.nan,
+        }
+    sweep = transaction["sweep"]
+    fills = sweep.get("fills", [])
+    match_types = {fill.get("matchType") for fill in fills if fill.get("matchType")}
+    return {
+        "onchainDecoded": 1,
+        "onchainMakerOrders": int(sweep["makerOrderCount"]),
+        "onchainUniqueMakers": int(sweep["uniqueMakers"]),
+        "onchainUniqueSigners": int(sweep["uniqueSigners"]),
+        "onchainPriceLevels": int(sweep["uniquePriceLevels"]),
+        "onchainPriceRangeCents": float(sweep["priceRangeCents"]),
+        "onchainWeightedPrice": float(sweep["weightedTargetPrice"]),
+        "onchainTargetNotionalUsdc": float(sweep["targetNotionalUsdc"]),
+        "onchainLargestMakerShare": float(sweep["largestMakerNotionalShare"]),
+        "onchainMakerHhi": float(sweep["makerNotionalHhi"]),
+        "onchainRestingAgeMedianSeconds": float(sweep["restingAgeMedianSeconds"]),
+        "onchainTakerOrderAgeSeconds": float(transaction["taker"]["orderAgeSeconds"]),
+        "onchainMintMakerOrders": sum(fill.get("matchType") == "MINT" for fill in fills),
+        "onchainComplementaryMakerOrders": sum(
+            fill.get("matchType") == "COMPLEMENTARY" for fill in fills
+        ),
+        "onchainMixedSettlement": int(len(match_types) > 1),
+        "onchainNotionalReconciliationPct": float(sweep["notionalReconciliationPct"]),
+    }
+
+
+def build_features(
+    snapshot: dict,
+    enrichment: dict,
+    analysis: dict,
+    tape_data: dict,
+    trigger_data: dict | None = None,
+):
     markets = {market["conditionId"]: market for market in analysis["markets"]}
+    trigger_transactions = {
+        row["conditionId"]: row
+        for row in (trigger_data or {}).get("transactions", [])
+        if row.get("conditionId")
+    }
     target_trades = reconstruct_target_trades(snapshot, enrichment)
     target_wallet = snapshot["wallet"].lower()
     deposits = sorted(
@@ -309,6 +369,7 @@ def build_features(snapshot: dict, enrichment: dict, analysis: dict, tape_data: 
             "title": market["title"],
             "discipline": market["discipline"],
             "marketType": market["marketType"],
+            "triggerHash": signal.get("triggerHash"),
             "signalTimestamp": timestamp,
             "signalTime": datetime.fromtimestamp(timestamp, timezone.utc).isoformat(),
             "resolutionTimestamp": gamma_closed_timestamp or fallback_resolution,
@@ -340,6 +401,7 @@ def build_features(snapshot: dict, enrichment: dict, analysis: dict, tape_data: 
             "alignedLeaderCount": len(leaders),
             "largestLeaderUsdc": leaders[0]["alignedUsdc"] if leaders else 0,
             "largestLeaderLeadSeconds": leaders[0]["leadSeconds"] if leaders else np.nan,
+            **onchain_trigger_features(trigger_transactions.get(tape["conditionId"])),
             **flow,
         }
         for lag in LAGS:
@@ -534,7 +596,7 @@ def chronological_split(frame: pd.DataFrame, share: float) -> tuple[pd.DataFrame
 def scenario_backtests(base: pd.DataFrame) -> list[dict]:
     output = []
     for lag in LAGS:
-        for slippage in (3, 5, 7, 10):
+        for slippage in EXECUTION_SLIPPAGE_CENTS:
             bets = prepare_bets(base, lag, slippage, price_source="any", force_fallback=True)
             train, test, split = chronological_split(bets, 0.70)
             output.append({
@@ -548,6 +610,26 @@ def scenario_backtests(base: pd.DataFrame) -> list[dict]:
                 "all": summarize_bets(bets),
             })
     return output
+
+
+def break_even_slippage_cents(frame: pd.DataFrame, lag: int, upper_bound: float = 50) -> float | None:
+    """Largest modeled adverse price move that keeps equal-stake ROI nonnegative."""
+    def roi(slippage: float) -> float:
+        summary = summarize_bets(prepare_bets(frame, lag, slippage))
+        return float(summary.get("roiPct", np.nan))
+
+    if frame.empty or not np.isfinite(roi(0)) or roi(0) < 0:
+        return None
+    if roi(upper_bound) >= 0:
+        return upper_bound
+    low, high = 0.0, upper_bound
+    for _ in range(40):
+        midpoint = (low + high) / 2
+        if roi(midpoint) >= 0:
+            low = midpoint
+        else:
+            high = midpoint
+    return finite(low)
 
 
 def candidate_gates() -> dict[str, callable]:
@@ -1138,6 +1220,365 @@ def fine_stratified_permutation(bets: pd.DataFrame, split_timestamp: int) -> dic
     }
 
 
+def breadth_day_cluster_calibration(bets: pd.DataFrame, threshold: int) -> dict:
+    rows = bets.copy()
+    rows["broadSweep"] = rows["onchainUniqueMakers"] >= threshold
+    rows["calibrationResidual"] = rows["won"] - rows["observedExecutionPrice"]
+    rows["day"] = pd.to_datetime(rows["signalTime"], utc=True).dt.date
+    clusters = []
+    for _, group in rows.groupby("day"):
+        broad = group[group["broadSweep"]]["calibrationResidual"]
+        narrow = group[~group["broadSweep"]]["calibrationResidual"]
+        clusters.append([broad.sum(), len(broad), narrow.sum(), len(narrow)])
+    clusters = np.asarray(clusters, dtype=float)
+    rng = np.random.default_rng(SEED + 503)
+    indexes = rng.integers(0, len(clusters), size=(BOOTSTRAP_DRAWS, len(clusters)))
+    sampled = clusters[indexes].sum(axis=1)
+    valid = (sampled[:, 1] > 0) & (sampled[:, 3] > 0)
+    broad_values = sampled[valid, 0] / sampled[valid, 1]
+    narrow_values = sampled[valid, 2] / sampled[valid, 3]
+    difference = broad_values - narrow_values
+    broad_actual = rows.loc[rows["broadSweep"], "calibrationResidual"].mean()
+    narrow_actual = rows.loc[~rows["broadSweep"], "calibrationResidual"].mean()
+
+    def interval(values: np.ndarray, actual: float) -> dict:
+        return {
+            "estimatePctPoints": finite(actual * 100),
+            "ci95LowPctPoints": finite(np.quantile(values, 0.025) * 100),
+            "ci95HighPctPoints": finite(np.quantile(values, 0.975) * 100),
+            "probabilityPositivePct": finite(np.mean(values > 0) * 100),
+        }
+
+    return {
+        "dayClusters": int(len(clusters)),
+        "validDraws": int(valid.sum()),
+        "broad": interval(broad_values, broad_actual),
+        "narrow": interval(narrow_values, narrow_actual),
+        "broadMinusNarrow": interval(difference, broad_actual - narrow_actual),
+    }
+
+
+def fine_stratified_breadth_permutation(
+    bets: pd.DataFrame, threshold: int, split_timestamp: int
+) -> dict:
+    rows = bets.copy()
+    rows["broadSweep"] = rows["onchainUniqueMakers"] >= threshold
+    rows["calibrationResidual"] = rows["won"] - rows["observedExecutionPrice"]
+    rows["priceBand"] = pd.cut(
+        rows["observedExecutionPrice"], [0, 0.45, 0.60, 1.0],
+        labels=["low", "middle", "high"], include_lowest=True
+    ).astype(str)
+    rows["period"] = np.where(
+        rows["signalTimestamp"] < split_timestamp, "earlier", "later"
+    )
+    groups = [
+        group for _, group in rows.groupby(["discipline", "priceBand", "period"])
+        if group["broadSweep"].nunique() == 2
+    ]
+    rng = np.random.default_rng(SEED + 509)
+    simulated_numerator = np.zeros(BOOTSTRAP_DRAWS)
+    actual_numerator = 0.0
+    total_weight = 0.0
+    comparable_bets = 0
+    for group in groups:
+        residuals = group["calibrationResidual"].to_numpy(dtype=float)
+        labels = group["broadSweep"].to_numpy(dtype=bool)
+        broad_count = int(labels.sum())
+        narrow_count = len(labels) - broad_count
+        weight = broad_count * narrow_count / len(labels)
+        actual_difference = residuals[labels].mean() - residuals[~labels].mean()
+        random_order = np.argpartition(
+            rng.random((BOOTSTRAP_DRAWS, len(labels))), broad_count - 1, axis=1
+        )[:, :broad_count]
+        broad_sum = residuals[random_order].sum(axis=1)
+        simulated_difference = (
+            broad_sum / broad_count
+            - (residuals.sum() - broad_sum) / narrow_count
+        )
+        actual_numerator += weight * actual_difference
+        simulated_numerator += weight * simulated_difference
+        total_weight += weight
+        comparable_bets += len(group)
+    actual = actual_numerator / total_weight
+    simulated = simulated_numerator / total_weight
+    return {
+        "method": "Shuffle broad-sweep labels within discipline x three public-price bands x fixed chronological period, preserving each stratum's broad-sweep count; statistic is the overlap-weighted calibration-gap difference.",
+        "strata": len(groups),
+        "comparableBets": comparable_bets,
+        "effectPctPoints": finite(actual * 100),
+        "oneSidedPValue": finite(
+            (np.sum(simulated >= actual) + 1) / (BOOTSTRAP_DRAWS + 1)
+        ),
+        "nullCi95LowPctPoints": finite(np.quantile(simulated, 0.025) * 100),
+        "nullCi95HighPctPoints": finite(np.quantile(simulated, 0.975) * 100),
+        "warning": "Post-discovery composition control. It preserves discipline, price band, period, and the number of broad signals, but it does not remove wallet-selection bias.",
+    }
+
+
+def breadth_threshold_selection_null(
+    bets: pd.DataFrame,
+    development_end: int,
+    threshold_candidates: list[int],
+    selected_threshold: int,
+) -> dict:
+    probabilities = bets["observedExecutionPrice"].clip(0.01, 0.99).to_numpy(dtype=float)
+    outcomes = bets["won"].to_numpy(dtype=int)
+    breadth = bets["onchainUniqueMakers"].to_numpy(dtype=float)
+    development = np.arange(development_end)
+    held_out = np.arange(development_end, len(bets))
+    eligible = [
+        threshold for threshold in threshold_candidates
+        if int((breadth[development] >= threshold).sum()) >= 8
+    ]
+    selected_mask = breadth[held_out] >= selected_threshold
+    actual = (outcomes[held_out][selected_mask] - probabilities[held_out][selected_mask]).mean()
+
+    rng = np.random.default_rng(SEED + 521)
+    simulated_outcomes = (
+        rng.random((BOOTSTRAP_DRAWS, len(bets))) < probabilities
+    ).astype(np.int8)
+    development_scores = np.empty((BOOTSTRAP_DRAWS, len(eligible)))
+    for index, threshold in enumerate(eligible):
+        mask = breadth[development] >= threshold
+        development_scores[:, index] = (
+            simulated_outcomes[:, development][:, mask] - probabilities[development][mask]
+        ).mean(axis=1)
+    selected_indexes = development_scores.argmax(axis=1)
+    simulated_held_out = np.empty(BOOTSTRAP_DRAWS)
+    selection_counts = {}
+    for index, threshold in enumerate(eligible):
+        selected = selected_indexes == index
+        selection_counts[str(threshold)] = int(selected.sum())
+        mask = breadth[held_out] >= threshold
+        simulated_held_out[selected] = (
+            simulated_outcomes[selected][:, held_out][:, mask] - probabilities[held_out][mask]
+        ).mean(axis=1)
+    return {
+        "method": "Simulate each outcome from its public execution-proxy probability, repeat development-only threshold selection, then score the selected threshold on the untouched validation-plus-final half.",
+        "draws": BOOTSTRAP_DRAWS,
+        "eligibleThresholds": eligible,
+        "minimumDevelopmentBets": 8,
+        "selectedThreshold": selected_threshold,
+        "heldOutBets": int(selected_mask.sum()),
+        "heldOutEffectPctPoints": finite(actual * 100),
+        "oneSidedPValue": finite(
+            (np.sum(simulated_held_out >= actual) + 1) / (BOOTSTRAP_DRAWS + 1)
+        ),
+        "nullMedianPctPoints": finite(np.median(simulated_held_out) * 100),
+        "nullCi95LowPctPoints": finite(np.quantile(simulated_held_out, 0.025) * 100),
+        "nullCi95HighPctPoints": finite(np.quantile(simulated_held_out, 0.975) * 100),
+        "selectionCounts": selection_counts,
+        "warning": "This corrects the declared breadth-threshold search under a calibrated-market null. It does not correct the prior choice of wallet, base universe, or feature family.",
+    }
+
+
+def probability_offset_models(bets: pd.DataFrame, threshold: int) -> dict:
+    rows = bets.copy()
+    rows["broadSweep"] = (rows["onchainUniqueMakers"] >= threshold).astype(float)
+    rows["rapid"] = (rows["takerBurst60Share"] >= 0.80).astype(float)
+    log_notional = np.log(rows["onchainTargetNotionalUsdc"].clip(lower=1))
+    rows["logNotionalCentered"] = log_notional - log_notional.mean()
+    first = int(len(rows) * 0.50)
+    second = int(len(rows) * 0.70)
+    rows["validationPeriod"] = 0.0
+    rows.loc[first:second - 1, "validationPeriod"] = 1.0
+    rows["finalPeriod"] = 0.0
+    rows.loc[second:, "finalPeriod"] = 1.0
+    offset = np.log(
+        rows["observedExecutionPrice"].clip(0.01, 0.99)
+        / (1 - rows["observedExecutionPrice"].clip(0.01, 0.99))
+    )
+
+    def fit(name: str, columns: list[str]) -> dict:
+        design = sm.add_constant(rows[columns].astype(float), has_constant="add")
+        model = sm.GLM(
+            rows["won"], design, family=sm.families.Binomial(), offset=offset
+        ).fit(cov_type="HC1")
+        confidence = model.conf_int()
+        return {
+            "name": name,
+            "features": columns,
+            "aic": finite(model.aic),
+            "deviance": finite(model.deviance),
+            "coefficients": [{
+                "name": column,
+                "coefficient": finite(model.params[column]),
+                "oddsRatio": finite(np.exp(model.params[column])),
+                "robustPValue": finite(model.pvalues[column]),
+                "oddsRatioCi95Low": finite(np.exp(confidence.loc[column, 0])),
+                "oddsRatioCi95High": finite(np.exp(confidence.loc[column, 1])),
+            } for column in design.columns],
+        }
+
+    return {
+        "method": "Binomial GLM with logit(public execution-proxy price) as a fixed offset. HC1 robust standard errors test whether observable features add odds beyond the market price.",
+        "breadthOnly": fit("breadthOnly", ["broadSweep"]),
+        "breadthAndUrgency": fit("breadthAndUrgency", ["broadSweep", "rapid"]),
+        "sizeAndPeriodControlled": fit(
+            "sizeAndPeriodControlled",
+            [
+                "broadSweep", "rapid", "logNotionalCentered",
+                "validationPeriod", "finalPeriod",
+            ],
+        ),
+        "warning": "Retrospective explanatory models, not prospective probability forecasts. Sparse categories are handled separately by the stratified permutation rather than unstable discipline dummy coefficients.",
+    }
+
+
+def breadth_edge_audit(base: pd.DataFrame, final_split_timestamp: int) -> dict:
+    bets = prepare_bets(base, 60, 5).sort_values("signalTimestamp").reset_index(drop=True)
+    if bets["onchainUniqueMakers"].isna().any():
+        raise ValueError("Atomic breadth analysis requires decoded trigger transactions for every base event")
+    first = int(len(bets) * 0.50)
+    second = int(len(bets) * 0.70)
+    development = bets.iloc[:first]
+    validation = bets.iloc[first:second]
+    final_test = bets.iloc[second:]
+    held_out = bets.iloc[first:]
+    threshold_rows = []
+    for threshold in ONCHAIN_BREADTH_CANDIDATES:
+        dev = development[development["onchainUniqueMakers"] >= threshold]
+        val = validation[validation["onchainUniqueMakers"] >= threshold]
+        final = final_test[final_test["onchainUniqueMakers"] >= threshold]
+        threshold_rows.append({
+            "minimumUniqueMakers": threshold,
+            "development": summarize_bets(dev),
+            "developmentCalibration": calibration_summary(dev),
+            "validation": summarize_bets(val),
+            "validationCalibration": calibration_summary(val),
+            "finalTest": summarize_bets(final),
+            "finalTestCalibration": calibration_summary(final),
+        })
+    eligible = [
+        row for row in threshold_rows
+        if row["development"].get("bets", 0) >= 8
+    ]
+    selected = max(
+        eligible,
+        key=lambda row: row["developmentCalibration"].get(
+            "calibrationGapPctPoints", -np.inf
+        ),
+    )
+    threshold = ONCHAIN_BREADTH_THRESHOLD
+    broad = bets[bets["onchainUniqueMakers"] >= threshold]
+    narrow = bets[bets["onchainUniqueMakers"] < threshold]
+    broad_development = development[development["onchainUniqueMakers"] >= threshold]
+    broad_validation = validation[validation["onchainUniqueMakers"] >= threshold]
+    broad_final = final_test[final_test["onchainUniqueMakers"] >= threshold]
+    broad_held_out = held_out[held_out["onchainUniqueMakers"] >= threshold]
+    broad_rapid = broad[broad["takerBurst60Share"] >= 0.80]
+    broad_slow = broad[broad["takerBurst60Share"] < 0.80]
+
+    execution_sensitivity = []
+    selected_base = base[base["onchainUniqueMakers"] >= threshold]
+    development_end_timestamp = int(bets.iloc[first]["signalTimestamp"])
+    validation_end_timestamp = int(bets.iloc[second]["signalTimestamp"])
+    for lag in LAGS:
+        for slippage in EXECUTION_SLIPPAGE_CENTS:
+            scenario = prepare_bets(selected_base, lag, slippage)
+            execution_sensitivity.append({
+                "lagSeconds": lag,
+                "slippageCents": slippage,
+                "publicPrintCoveragePct": finite((~scenario["usedFallbackPrice"]).mean() * 100),
+                "all": summarize_bets(scenario),
+                "development": summarize_bets(
+                    scenario[scenario["signalTimestamp"] < development_end_timestamp]
+                ),
+                "validation": summarize_bets(scenario[
+                    (scenario["signalTimestamp"] >= development_end_timestamp)
+                    & (scenario["signalTimestamp"] < validation_end_timestamp)
+                ]),
+                "finalTest": summarize_bets(
+                    scenario[scenario["signalTimestamp"] >= validation_end_timestamp]
+                ),
+            })
+    execution_break_even = [{
+        "lagSeconds": lag,
+        "allMaxAdverseCents": break_even_slippage_cents(selected_base, lag),
+        "heldOutMaxAdverseCents": break_even_slippage_cents(
+            selected_base[selected_base["signalTimestamp"] >= development_end_timestamp], lag
+        ),
+        "finalTestMaxAdverseCents": break_even_slippage_cents(
+            selected_base[selected_base["signalTimestamp"] >= validation_end_timestamp], lag
+        ),
+    } for lag in LAGS]
+
+    return {
+        "candidateMechanism": "Atomic breadth: the signal transaction consumes liquidity from many distinct signed maker accounts, revealing a stronger commitment than one large public trade print alone.",
+        "featureAvailability": "The maker array is part of the mined matchOrders calldata and is observable once the trigger transaction is mined. The execution audit spans same-second through five-minute entry.",
+        "executionTimingLimits": {
+            "timeOrigin": "The decoded trigger transaction's integer-second Polygon block timestamp.",
+            "detectionMode": "On-chain breadth cannot be known until matchOrders calldata is available from the mined transaction. Polymarket's earlier off-chain CLOB MATCHED state is a different, untested clock.",
+            "timestampResolutionSeconds": 1,
+            "sameSecondScenario": "Optimistic lower bound using the first unrelated public print stamped in the trigger second; ordering within that second is unavailable.",
+            "subsecondScenario": "A 0.1-second and 0.5-second bot cannot be distinguished in this historical tape. Both lie between the same-second optimistic bound and the first full-second scenario.",
+            "priceProxy": "Median price of unrelated public prints at the first observed second within the next 60 seconds, then an explicit adverse-price penalty and the observed fee curve.",
+            "unobserved": "Historical order-book depth, websocket/indexer publication delay, queue position, partial fills, and rejected orders are unavailable.",
+        },
+        "algorithm": {
+            "name": "atomic-breadth-18",
+            "baseGuards": [
+                "first canonical event signal only",
+                "core Tennis/Soccer/esports disciplines",
+                "exclude single-game/map and short-horizon contracts",
+                "trigger price from 0.30 through 0.85",
+                "target concentration at least 0.70",
+            ],
+            "trigger": "Decode the target's mined CTF Exchange V2 matchOrders transaction and count distinct maker addresses in its makerOrders array.",
+            "entry": f"Paper entry only when at least {threshold} distinct maker accounts were matched; submit immediately after the mined transaction is decoded, enforce a predeclared maximum adverse price, and record actual end-to-end latency, depth, partial fills, failures, and fees. The historical registered reference remains 60 seconds plus five cents, with the full same-second-to-five-minute execution surface reported.",
+            "confidenceTag": "Mark signals with at least 80% of prior target taker buying in the final minute as high confidence, but do not discard slower broad sweeps until prospective data supports that extra gate.",
+            "stake": "Equal $100 paper stake per eligible canonical event; no martingale or outcome-dependent sizing.",
+        },
+        "thresholdSelection": {
+            "method": "Search integer breadth thresholds 5 through 30 on the first 50% only; require at least eight development bets; maximize development calibration residual; do not use validation or final outcomes for selection.",
+            "selectedFromDevelopment": selected["minimumUniqueMakers"],
+            "frozenAlgorithmThreshold": threshold,
+            "developmentEnd": development.iloc[-1]["signalTime"],
+            "validationEnd": validation.iloc[-1]["signalTime"],
+            "candidates": threshold_rows,
+            "marketNullSimulation": breadth_threshold_selection_null(
+                bets,
+                first,
+                list(ONCHAIN_BREADTH_CANDIDATES),
+                threshold,
+            ),
+        },
+        "chronology": {
+            "development": summarize_bets(broad_development),
+            "developmentCalibration": calibration_summary(broad_development),
+            "validation": summarize_bets(broad_validation),
+            "validationCalibration": calibration_summary(broad_validation),
+            "finalTest": summarize_bets(broad_final),
+            "finalTestCalibration": calibration_summary(broad_final),
+            "heldOutAfterDevelopment": summarize_bets(broad_held_out),
+            "heldOutCalibration": calibration_summary(broad_held_out),
+            "heldOutDayClusterBootstrap": day_cluster_bootstrap(broad_held_out),
+        },
+        "all": summarize_bets(broad),
+        "allCalibration": calibration_summary(broad),
+        "allDayClusterBootstrap": day_cluster_bootstrap(broad),
+        "belowThreshold": summarize_bets(narrow),
+        "belowThresholdCalibration": calibration_summary(narrow),
+        "dayClusterCalibrationContrast": breadth_day_cluster_calibration(
+            bets, threshold
+        ),
+        "compositionControlledPermutation": fine_stratified_breadth_permutation(
+            bets, threshold, final_split_timestamp
+        ),
+        "probabilityOffsetModels": probability_offset_models(bets, threshold),
+        "urgencyInteraction": {
+            "broadAndRapid": summarize_bets(broad_rapid),
+            "broadAndRapidCalibration": calibration_summary(broad_rapid),
+            "broadButSlower": summarize_bets(broad_slow),
+            "broadButSlowerCalibration": calibration_summary(broad_slow),
+            "warning": "The rapid subset is stronger over all history but was negative after costs in the middle validation block, so urgency remains a confidence tag rather than a second hard gate.",
+        },
+        "executionSensitivity": execution_sensitivity,
+        "executionBreakEven": execution_break_even,
+        "warning": "This is the strongest observable fingerprint found in this two-month wallet sample, not proof of private information or future profitability. Distinct maker addresses are distinct signed accounts, not proven distinct humans.",
+    }
+
+
 def mechanism_audit(base: pd.DataFrame, split_timestamp: int) -> dict:
     bets = prepare_bets(base, 60, 5).sort_values("signalTimestamp").reset_index(drop=True)
     bets["burst60"] = bets["takerBurst60Share"] >= 0.80
@@ -1234,12 +1675,34 @@ def blind_copy_audit(features: pd.DataFrame, split_timestamp: int) -> dict:
         "signalTimestamp"
     ).drop_duplicates("eventKey", keep="first").reset_index(drop=True)
     bets = prepare_bets(universe, 60, 5)
+    execution_sensitivity = []
+    for lag in LAGS:
+        for slippage in EXECUTION_SLIPPAGE_CENTS:
+            scenario = prepare_bets(universe, lag, slippage)
+            execution_sensitivity.append({
+                "lagSeconds": lag,
+                "slippageCents": slippage,
+                "publicPrintCoveragePct": finite((~scenario["usedFallbackPrice"]).mean() * 100),
+                "all": summarize_bets(scenario),
+                "later": summarize_bets(
+                    scenario[scenario["signalTimestamp"] >= split_timestamp]
+                ),
+            })
+    execution_break_even = [{
+        "lagSeconds": lag,
+        "allMaxAdverseCents": break_even_slippage_cents(universe, lag),
+        "laterMaxAdverseCents": break_even_slippage_cents(
+            universe[universe["signalTimestamp"] >= split_timestamp], lag
+        ),
+    } for lag in LAGS]
     return {
         "definition": "Copy every first canonical-event signal after the target crosses $25,000 at >=70% concentration; no discipline, format, price, or burst filter.",
         "all": summarize_bets(bets),
         "earlier": summarize_bets(bets[bets["signalTimestamp"] < split_timestamp]),
         "later": summarize_bets(bets[bets["signalTimestamp"] >= split_timestamp]),
         "calibration": calibration_summary(bets),
+        "executionSensitivity": execution_sensitivity,
+        "executionBreakEven": execution_break_even,
         "decision": "Rejected: blind copying is negative both overall and after the fixed chronological split.",
     }
 
@@ -1250,6 +1713,7 @@ def main() -> None:
     parser.add_argument("--enrichment", default="research/djdjdjekekek/enrichment.json")
     parser.add_argument("--analysis", default="research/djdjdjekekek/deep_analysis.json")
     parser.add_argument("--tape", default="research/djdjdjekekek/market_tape.json")
+    parser.add_argument("--triggers", default="research/djdjdjekekek/trigger_transactions.json")
     parser.add_argument("--output", default="research/djdjdjekekek/edge_analysis.json")
     parser.add_argument("--features", default="research/djdjdjekekek/edge_features.csv")
     parser.add_argument("--model", default="research/djdjdjekekek/edge_model.json")
@@ -1259,7 +1723,10 @@ def main() -> None:
     enrichment = load_json(Path(args.enrichment))
     analysis = load_json(Path(args.analysis))
     tape_data = load_json(Path(args.tape))
-    features, leader_events = build_features(snapshot, enrichment, analysis, tape_data)
+    trigger_data = load_json(Path(args.triggers))
+    features, leader_events = build_features(
+        snapshot, enrichment, analysis, tape_data, trigger_data
+    )
     base = base_universe(features)
     scenarios = scenario_backtests(base)
     fixed = next(row for row in scenarios if row["lagSeconds"] == 60 and row["slippageCents"] == 5)
@@ -1270,19 +1737,22 @@ def main() -> None:
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "methodology": {
             "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
-            "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second window, five cents adverse slippage, and the observed 3% fee curve. A trigger-price fallback forces every eligible signal into the test when no print exists.",
+            "atomicBreadth": "Decode the mined CTF Exchange V2 matchOrders calldata at the trigger and count distinct maker addresses in the transaction's makerOrders array.",
+            "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-20-cent adverse-price grid, and the observed 3% fee curve. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents.",
             "eventLeakage": "Eligible conditions are sorted by signal time and only the first condition per canonical event is retained.",
             "labelTiming": "Walk-forward labels become available at Gamma market closedTime, not the ambiguous closed-positions timestamp.",
             "selection": (
-                "The threshold and map-exclusion rule predate this tape analysis. BO1 was corrected from series to single-map "
+                "The $25,000 signal threshold and map-exclusion rule predate this tape analysis. BO1 was corrected from series to single-map "
                 "after inspecting final-period losses, so that semantic correction is disclosed rather than presented as a pristine "
                 "unseen discovery. Refinements use a declared 50/20/30 development-validation-final split."
             ),
             "limitations": [
-                "A public trade print proves market activity, not the exact historical ask depth available to a follower; the five-cent stress is a conservative proxy.",
+                "A public trade print proves market activity, not the exact historical ask depth available to a follower; the adverse-price grid is a scenario surface, not a reconstructed order book.",
+                "Tape and block timestamps have one-second resolution. Same-second entry is an optimistic bound, while 0.1-second and 0.5-second bots cannot be distinguished from one another in these historical data.",
                 "The account was selected after exceptional performance, so trader-selection bias remains.",
                 "The model family and feature set were chosen during this investigation; expanding-window predictions are pseudo-out-of-sample, not a locked prospective trial.",
                 "The urgency calibration and stratified mechanism audits were designed after observing this sample; their p-values diagnose compatibility with narrow nulls but do not correct for discovery search.",
+                "The atomic-breadth family was discovered retrospectively. Its integer threshold is selected only on the first half, and a separate simulation repeats that search, but wallet and feature-family selection remain uncorrected.",
                 "The sample spans only about two months and event returns are highly concentrated.",
             ],
         },
@@ -1296,6 +1766,14 @@ def main() -> None:
             "gammaClosedAtOrBeforeSignal": int((features["resolutionTimestamp"] <= features["signalTimestamp"]).sum()),
             "medianSignalToGammaCloseSeconds": finite(
                 (features["resolutionTimestamp"] - features["signalTimestamp"]).median()
+            ),
+            "decodedTriggerTransactions": int(features["onchainDecoded"].sum()),
+            "targetAsDecodedTaker": int(trigger_data.get("targetAsDecodedTaker", 0)),
+            "medianMakerOrdersPerTrigger": finite(features["onchainMakerOrders"].median()),
+            "medianUniqueMakersPerTrigger": finite(features["onchainUniqueMakers"].median()),
+            "multiPriceLevelTriggers": int((features["onchainPriceLevels"] > 1).sum()),
+            "maximumAbsoluteOnchainNotionalReconciliationPct": finite(
+                features["onchainNotionalReconciliationPct"].abs().max()
             ),
         },
         "marketResponse": markout_analysis(base),
@@ -1336,6 +1814,7 @@ def main() -> None:
         "lockedRefinement": locked_gate_test(base),
         "walkForwardModel": walk_forward_model(base),
         "mechanismAudit": mechanism_audit(base, fixed["splitTimestamp"]),
+        "atomicBreadthEdge": breadth_edge_audit(base, fixed["splitTimestamp"]),
     }
 
     output_path = Path(args.output)
