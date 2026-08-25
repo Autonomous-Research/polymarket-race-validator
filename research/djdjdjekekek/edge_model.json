@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "generatedAt": "2026-08-25T15:44:18.904424+00:00",
+  "modelType": "standardized L2 logistic regression",
+  "intercept": 0.8330158678506904,
+  "numeric": [
+    {
+      "name": "triggerPrice",
+      "imputeMedian": 0.5651993205000001,
+      "mean": 0.5676461836037501,
+      "scale": 0.15846205160378352,
+      "coefficient": 0.32426093488747637
+    },
+    {
+      "name": "concentration",
+      "imputeMedian": 1.0,
+      "mean": 1.0,
+      "scale": 1.0,
+      "coefficient": 0.0
+    },
+    {
+      "name": "triggerFillShare",
+      "imputeMedian": 0.9232637225763527,
+      "mean": 0.7878153727175914,
+      "scale": 0.2595411222239902,
+      "coefficient": 0.07514704905074224
+    },
+    {
+      "name": "takerBurst60Share",
+      "imputeMedian": 0.9985566706048047,
+      "mean": 0.8454864812954568,
+      "scale": 0.2266264640554357,
+      "coefficient": 0.6010175481253348
+    },
+    {
+      "name": "makerShareBeforeSignal",
+      "imputeMedian": 0.008757182600328463,
+      "mean": 0.1464725881280597,
+      "scale": 0.2529226993518667,
+      "coefficient": -0.003397776326810307
+    },
+    {
+      "name": "signalAgeSeconds",
+      "imputeMedian": 64.0,
+      "mean": 1042.975,
+      "scale": 4032.0588846611604,
+      "coefficient": 0.25739200043621163
+    },
+    {
+      "name": "preMomentum300",
+      "imputeMedian": 0.005000005949999997,
+      "mean": 0.013808635594375002,
+      "scale": 0.07209367794652828,
+      "coefficient": 0.40332250936148895
+    },
+    {
+      "name": "externalFlow300",
+      "imputeMedian": -0.37492248823515933,
+      "mean": -0.14911229355570849,
+      "scale": 0.6438884995849359,
+      "coefficient": -0.1887824621405152
+    },
+    {
+      "name": "pregame",
+      "imputeMedian": 0.0,
+      "mean": 0.4125,
+      "scale": 0.4922842166878804,
+      "coefficient": -0.3170813836498625
+    },
+    {
+      "name": "depositLagSeconds",
+      "imputeMedian": 1190.0,
+      "mean": 8989.2,
+      "scale": 16803.51000416282,
+      "coefficient": 0.0004553258214653947
+    }
+  ],
+  "categorical": [
+    {
+      "name": "discipline",
+      "values": [
+        {
+          "value": "Counter-Strike",
+          "coefficient": 0.0836745081816401
+        },
+        {
+          "value": "Dota 2",
+          "coefficient": 0.012208564961841849
+        },
+        {
+          "value": "League of Legends",
+          "coefficient": -0.08927852335382021
+        },
+        {
+          "value": "Soccer",
+          "coefficient": 0.1417477684326206
+        },
+        {
+          "value": "Tennis",
+          "coefficient": -0.05340243756480078
+        },
+        {
+          "value": "Valorant",
+          "coefficient": -0.09463612227893309
+        }
+      ],
+      "unknownCoefficient": 0
+    },
+    {
+      "name": "marketType",
+      "values": [
+        {
+          "value": "match winner",
+          "coefficient": -0.1684533510242959
+        },
+        {
+          "value": "outright",
+          "coefficient": 0.2582285942063547
+        },
+        {
+          "value": "series winner",
+          "coefficient": -0.1455069576849469
+        },
+        {
+          "value": "team to advance",
+          "coefficient": 0.05604547288143661
+        }
+      ],
+      "unknownCoefficient": 0
+    }
+  ],
+  "decision": {
+    "minimumPredictedEdge": 0.05,
+    "minimumTakerBurst60Share": 0.8,
+    "feeRate": 0.03,
+    "modeledSlippageCents": 5,
+    "copyLagSeconds": 60
+  },
+  "training": {
+    "bets": 80,
+    "firstSignal": "2026-06-19T18:37:08+00:00",
+    "lastSignal": "2026-08-24T15:50:48+00:00",
+    "inSampleRocAuc": 0.790521978021978,
+    "warning": "Deployment fit uses all historical outcomes. Evidence quality comes from the separate expanding-window test, not this in-sample metric."
+  }
+}

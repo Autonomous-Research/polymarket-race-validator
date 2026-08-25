@@ -198,7 +198,7 @@ Deposits and buys have a ${Number(cash.depositBuyCorrelationDaily).toFixed(3)} d
 `;
 }
 
-function traderReport(analysis, stats) {
+function traderReport(analysis, stats, edge, peers) {
     const execution = analysis.execution;
     const cash = analysis.cash;
     const perf = analysis.performance;
@@ -218,6 +218,13 @@ function traderReport(analysis, stats) {
     const yandexGame = analysis.caseStudies.find((item) => item.title.includes('Team Yandex vs Team Spirit - Game 2'));
     const logitTaker = stats.robustLogit.coefficients.find((item) => item.term === 'taker_share');
     const perTenPointOdds = Math.exp(Math.log(logitTaker.oddsRatio) * 0.1);
+    const formatAudit = analysis.performance.formatAudit || {};
+    const bo1 = formatAudit.bo1 || {};
+    const series = formatAudit.multiMapSeries || rowByKey(perf.byMarketType, 'series winner');
+    const singleMap = formatAudit.singleGameOrMap || rowByKey(perf.byMarketType, 'single-game/map');
+    const fixed = edge.fixedExternalTapeBacktest;
+    const model = edge.walkForwardModel;
+    const peerAudit = peers.basket.chronologicalAudit;
 
     return `# Deep Trader Report: @djdjdjekekek
 
@@ -235,6 +242,40 @@ The strongest split is not sport versus esports. It is **aggressive versus passi
 | Taker share < 50% | ${number(lowTaker.markets)} | ${money(lowTaker.costBasisUsdc)} | ${signedMoney(lowTaker.realizedPnlUsdc)} | ${signedPercent(lowTaker.roiPct, 2)} | ${signedPercent(lowTaker.ci95LowPct, 1)} to ${signedPercent(lowTaker.ci95HighPct, 1)} |
 
 In a robust logistic model controlling for average entry price, log position size, timing, discipline, market type and concentration, a 10-point increase in taker share multiplies the odds of the dominant outcome winning by about ${perTenPointOdds.toFixed(2)} (full-range coefficient \`p=${logitTaker.pValue.toExponential(2)}\`). This is descriptive, not causal, but it survives controls that the original report omitted.
+
+## Second-Pass Discovery
+
+The first pass contained a consequential semantic bug: titles marked \`(BO1)\` were classified as series winners even though a best-of-one is a single map. Correcting that label exposes a much sharper boundary:
+
+| Format | Markets | Cost | PnL | ROI |
+| --- | ---: | ---: | ---: | ---: |
+| BO1 alone | ${number(bo1.markets)} | ${money(bo1.costBasisUsdc)} | ${signedMoney(bo1.realizedPnlUsdc)} | ${signedPercent(bo1.roiPct, 2)} |
+| True multi-map series | ${number(series.markets)} | ${money(series.costBasisUsdc)} | ${signedMoney(series.realizedPnlUsdc)} | ${signedPercent(series.roiPct, 2)} |
+| Single game/map, including BO1 | ${number(singleMap.markets)} | ${money(singleMap.costBasisUsdc)} | ${signedMoney(singleMap.realizedPnlUsdc)} | ${signedPercent(singleMap.roiPct, 2)} |
+
+This is a domain correction consistent with the pre-existing map exclusion, but it was noticed while inspecting final-period losses. It is disclosed as such, not presented as a pristine holdout discovery.
+
+The sign does not depend on that correction. A counterfactual that leaves BO1 eligible as the original classifier did returns ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.all.bets)} events and ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.afterFixedSplit.bets)} events after the same fixed split. The corrected rule is economically better; the counterfactual checks that the positive sign was not manufactured by relabeling BO1.
+
+The deeper test replaces the target's later fills with ${number(edge.coverage.publicTakerPrints)} unrelated public taker prints from ${number(edge.coverage.tapeMarkets)} signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
+
+| External-tape test | Bets | Wins | ROI |
+| --- | ---: | ---: | ---: |
+| Earlier 70% | ${number(fixed.train.bets)} | ${number(fixed.train.wins)} | ${signedPercent(fixed.train.roiPct, 2)} |
+| Chronological final 30% | ${number(fixed.test.bets)} | ${number(fixed.test.wins)} | ${signedPercent(fixed.test.roiPct, 2)} |
+| All eligible events | ${number(fixed.all.bets)} | ${number(fixed.all.wins)} | ${signedPercent(fixed.all.roiPct, 2)} |
+
+The final-period result beats an opposite-side return of ${signedPercent(edge.randomSideFalsification.oppositeSideRoiPct, 2)} and a random-side median of ${signedPercent(edge.randomSideFalsification.randomSideMedianRoiPct, 2)} (one-sided randomization \`p=${edge.randomSideFalsification.randomizationPValue.toFixed(4)}\`). It is still not statistically settled: the day-clustered 95% interval is ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)} across only ${number(edge.fixedTestDayClusterBootstrap.dayClusters)} days.
+
+The mechanism is a **rapid taker sweep**, not eventual wallet size. Signals with most taker notional arriving in the final 60 seconds returned ${signedPercent(edge.subgroups.burst60.roiPct, 2)} versus ${signedPercent(edge.subgroups.notBurst60.roiPct, 2)} without that burst. Meanwhile, initial trigger size predicts eventual cost poorly: chronological log-cost \`R^2=${Number(edge.sizing.chronologicalTest.r2LogCost).toFixed(3)}\`, with ${money(edge.sizing.chronologicalTest.meanAbsoluteErrorUsdc)} mean absolute error. A follower can observe urgency; it cannot reliably infer the target's final stake.
+
+That burst split has the same sign on both sides of the chronological boundary: ${signedPercent(edge.subgroupChronology.earlier70Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.earlier70Pct.slower.roiPct, 1)} earlier, and ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 1)} in the final period. The full-sample win-rate Fisher test gives \`p=${edge.subgroupChronology.winRateFisherExact.twoSidedPValue.toFixed(4)}\`, but that is a descriptive post-discovery test without feature-search correction.
+
+An expanding-window model trained only on markets whose Gamma \`closedTime\` preceded each prediction selected ${number(model.selected.bets)} of ${number(model.predictions)} later signals and returned ${signedPercent(model.selected.roiPct, 2)}, versus ${signedPercent(model.samePeriodAlwaysCopy.roiPct, 2)} for always copying and ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} for the transparent burst gate in the same period. Gamma close-time coverage is ${percent(edge.coverage.gammaClosedTimeCoveragePct, 1)}. Its ROC-AUC is ${Number(model.rocAuc).toFixed(3)}, but the day-cluster interval still reaches ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} and removing its top five winners makes ROI ${signedPercent(model.selected.roiWithoutTopWinnersPct['5'], 1)}. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
+
+Ablation supports, but does not prove, the mechanism: removing the 60-second burst feature lowers walk-forward AUC to ${Number(model.ablations.withoutTakerBurst60.rocAuc).toFixed(3)}, removing public-tape momentum and flow lowers it to ${Number(model.ablations.withoutPublicTape.rocAuc).toFixed(3)}, and a price/category-only baseline scores ${Number(model.ablations.priceAndCategoryBaseline.rocAuc).toFixed(3)}.
+
+The peer-leader hypothesis did not survive chronology. ${number(peerAudit.peersSelectedByEarlyRecurrenceOnly)} wallets were selected only from early recurrence; later signals aligned with one returned ${signedPercent(peerAudit.knownPeerAlignedLater.roiPct, 2)}, while signals without alignment returned ${signedPercent(peerAudit.knownPeerNotAlignedLater.roiPct, 2)}. Recurring whales reveal shared market selection, but no stable upstream copier was identified.
 
 ## Dataset And Reconstruction
 
@@ -361,7 +402,7 @@ Even the high-taker subset falls from ${signedPercent(stats.pnlConcentration.tak
 
 1. Maker-rebate farming as the main edge. Net observed fee drag is far larger than maker rebates.
 2. A universal in-play latency edge. In-play-started markets are roughly flat to negative.
-3. Blind copy trading. The broad delayed baseline loses money.
+3. Unfiltered copy trading as a stable edge. The external-tape baseline is positive in aggregate, but its clustered interval crosses zero and top-five removal turns it negative.
 4. Stable, diversified alpha. Five winners are required to keep aggregate PnL positive.
 5. Map/game duplication. It is the largest identifiable strategy leak.
 
@@ -377,167 +418,319 @@ Selection bias remains: this wallet was investigated because it was exceptional.
 
 - [Polymarket market-data overview](https://docs.polymarket.com/market-data/overview)
 - [Polymarket maker rebates and fee curve](https://docs.polymarket.com/programs/maker-rebates)
+- [Polymarket Data API trades](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
 - [Polymarket liquidity rewards](https://docs.polymarket.com/programs/liquidity-rewards)
 - [Tetlock, Liquidity and Prediction Market Efficiency](https://business.columbia.edu/faculty/research/liquidity-and-prediction-market-efficiency)
+- [Bailey et al., The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
 - [BLAST official TI 2026 series results](https://blast.tv/dota/tournaments/the-international-2026/series)
-- Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [market_features.csv](./market_features.csv)
+- Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [edge_analysis.json](./edge_analysis.json), [peer_evidence.json](./peer_evidence.json), and [edge_features.csv](./edge_features.csv)
 `;
 }
 
-function replicationReport(analysis, stats, paper, audit) {
-    const proposed = analysis.backtest.proposed;
-    const strategyStats = stats.proposedStrategyBootstrap;
-    const lags = analysis.backtest.lagSensitivity.filter((row) => row.executionMode === 'taker-chase');
-    const passive = analysis.backtest.lagSensitivity.filter((row) => row.executionMode === 'post-only-price-revisit');
-    const lagRows = lags.map((row) => {
-        const optimistic = passive.find((candidate) => candidate.lagSeconds === row.lagSeconds);
-        return `| ${row.lagSeconds}s | ${number(row.train.bets)} / ${signedPercent(row.train.roiPct, 2)} | ${number(row.test.bets)} / ${signedPercent(row.test.roiPct, 2)} | ${number(optimistic?.test?.bets)} / ${signedPercent(optimistic?.test?.roiPct, 2)} |`;
+function replicationReport(analysis, paper, audit, edge) {
+    const fixed = edge.fixedExternalTapeBacktest;
+    const model = edge.walkForwardModel;
+    const config = paper.config;
+    const formatAudit = analysis.performance.formatAudit || {};
+    const slips = edge.executionSensitivity
+        .filter((row) => row.lagSeconds === fixed.lagSeconds)
+        .sort((a, b) => a.slippageCents - b.slippageCents);
+    const lags = edge.executionSensitivity
+        .filter((row) => row.slippageCents === fixed.slippageCents)
+        .sort((a, b) => a.lagSeconds - b.lagSeconds);
+    const slipRows = slips.map((row) =>
+        `| ${row.slippageCents}c | ${signedPercent(row.train.roiPct, 2)} | ${signedPercent(row.test.roiPct, 2)} | ${signedPercent(row.all.roiPct, 2)} |`
+    ).join('\n');
+    const lagRows = lags.map((row) =>
+        `| ${row.lagSeconds}s | ${percent(row.publicPrintCoveragePct, 1)} | ${signedPercent(row.train.roiPct, 2)} | ${signedPercent(row.test.roiPct, 2)} | ${signedPercent(row.all.roiPct, 2)} |`
+    ).join('\n');
+    const universeLabels = [
+        ['allCanonicalSignals', 'All canonical $25K signals'],
+        ['rapidBurst', 'Add rapid 60-second burst'],
+        ['rapidBurstAndFormatGuard', 'Add map/short-market exclusion'],
+        ['rapidBurstFormatAndCoreDisciplines', 'Add core disciplines'],
+        ['fullRuleWithPriceGuard', 'Add 0.30-0.85 price guard']
+    ];
+    const universeRows = universeLabels.map(([key, label]) => {
+        const row = edge.universeSensitivity.steps[key];
+        return `| ${label} | ${number(row.all.bets)} | ${signedPercent(row.all.roiPct, 2)} | ${number(row.afterFixedSplit.bets)} | ${signedPercent(row.afterFixedSplit.roiPct, 2)} |`;
     }).join('\n');
 
-    return `# Replication Prototype: Evidence, Rules And Limits
+    return `# Replication Prototype: External-Tape Backtest
 
-Generated ${paper.generatedAt}. The implementation is paper-only and cannot sign or submit an order.
+Generated ${paper.generatedAt}. This implementation is paper-only and contains no signing or order-submission path.
 
-## Translation From Finding To Rule
+## What Changed
 
-| Finding | Observable rule | Guard |
-| --- | --- | --- |
-| Taker dollars, not maker fill count, carry the edge | Watch exact \`takerOnly=true\` BUY flow | Ignore maker fills as a directional trigger |
-| Conviction matters | Require at least ${money(paper.config.strategy.thresholdUsdc)} gross aggressive buys and ${percent(paper.config.strategy.concentration * 100)} net directional concentration | No signal from small exploratory activity |
-| Profits cluster in selected domains | Allow ${paper.config.strategy.allowedDisciplines.join(', ')} | Exclude MLB, basketball, crypto and unclassified sports |
-| Maps/games leak badly | Exclude \`${paper.config.strategy.excludedMarketTypes.join('`, `')}\` | One condition per canonical event |
-| Chasing consumes the edge | Anchor a post-only paper bid at or below the target trigger | Skip if best ask moved over ${paper.config.maxAdverseMove.toFixed(2)} against the signal |
-| Signals decay | Wait ${paper.config.targetCopyLagSeconds}s, then expire at ${paper.config.signalMaxAgeSeconds}s | Cancel unfilled paper orders after ${paper.config.cancelAfterSeconds}s |
+The earlier prototype used the target's next future BUY as an execution proxy. That leaked the target's later behavior into fill selection and could not answer whether an unrelated follower had a tradable price. The replacement uses market-wide public taker prints and never consults a later target fill to decide execution.
 
-## Fixed Historical Test
+| Component | Locked behavior |
+| --- | --- |
+| Signal | Exact target taker BUY flow crosses ${money(config.strategy.thresholdUsdc)} at >=${percent(config.strategy.concentration * 100)} directional concentration |
+| Urgency guard | At least ${percent(config.strategy.minimumTakerBurst60Share * 100)} of observed target taker BUY notional arrived in the final 60 seconds |
+| Eligibility | Allowed disciplines, price ${config.strategy.minPrice.toFixed(2)}-${config.strategy.maxPrice.toFixed(2)}, no single-map/BO1 or short-horizon market |
+| Event control | First eligible condition per canonical event |
+| Delay | ${number(fixed.lagSeconds)} seconds after the signal |
+| Historical price | First direction-neutral public taker print in the next 60 seconds; trigger fallback if absent |
+| Cost stress | ${fixed.slippageCents} cents adverse movement plus Polymarket's 3% fee curve |
+| Live paper execution | Marketable limit at the current ask, FOK, rejected above trigger + ${config.maxAdverseMove.toFixed(2)} or when displayed ask depth is insufficient |
+| Sizing | Fixed bankroll fraction; no attempt to predict the target's final position |
+| Model gate | Predicted win probability minus all-in price must exceed ${percent(config.edgeModel.minimumPredictedEdge * 100)} |
 
-The rule was fixed from attribution before reporting the test period: target taker buys >= ${money(proposed.taker.strategy.thresholdUsdc)}, concentration >= ${percent(proposed.taker.strategy.concentration * 100)}, price ${proposed.taker.strategy.minPrice.toFixed(2)}-${proposed.taker.strategy.maxPrice.toFixed(2)}, allowed disciplines only, and no game/map markets. Markets were split chronologically 70/30.
+The BO1 exclusion is important. The corrected audit records a ${money(Math.abs(formatAudit.bo1?.realizedPnlUsdc))} loss across ${number(formatAudit.bo1?.markets)} BO1 markets rather than hiding them inside the profitable series bucket.
 
-| Execution | Train | Test | All |
+Because that correction was found after inspecting final losses, the audit also preserves the original-classifier counterfactual. Keeping BO1 eligible returns ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.all.bets)} events and ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.afterFixedSplit.bets)} events after the same fixed boundary. Its later ROI after removing the top three winners is ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiWithoutTopWinnersPct['3'], 2)}.
+
+## Primary Historical Test
+
+This test includes all ${number(fixed.all.bets)} eligible events. It does not discard signals lacking a convenient future print: ${number(fixed.all.fallbackPrices)} use the trigger-price fallback. Public-print coverage is ${percent(fixed.publicPrintCoveragePct, 2)}.
+
+| Period | Bets | Wins | P&L ($100 per bet) | ROI | Max drawdown |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Earlier 70% | ${number(fixed.train.bets)} | ${number(fixed.train.wins)} | ${signedMoney(fixed.train.profitUsdc)} | ${signedPercent(fixed.train.roiPct, 2)} | ${money(fixed.train.maxDrawdownUsdc)} |
+| Chronological final 30% | ${number(fixed.test.bets)} | ${number(fixed.test.wins)} | ${signedMoney(fixed.test.profitUsdc)} | ${signedPercent(fixed.test.roiPct, 2)} | ${money(fixed.test.maxDrawdownUsdc)} |
+| All | ${number(fixed.all.bets)} | ${number(fixed.all.wins)} | ${signedMoney(fixed.all.profitUsdc)} | ${signedPercent(fixed.all.roiPct, 2)} | ${money(fixed.all.maxDrawdownUsdc)} |
+
+The final-period IID bootstrap interval is ${signedPercent(edge.fixedTestBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestBootstrap.ci95HighPct, 1)}. Clustering by trading day widens it to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)} across ${number(edge.fixedTestDayClusterBootstrap.dayClusters)} days. Both cross zero.
+
+The side falsification is harder to dismiss: target direction returned ${signedPercent(edge.randomSideFalsification.actualTargetRoiPct, 2)}, the opposite direction ${signedPercent(edge.randomSideFalsification.oppositeSideRoiPct, 2)}, and randomized sides had a ${signedPercent(edge.randomSideFalsification.randomSideMedianRoiPct, 2)} median (one-sided \`p=${edge.randomSideFalsification.randomizationPValue.toFixed(4)}\`). That supports directional information in this period; it does not remove wallet-selection bias.
+
+## Universe Attribution
+
+Blindly copying every canonical seed signal loses money. The nested ladder shows which observable guards change that result, using the same fixed ${edge.universeSensitivity.splitDate} boundary for every row:
+
+| Nested rule | All bets | All ROI | Bets after split | ROI after split |
+| --- | ---: | ---: | ---: | ---: |
+${universeRows}
+
+Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
+
+## Execution Stress
+
+### Slippage at a 60-second delay
+
+| Adverse stress | Earlier 70% | Final 30% | All |
 | --- | ---: | ---: | ---: |
-| Taker proxy: next target buy, +3 cents, observed fee | ${number(proposed.taker.train.bets)} bets / ${signedPercent(proposed.taker.train.roiPct, 2)} | ${number(proposed.taker.test.bets)} bets / ${signedPercent(proposed.taker.test.roiPct, 2)} | ${number(proposed.taker.all.bets)} bets / ${signedPercent(proposed.taker.all.roiPct, 2)} |
-| Passive price-revisit upper bound | ${number(proposed.passivePriceRevisit.train.bets)} bets / ${signedPercent(proposed.passivePriceRevisit.train.roiPct, 2)} | ${number(proposed.passivePriceRevisit.test.bets)} bets / ${signedPercent(proposed.passivePriceRevisit.test.roiPct, 2)} | ${number(proposed.passivePriceRevisit.all.bets)} bets / ${signedPercent(proposed.passivePriceRevisit.all.roiPct, 2)} |
+${slipRows}
 
-The untouched test period is positive under the taker proxy, but the bootstrap interval is wide: ${signedPercent(strategyStats.test.ci95LowPct, 1)} to ${signedPercent(strategyStats.test.ci95HighPct, 1)}. With only ${number(strategyStats.test.bets)} bets, this is a forward-test candidate, not a demonstrated production edge.
+### Delay at five-cent stress
 
-The passive result is an upper bound. A later target buy at or below the trigger proves a price revisit, not our queue position or fill. The code therefore emits a post-only **paper intent** and records the live book; it does not credit a fill merely because a target print occurred.
-
-## Lag Sensitivity
-
-| Delay | Taker train bets / ROI | Taker test bets / ROI | Passive test price-revisit bets / ROI |
-| --- | ---: | ---: | ---: |
+| Delay | Print coverage | Earlier 70% | Final 30% | All |
+| --- | ---: | ---: | ---: | ---: |
 ${lagRows}
 
-Positive results from 15 to 120 seconds are more useful than a single optimized delay. The 300-second result has fewer bets and should not be treated as superior.
+The public market usually did not reprice immediately: median target-direction markout is ${Number(Math.abs(edge.marketResponse['60'].median) < 0.00005 ? 0 : edge.marketResponse['60'].median).toFixed(4)} after 60 seconds and ${Number(Math.abs(edge.marketResponse['300'].median) < 0.00005 ? 0 : edge.marketResponse['300'].median).toFixed(4)} after five minutes. This gives a follower time in the observed tape, but a print proves neither available ask depth nor a fill for our order size.
 
-## Prototype Behavior
+The lag rows reuse the same outcomes and are sensitivity checks, not five independent trials. The 300-second row must not be selected retrospectively as an "optimal" delay.
 
-The monitor performs this state transition:
+## Leakage And Selection Audit
 
-1. Fetch the target's public activity and exact taker transactions.
-2. Join current CLOB metadata and classify discipline, market type and canonical event.
-3. Accumulate net aggressive flow by outcome without using future fills.
-4. Reject categories, maps/games, stale signals, price extremes and duplicate event exposure.
-5. Fetch the current order book for surviving candidates.
-6. Emit a post-only paper BUY below the ask, capped by trigger price and bankroll rules.
-7. Record every rejection and expire the paper order after five minutes.
+Requiring a future same-direction print looked reasonable but was outcome-dependent. ${number(edge.executionSelectionAudit.noAlignedPrint.signals)} signals had no aligned print and only ${number(edge.executionSelectionAudit.noAlignedPrint.wins)} won; ${number(edge.executionSelectionAudit.noAnyPrint.signals)} had no print at all and none won. Excluding them mechanically inflated ROI. The primary test therefore uses direction-neutral prints and a forced fallback.
 
-Current saved-data run: ${number(paper.intents.length)} live paper intents, ${number(paper.candidatesBeforeBook)} candidates before book checks, proposed exposure ${money(paper.risk.proposedNotionalUsdc)}. A zero is expected when the snapshot contains no fresh qualifying signal.
+A second guard tested twelve simple refinements on a 50/20/30 split. The selected \`${edge.lockedRefinement.selected.name}\` gate returned ${signedPercent(edge.lockedRefinement.selected.development.roiPct, 1)} in development, ${signedPercent(edge.lockedRefinement.selected.validation.roiPct, 1)} in validation, then ${signedPercent(edge.lockedRefinement.selected.finalTest.roiPct, 1)} in the final slice. That reversal is a direct warning against narrating one attractive subgroup as a law.
 
-## Risk Envelope
+## Walk-Forward Filter
 
-| Control | Default |
+The deployable feature set is observable at signal time: trigger price, concentration, trigger-fill share, 60-second taker-burst share, prior maker share, signal age, five-minute public momentum and flow, pregame status, deposit lag, discipline and market type. For each prediction, training includes only earlier markets whose Gamma \`closedTime\` had passed. Coverage is ${percent(edge.coverage.gammaClosedTimeCoveragePct, 1)}; the ambiguous closed-position timestamp is not used for label availability.
+
+| Walk-forward measure | Result |
 | --- | ---: |
-| Mode | \`${paper.config.mode}\` |
-| Assumed paper bankroll | ${money(paper.config.bankrollUsdc)} |
-| Per-order cap | min(${money(paper.config.maxOrderUsdc)}, ${percent(paper.config.maxOrderBankrollPct)} of bankroll) |
-| Per-event cap | ${percent(paper.config.maxEventBankrollPct)} of bankroll |
-| Portfolio cap | ${percent(paper.config.maxPortfolioBankrollPct)} of bankroll |
-| Adverse price move | ${paper.config.maxAdverseMove.toFixed(2)} |
-| Order type | Post-only limit, never market |
+| Warmup / predictions | 40 / ${number(model.predictions)} |
+| ROC-AUC | ${Number(model.rocAuc).toFixed(3)} |
+| Selected | ${number(model.selected.bets)} bets, ${number(model.selected.wins)} wins |
+| Selected ROI | ${signedPercent(model.selected.roiPct, 2)} |
+| Same-period burst-only ROI | ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} on ${number(model.samePeriodBurstGate.bets)} bets |
+| Same-period always-copy ROI | ${signedPercent(model.samePeriodAlwaysCopy.roiPct, 2)} |
+| Day-cluster 95% interval | ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(model.selectedDayClusterBootstrap.ci95HighPct, 1)} |
+| ROI after removing top 3 / top 5 winners | ${signedPercent(model.selected.roiWithoutTopWinnersPct['3'], 1)} / ${signedPercent(model.selected.roiWithoutTopWinnersPct['5'], 1)} |
+| Positive C/threshold sensitivity cells | ${number(model.positiveSensitivityConfigurations)} / 20 |
 
-No strategy inferred from two months and one selected wallet should be connected to live capital. A minimum useful next step is a locked-parameter forward paper test with at least 200 eligible signals, actual order-book snapshots, queue-aware fill accounting, and event-cluster confidence intervals.
+| Feature ablation | Walk-forward ROC-AUC |
+| --- | ---: |
+| Full observable feature set | ${Number(model.rocAuc).toFixed(3)} |
+| Remove 60-second target burst | ${Number(model.ablations.withoutTakerBurst60.rocAuc).toFixed(3)} |
+| Remove public-tape momentum and flow | ${Number(model.ablations.withoutPublicTape.rocAuc).toFixed(3)} |
+| Price and category only | ${Number(model.ablations.priceAndCategoryBaseline.rocAuc).toFixed(3)} |
 
-## Commands And Artifacts
+The transparent burst gate improves the same-period baseline before modeling. The model raises ROI from ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} to ${signedPercent(model.selected.roiPct, 2)}, but model ROI turns ${signedPercent(model.selected.roiWithoutTopWinnersPct['3'], 1)} after removing its top three winners versus ${signedPercent(model.samePeriodBurstGate.roiWithoutTopWinnersPct['3'], 1)} for the burst gate. The model is therefore secondary to the mandatory burst guard.
 
-\`npm run research:replicate\` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json) and [replication_backtest.json](./replication_backtest.json) from saved data.
+The model is not using unresolved labels, but ${number(model.selected.bets)} bets are too few for deployment. The model family and features were designed during this investigation, so this is pseudo-out-of-sample evidence rather than a locked prospective trial. Its fit on all historical rows is used only to score forward paper signals; that in-sample fit is not counted as evidence.
 
-\`npm run research:monitor\` refreshes public target data, evaluates current books once, and still emits paper intents only.
+## Paper Monitor
 
-Implementation: [replicator.js](../../src/research/replicator.js). Historical audit contains ${number(audit.all.bets)} simulated signals.
+The monitor reconstructs target taker flow, enriches surviving candidates with the current book and the same one-hour market-wide tape window used in training, checks displayed ask depth, scores the frozen model, and emits a ${config.executionMode} paper intent only when price, depth, and edge guards pass. Current saved-data run: ${number(paper.intents.length)} intents from ${number(paper.candidatesBeforeBook)} pre-book candidates, with ${money(paper.risk.proposedNotionalUsdc)} proposed exposure. Zero is expected because the fixed snapshot contains no fresh signal.
 
-## Non-Negotiable Caveats
+| Risk control | Default |
+| --- | ---: |
+| Mode | \`${config.mode}\` |
+| Paper bankroll | ${money(config.bankrollUsdc)} |
+| Per-order cap | min(${money(config.maxOrderUsdc)}, ${percent(config.maxOrderBankrollPct)} of bankroll) |
+| Per-event cap | ${percent(config.maxEventBankrollPct)} of bankroll |
+| Portfolio cap | ${percent(config.maxPortfolioBankrollPct)} of bankroll |
+| Maximum adverse move | ${config.maxAdverseMove.toFixed(2)} |
+| Time in force | FOK; intent expires after ${number(config.cancelAfterSeconds)} seconds |
 
-- Target prints are not a complete historical order book.
-- The wallet was selected after exceptional performance; selection bias is material.
-- Signal outcome and profitability do not identify the trader's information source.
-- Geographic restrictions, platform terms, legal obligations and market integrity rules still apply.
+Before considering capital, the locked model needs a forward paper sample with stored order-book snapshots, observed FOK outcomes, depth slippage, and at least 200 eligible signals. The current code intentionally cannot trade.
+
+## Reproduce
+
+- \`npm run research:tape\` collects [market_tape.json](./market_tape.json).
+- \`npm run research:edge\` builds [edge_analysis.json](./edge_analysis.json), [edge_features.csv](./edge_features.csv), and [edge_model.json](./edge_model.json).
+- \`npm run research:replicate\` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json), and [replication_backtest.json](./replication_backtest.json).
+- Historical audit contains ${number(audit.fixedExternalTapeBacktest?.all?.bets || fixed.all.bets)} forced simulations.
+
+## Limits
+
+- Public prints do not reconstruct historical ask depth or queue priority.
+- Five cents is a stress assumption, not a guaranteed executable price.
+- The wallet was selected after exceptional performance; standard intervals do not correct that selection.
+- Outcomes and trading days remain dependent, and the sample covers roughly two months.
 - This is research software, not financial advice.
 `;
 }
 
-function executiveReport(analysis, stats, onchain) {
-    const execution = analysis.execution;
-    const high = bootstrap(stats, 'takerShareAtLeast50Pct');
-    const low = bootstrap(stats, 'takerShareBelow50Pct');
-    const maps = rowByKey(analysis.performance.byMarketType, 'single-game/map');
-    const proposed = analysis.backtest.proposed.taker;
-    return `# @djdjdjekekek: Investigation And Replication Research
+function breakthroughReport(analysis, edge, peers) {
+    const format = analysis.performance.formatAudit;
+    const fixed = edge.fixedExternalTapeBacktest;
+    const model = edge.walkForwardModel;
+    const burst = edge.subgroups.burst60;
+    const noBurst = edge.subgroups.notBurst60;
+    const peerAudit = peers.basket.chronologicalAudit;
+    const spcex = peers.peers.find((peer) => peer.name === 'SPCEXBUYER') || {};
+
+    return `# Breakthrough Audit
+
+Generated ${edge.generatedAt}. This is the shortest path through the second-pass investigation.
 
 ## Discovery
 
-This is a **two-layer trading operation**: ${percent(execution.makerFillPct)} of fills are small maker executions, but ${percent(100 - execution.makerNotionalPct)} of dollars are aggressive taker flow. The passive layer loses in aggregate; the selective aggressive layer carries the edge. The trader's largest repeatable mistake is duplicating a match thesis into individual game/map markets.
+The account's repeatable-looking signal is not simply "large bet" and not "copy a winning whale." It is a **rapid, concentrated taker sweep in a full-match or multi-map market**, followed by enough market inertia for a delayed observer to see a similar public price.
 
-The onchain work independently resolves the type-3 Deposit Wallet to controller EOA \`${onchain.wallet.owner}\`, links that owner directly to the EIP-7702 account responsible for ${money(onchain.flows.depositOrigins[0].usdc)} of funding, and reconciles the trading result to ${money(analysis.cash.netWithdrawnUsdc)} of net extracted cash.
+Three pieces of evidence establish that narrower claim:
 
-## Evidence At A Glance
+1. Correcting BO1 semantics separates ${number(format.multiMapSeries.markets)} true multi-map series at ${signedPercent(format.multiMapSeries.roiPct, 2)} ROI from ${number(format.singleGameOrMap.markets)} single-game/map markets at ${signedPercent(format.singleGameOrMap.roiPct, 2)}. The ${number(format.bo1.markets)} mislabeled BO1 rows alone lost ${money(Math.abs(format.bo1.realizedPnlUsdc))}.
+2. On an unrelated market-wide tape, a forced 60-second copy with five cents adverse stress returned ${signedPercent(fixed.all.roiPct, 2)} over ${number(fixed.all.bets)} events and ${signedPercent(fixed.test.roiPct, 2)} over the chronological final ${number(fixed.test.bets)}.
+3. Signals concentrated into the final 60 seconds returned ${signedPercent(burst.roiPct, 2)}; slower accumulations returned ${signedPercent(noBurst.roiPct, 2)}. The split remains ${signedPercent(edge.subgroupChronology.earlier70Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.earlier70Pct.slower.roiPct, 1)} earlier and ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 1)} in the final period.
 
-| Measure | Result |
+## What Survived Falsification
+
+| Test | Result | Interpretation |
+| --- | ---: | --- |
+| Opposite side, final period | ${signedPercent(edge.randomSideFalsification.oppositeSideRoiPct, 2)} | Direction matters |
+| Random-side test | one-sided \`p=${edge.randomSideFalsification.randomizationPValue.toFixed(4)}\` | Better than side choice alone in this slice |
+| All canonical signals | ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.all.roiPct, 2)} all / ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.afterFixedSplit.roiPct, 2)} later | Blind copying fails |
+| Add rapid burst | ${signedPercent(edge.universeSensitivity.steps.rapidBurst.all.roiPct, 2)} all / ${signedPercent(edge.universeSensitivity.steps.rapidBurst.afterFixedSplit.roiPct, 2)} later | Urgency flips the sign |
+| Add format guard | ${signedPercent(edge.universeSensitivity.steps.rapidBurstAndFormatGuard.all.roiPct, 2)} all / ${signedPercent(edge.universeSensitivity.steps.rapidBurstAndFormatGuard.afterFixedSplit.roiPct, 2)} later | One-map/short markets are the main structural leak |
+| Five-cent all-period stress | ${signedPercent(fixed.all.roiPct, 2)} | Positive after fee and adverse-price stress |
+| Keep BO1 eligible | ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} all / ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} later | Positive sign survives the classification correction |
+| Ten-cent all-period stress | ${signedPercent(edge.executionSensitivity.find((row) => row.lagSeconds === 60 && row.slippageCents === 10).all.roiPct, 2)} | Aggregate edge is exhausted near this cost |
+| 60-second median markout | ${Number(Math.abs(edge.marketResponse['60'].median) < 0.00005 ? 0 : edge.marketResponse['60'].median).toFixed(4)} | No median immediate repricing in public tape |
+| Burst gate, same walk-forward period | ${number(model.samePeriodBurstGate.bets)} bets / ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} | Transparent primary selector |
+| Model after burst behavior | ${number(model.selected.bets)} bets / ${signedPercent(model.selected.roiPct, 2)} | Secondary filter; more top-winner concentration |
+| Remove burst feature | AUC ${Number(model.ablations.withoutTakerBurst60.rocAuc).toFixed(3)} vs ${Number(model.rocAuc).toFixed(3)} full | Burst adds predictive information in this sample |
+| Remove public-tape features | AUC ${Number(model.ablations.withoutPublicTape.rocAuc).toFixed(3)} | External flow and momentum add information |
+
+The result is directional and execution-sensitive. It is not yet statistically decisive: the fixed final-period day-cluster interval is ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)}, and the walk-forward interval is ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(model.selectedDayClusterBootstrap.ci95HighPct, 1)}. Feature design occurred during this investigation, so the expanding-window result is not equivalent to a locked prospective trial.
+
+## What Failed
+
+**Predicting final size failed.** Trigger-fill share and deposit size correlate only ${Number(edge.sizing.triggerFillToFinalCostCorrelation).toFixed(3)} and ${Number(edge.sizing.depositToFinalCostCorrelation).toFixed(3)} with final cost. The chronological sizing model has \`R^2=${Number(edge.sizing.chronologicalTest.r2LogCost).toFixed(3)}\`. Fixed fractional sizing is more defensible than mirroring eventual target exposure.
+
+**A stable upstream leader was not found.** ${number(peers.peers.length)} recurring wallets were audited. ${spcex.name} is the most interesting: it entered before ${number(spcex.enteredBeforeTarget)} of ${number(spcex.sharedTargetSignals)} shared signals, aligned ${number(spcex.alignedBeforeTarget)} times, opposed ${number(spcex.opposedBeforeTarget)} times, and led aligned trades by a median ${number(spcex.medianLastLeadSeconds)} seconds. All ${number(spcex.alignedBeforeTarget)} aligned directions won, but the near-even alignment/opposition split prevents a copying claim.
+
+Chronology rejects peer confirmation as a filter. Peers selected only from early recurrence aligned with ${number(peerAudit.knownPeerAlignedLater.bets)} later bets at ${signedPercent(peerAudit.knownPeerAlignedLater.roiPct, 2)} ROI; the ${number(peerAudit.knownPeerNotAlignedLater.bets)} later bets without alignment returned ${signedPercent(peerAudit.knownPeerNotAlignedLater.roiPct, 2)}. The production model excludes peer identity.
+
+**Simple subgroup hunting failed validation.** The chosen fresh-signal rule went from ${signedPercent(edge.lockedRefinement.selected.development.roiPct, 1)} in development to ${signedPercent(edge.lockedRefinement.selected.validation.roiPct, 1)} in validation before rebounding. That instability is exactly why the external-tape baseline and expanding-window test carry more weight than the best subgroup.
+
+## Mechanism
+
+The evidence is most consistent with informed liquidity demand:
+
+1. The target pays taker fees to cross quickly when conviction appears.
+2. The first burst contains more information than the eventual position size.
+3. Public price response is often flat for 15-300 seconds, leaving a limited observation window.
+4. Full-match and multi-map theses work; one-map bets destroy value.
+5. Other whales visit the same markets, but no wallet consistently leads and agrees.
+
+This mechanism is an inference from transaction behavior. It does not identify a private information source or prove causality.
+
+## Decision
+
+There is enough evidence to run the frozen walk-forward filter in paper mode. There is not enough evidence to deploy capital. Promotion would require at least 200 new eligible signals, executable-depth snapshots, FOK failure accounting, stable clustered confidence bounds above zero, and positive ROI after the top five winners are removed.
+
+## Evidence
+
+- [External tape and fixed tests](./edge_analysis.json)
+- [Signal-level feature table](./edge_features.csv)
+- [Frozen paper model](./edge_model.json)
+- [Peer-wallet audit](./peer_evidence.json)
+- [Replication implementation](../../src/research/replicator.js)
+- [Polymarket Data API trade documentation](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
+- [Polymarket Gamma market schema](https://docs.polymarket.com/api-reference/markets/list-markets)
+- [Prediction-market price formation research](https://www.sciencedirect.com/science/article/pii/S1386418123000794)
+- [The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
+`;
+}
+
+function executiveReport(analysis, stats, onchain, edge, peers) {
+    const execution = analysis.execution;
+    const high = bootstrap(stats, 'takerShareAtLeast50Pct');
+    const format = analysis.performance.formatAudit;
+    const fixed = edge.fixedExternalTapeBacktest;
+    const model = edge.walkForwardModel;
+    const peerAudit = peers.basket.chronologicalAudit;
+
+    return `# @djdjdjekekek: Investigation And Replication Research
+
+## Result
+
+The account is a two-layer automated operation: ${percent(execution.makerFillPct)} of fills are maker executions, while ${percent(100 - execution.makerNotionalPct)} of quote notional is aggressive taker flow. The deeper discovery is narrower: **rapid target taker sweeps in full-match or multi-map markets contain a delayed, execution-sensitive directional signal.**
+
+| Evidence | Result |
 | --- | ---: |
-| Coverage | ${number(analysis.coverage.trades)} fills, ${number(analysis.coverage.markets)} markets, ${number(analysis.coverage.closedPositions)} closed positions |
-| Closed realized PnL | ${signedMoney(analysis.performance.realizedPnlUsdc)} on ${money(analysis.performance.closedCostBasisUsdc)} cost |
-| Confirmed economic result | ${money(analysis.cash.confirmedEconomicProfitUsdc)} from net withdrawals, onchain stablecoins and open positions |
-| Maker execution | ${percent(execution.makerFillPct)} of fills, ${percent(execution.makerNotionalPct)} of notional |
-| Taker execution | ${percent(100 - execution.makerFillPct)} of fills, ${percent(100 - execution.makerNotionalPct)} of notional |
-| Markets >= 50% taker | ${signedPercent(high.roiPct, 2)} ROI; clustered 95% interval ${signedPercent(high.ci95LowPct, 1)} to ${signedPercent(high.ci95HighPct, 1)} |
-| Markets < 50% taker | ${signedPercent(low.roiPct, 2)} ROI; clustered 95% interval ${signedPercent(low.ci95LowPct, 1)} to ${signedPercent(low.ci95HighPct, 1)} |
-| Single game/map | ${signedMoney(maps.realizedPnlUsdc)}, ${signedPercent(maps.roiPct, 2)} ROI |
-| Fixed 60s copy proxy, untouched test | ${number(proposed.test.bets)} bets, ${signedPercent(proposed.test.roiPct, 2)} ROI |
+| Confirmed economic result | ${money(analysis.cash.confirmedEconomicProfitUsdc)} extracted above deposits |
+| High-taker market subset | ${signedPercent(high.roiPct, 2)} ROI; clustered interval ${signedPercent(high.ci95LowPct, 1)} to ${signedPercent(high.ci95HighPct, 1)} |
+| True multi-map series | ${number(format.multiMapSeries.markets)} markets, ${signedMoney(format.multiMapSeries.realizedPnlUsdc)}, ${signedPercent(format.multiMapSeries.roiPct, 2)} ROI |
+| Single game/map including BO1 | ${number(format.singleGameOrMap.markets)} markets, ${signedMoney(format.singleGameOrMap.realizedPnlUsdc)}, ${signedPercent(format.singleGameOrMap.roiPct, 2)} ROI |
+| Forced external-tape backtest | ${number(fixed.all.bets)} bets, ${signedPercent(fixed.all.roiPct, 2)} all-period ROI |
+| Blind all-signal external-tape copy | ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.all.roiPct, 2)} all / ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.afterFixedSplit.roiPct, 2)} after fixed split |
+| Original-classifier BO1 counterfactual | ${number(edge.bo1ClassificationSensitivity.all.bets)} bets, ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} all / ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} later |
+| Chronological final period | ${number(fixed.test.bets)} bets, ${signedPercent(fixed.test.roiPct, 2)} ROI; day-cluster interval ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)} |
+| Expanding-window model | ${number(model.selected.bets)} selected bets, ${signedPercent(model.selected.roiPct, 2)} ROI; ROC-AUC ${Number(model.rocAuc).toFixed(3)} |
 
-## What The Edge Is
+## Corrections And Rejections
 
-1. Pre-event selection in tennis, soccer and high-level esports series.
-2. Revealed conviction through large fee-paying taker buys, not raw fill count.
-3. Fast, automated capital deployment: median deposit-to-next-buy lag is ${number(analysis.cash.depositToNextBuyLag.medianSeconds)} seconds.
-4. In-play inventory management around positions often established before the event.
+The original classifier treated BO1 as a series. Correcting it moves ${number(format.bo1.markets)} markets that lost ${money(Math.abs(format.bo1.realizedPnlUsdc))} into the single-map failure bucket. This correction was found while inspecting final losses and is explicitly not claimed as an untouched discovery.
 
-## What It Is Not
+The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses ${number(edge.coverage.publicTakerPrints)} unrelated market-wide prints, forces no-print signals into the test, adds five cents adverse slippage, applies fees, and permits only one condition per event.
 
-1. Not maker-rebate farming: ${money(execution.observedTakerFeesUsdc)} of observed taker fees dwarf ${money(execution.publicMakerRebatesUsdc)} of public maker rebates.
-2. Not generic live betting: positions first entered in-play lose ${money(Math.abs(rowByKey(analysis.timing.performance.byFirstEntry, 'started in-play').realizedPnlUsdc))} in aggregate.
-3. Not safely copyable at any price: broad delayed copying loses, and the proposed test interval still crosses zero.
-4. Not diversified: removing the top five winners turns PnL into ${signedMoney(analysis.concentration.pnlWithoutTop5Usdc)}.
+No stable leader wallet was identified. Early-selected peer confirmation returned ${signedPercent(peerAudit.knownPeerAlignedLater.roiPct, 2)} on later bets, below the ${signedPercent(peerAudit.knownPeerNotAlignedLater.roiPct, 2)} return without confirmation. Eventual target size was also unpredictable. Neither peer identity nor inferred final size belongs in the model.
 
-## Deliverables
+## Onchain Attribution
 
-- [Onchain investigation](./onchain_report.md): controller resolution, contract anatomy, funding graph, cash-out routes and accounting proof.
-- [Deep trader report](./trader_report.md): execution-role reconstruction, actual bets, correlated events, statistical controls and edge thesis.
-- [Replication report](./replication_report.md): fixed signal rules, chronological backtest, risk controls and paper monitor.
-- [Structured analysis](./deep_analysis.json), [statistics](./statistical_analysis.json), [onchain evidence](./onchain_evidence.json), and [paper intents](./replication_intents.json).
+The type-3 Deposit Wallet resolves to controller EOA \`${onchain.wallet.owner}\`. That owner directly transacted with the EIP-7702 account responsible for ${money(onchain.flows.depositOrigins[0].usdc)} of funding. This establishes address control, not a natural-person identity. High-volume routers remain labeled as shared infrastructure.
+
+## Read In Order
+
+1. [Breakthrough audit](./breakthrough_report.md): the new signal, falsification tests, failed hypotheses and promotion criteria.
+2. [Replication report](./replication_report.md): exact execution assumptions, sensitivity and paper-monitor behavior.
+3. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.
+4. [Onchain report](./onchain_report.md): controller proof, funding graph and cash reconciliation.
 
 ## Bottom Line
 
-The discovery is not a magic copy-trading formula. It is a measurable separation between an automated maker shell and a high-conviction taker core, plus a measurable failure mode in correlated map exposure. The prototype follows only the observable aggressive signal, removes the known leaks, refuses stale or chased prices, and remains paper-only because the out-of-sample evidence is positive but not yet statistically decisive.
+This is a credible paper-trading discovery, not a cracked money machine. Direction beats randomized and opposite sides, the final chronological slice is positive, and the walk-forward filter improves its baseline. Yet both clustered confidence intervals still touch or cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.
 `;
 }
 
 async function writeReports(outputDirectory, inputs) {
-    const { analysis, stats, onchain, paper, audit } = inputs;
+    const { analysis, stats, onchain, paper, audit, edge, peers } = inputs;
     const reports = {
-        'report.md': executiveReport(analysis, stats, onchain),
+        'report.md': executiveReport(analysis, stats, onchain, edge, peers),
+        'breakthrough_report.md': breakthroughReport(analysis, edge, peers),
         'onchain_report.md': onchainReport(analysis, onchain),
-        'trader_report.md': traderReport(analysis, stats),
-        'replication_report.md': replicationReport(analysis, stats, paper, audit)
+        'trader_report.md': traderReport(analysis, stats, edge, peers),
+        'replication_report.md': replicationReport(analysis, paper, audit, edge)
     };
     await fs.mkdir(outputDirectory, { recursive: true });
     await Promise.all(Object.entries(reports).map(([name, content]) =>
@@ -546,6 +739,7 @@ async function writeReports(outputDirectory, inputs) {
 }
 
 module.exports = {
+    breakthroughReport,
     executiveReport,
     money,
     onchainReport,

@@ -350,6 +350,8 @@ function runBacktests(markets) {
     }));
 
     return {
+        status: 'SUPERSEDED_BY_EXTERNAL_TAPE_BACKTEST',
+        replacement: 'edge_analysis.json and replication_backtest.json',
         methodology: {
             splitTimestamp,
             splitDate: new Date(splitTimestamp * 1000).toISOString(),
@@ -358,7 +360,7 @@ function runBacktests(markets) {
             takerExecutionProxy: 'Next observed target BUY within ten minutes after lag, plus three cents and the observed fee curve.',
             passiveExecutionProxy: 'A later target BUY at or below the trigger price is treated as a price revisit. The limit is charged at its full trigger price, but queue fill is unproven.',
             stakeUsdc: 100,
-            caveat: 'Target fills are not a historical order book. Taker results model signal persistence; passive results are an optimistic upper bound, not demonstrated fillability.'
+            caveat: 'This legacy diagnostic is not replication evidence because target fills are not a historical order book. The external-tape backtest supersedes it.'
         },
         trainingSearch: {
             selected: {

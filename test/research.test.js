@@ -17,8 +17,13 @@ const {
 } = require('../src/research/backtest');
 const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
 const {
+    activeEventKeys,
     buildReplicatorConfig,
-    postOnlyLimit
+    feeAdjustedPrice,
+    marketableLimit,
+    postOnlyLimit,
+    publicSignalFeatures,
+    scoreEdgeModel
 } = require('../src/research/replicator');
 
 function trade(overrides = {}) {
@@ -41,6 +46,7 @@ test('discipline and market type distinguish maps from series', () => {
     assert.strictEqual(classifyDiscipline({ title: 'Bitcoin Up or Down', slug: 'btc-updown-5m-1' }), 'Crypto 5m');
     assert.strictEqual(classifyMarketType({ title: 'Counter-Strike: A vs B - Map 2 Winner' }), 'single-game/map');
     assert.strictEqual(classifyMarketType({ title: 'Dota 2: A vs B - Game 1 Winner' }), 'single-game/map');
+    assert.strictEqual(classifyMarketType({ title: 'Counter-Strike: A vs B (BO1)' }), 'single-game/map');
     assert.strictEqual(classifyMarketType({ title: 'Dota 2: A vs B (BO3)' }), 'series winner');
 });
 
@@ -178,6 +184,80 @@ test('paper config cannot be switched to live and excludes known leaks', () => {
     assert.strictEqual(config.strategy.thresholdUsdc, 25_000);
     assert.ok(config.strategy.excludedMarketTypes.includes('single-game/map'));
     assert.ok(!config.strategy.allowedDisciplines.includes('Crypto 5m'));
+    assert.strictEqual(config.strategy.minimumTakerBurst60Share, 0.8);
+    assert.strictEqual(config.executionMode, 'MARKETABLE_LIMIT_FOK');
+    assert.strictEqual(config.requirePostOnly, false);
+});
+
+test('active positions reserve their canonical event in the paper monitor', () => {
+    const occupied = activeEventKeys([
+        { conditionId: 'series', eventKey: 'shared-event' },
+        { conditionId: 'other', eventKey: 'other-event' }
+    ], {
+        positions: [
+            { conditionId: 'series', size: 25 },
+            { conditionId: 'other', size: 0 }
+        ]
+    });
+    assert.deepStrictEqual([...occupied], ['shared-event']);
+});
+
+test('marketable paper limit enforces the modeled adverse-move ceiling', () => {
+    const accepted = marketableLimit(0.44, {
+        tick_size: '0.01',
+        bids: [{ price: '0.46', size: '100' }],
+        asks: [{ price: '0.48', size: '100' }]
+    });
+    assert.strictEqual(accepted.eligible, true);
+    assert.strictEqual(accepted.limitPrice, 0.48);
+
+    const rejected = marketableLimit(0.44, {
+        tick_size: '0.01',
+        bids: [{ price: '0.48', size: '100' }],
+        asks: [{ price: '0.50', size: '100' }]
+    });
+    assert.strictEqual(rejected.reason, 'PRICE_RAN_AWAY');
+
+    const shallow = marketableLimit(0.44, {
+        tick_size: '0.01',
+        bids: [{ price: '0.46', size: '100' }],
+        asks: [{ price: '0.48', size: '100' }]
+    }, 0.05, 50);
+    assert.strictEqual(shallow.reason, 'INSUFFICIENT_ASK_DEPTH');
+    assert.strictEqual(shallow.availableAskNotionalUsdc, 48);
+});
+
+test('edge model scorer reproduces standardized numeric and categorical logit', () => {
+    const probability = scoreEdgeModel({ x: 3, category: 'A' }, {
+        intercept: -0.5,
+        numeric: [{ name: 'x', imputeMedian: 1, mean: 1, scale: 2, coefficient: 1 }],
+        categorical: [{
+            name: 'category',
+            values: [{ value: 'A', coefficient: 0.5 }],
+            unknownCoefficient: 0
+        }]
+    });
+    assert.ok(Math.abs(probability - (1 / (1 + Math.exp(-1)))) < 1e-12);
+    assert.ok(feeAdjustedPrice(0.5, 0.03) > 0.5);
+});
+
+test('public signal features match target direction and exclude the target wallet', () => {
+    const features = publicSignalFeatures([
+        { timestamp: 600, asset: 'yes', side: 'BUY', price: 0.4, size: 10, proxyWallet: '0xpeer' },
+        { timestamp: 800, asset: 'no', side: 'BUY', price: 0.55, size: 20, proxyWallet: '0xpeer' },
+        { timestamp: 999, asset: 'yes', side: 'BUY', price: 0.5, size: 30, proxyWallet: '0xpeer' },
+        { timestamp: 999, asset: 'yes', side: 'BUY', price: 0.9, size: 1_000, proxyWallet: '0xtarget' }
+    ], {
+        metadata: { tokens: [
+            { token_id: 'yes', outcome: 'Yes' },
+            { token_id: 'no', outcome: 'No' }
+        ] }
+    }, {
+        timestamp: 1_000,
+        outcome: 'Yes'
+    }, '0xtarget');
+    assert.ok(Math.abs(features.preMomentum300 - 0.1) < 1e-12);
+    assert.ok(Math.abs(features.externalFlow300 - 0.2) < 1e-12);
 });
 
 test('post-only guard refuses a chased ask and otherwise stays below it', () => {

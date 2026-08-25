@@ -1,6 +1,6 @@
 # Deep Trader Report: @djdjdjekekek
 
-Generated 2026-08-25T13:48:29.233Z. Coverage: 2026-06-19T18:37:08Z through 2026-08-25T05:52:45Z.
+Generated 2026-08-25T15:29:24.006Z. Coverage: 2026-06-19T18:37:08Z through 2026-08-25T05:52:45Z.
 
 ## Executive Finding
 
@@ -13,7 +13,41 @@ The strongest split is not sport versus esports. It is **aggressive versus passi
 | Taker share >= 50% | 241 | $42.20M | +$10.03M | +23.76% | +1.3% to +44.7% |
 | Taker share < 50% | 144 | $14.01M | -$4.37M | -31.21% | -61.7% to +0.1% |
 
-In a robust logistic model controlling for average entry price, log position size, timing, discipline, market type and concentration, a 10-point increase in taker share multiplies the odds of the dominant outcome winning by about 1.26 (full-range coefficient `p=2.26e-8`). This is descriptive, not causal, but it survives controls that the original report omitted.
+In a robust logistic model controlling for average entry price, log position size, timing, discipline, market type and concentration, a 10-point increase in taker share multiplies the odds of the dominant outcome winning by about 1.26 (full-range coefficient `p=1.99e-8`). This is descriptive, not causal, but it survives controls that the original report omitted.
+
+## Second-Pass Discovery
+
+The first pass contained a consequential semantic bug: titles marked `(BO1)` were classified as series winners even though a best-of-one is a single map. Correcting that label exposes a much sharper boundary:
+
+| Format | Markets | Cost | PnL | ROI |
+| --- | ---: | ---: | ---: | ---: |
+| BO1 alone | 9 | $2.62M | -$1.78M | -67.80% |
+| True multi-map series | 114 | $24.26M | +$7.57M | +31.20% |
+| Single game/map, including BO1 | 81 | $8.49M | -$4.89M | -57.55% |
+
+This is a domain correction consistent with the pre-existing map exclusion, but it was noticed while inspecting final-period losses. It is disclosed as such, not presented as a pristine holdout discovery.
+
+The sign does not depend on that correction. A counterfactual that leaves BO1 eligible as the original classifier did returns +5.27% over 84 events and +14.09% over 28 events after the same fixed split. The corrected rule is economically better; the counterfactual checks that the positive sign was not manufactured by relabeling BO1.
+
+The deeper test replaces the target's later fills with 143,507 unrelated public taker prints from 149 signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
+
+| External-tape test | Bets | Wins | ROI |
+| --- | ---: | ---: | ---: |
+| Earlier 70% | 56 | 35 | +0.85% |
+| Chronological final 30% | 24 | 17 | +26.36% |
+| All eligible events | 80 | 52 | +8.50% |
+
+The final-period result beats an opposite-side return of -46.03% and a random-side median of -9.87% (one-sided randomization `p=0.0301`). It is still not statistically settled: the day-clustered 95% interval is -15.9% to +55.8% across only 9 days.
+
+The mechanism is a **rapid taker sweep**, not eventual wallet size. Signals with most taker notional arriving in the final 60 seconds returned +24.37% versus -24.46% without that burst. Meanwhile, initial trigger size predicts eventual cost poorly: chronological log-cost `R^2=-0.108`, with $577.5K mean absolute error. A follower can observe urgency; it cannot reliably infer the target's final stake.
+
+That burst split has the same sign on both sides of the chronological boundary: +14.9% versus -22.6% earlier, and +41.8% versus -32.4% in the final period. The full-sample win-rate Fisher test gives `p=0.0054`, but that is a descriptive post-discovery test without feature-search correction.
+
+An expanding-window model trained only on markets whose Gamma `closedTime` preceded each prediction selected 15 of 40 later signals and returned +27.54%, versus +5.40% for always copying and +20.05% for the transparent burst gate in the same period. Gamma close-time coverage is 100.0%. Its ROC-AUC is 0.635, but the day-cluster interval still reaches -13.3% and removing its top five winners makes ROI -22.1%. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
+
+Ablation supports, but does not prove, the mechanism: removing the 60-second burst feature lowers walk-forward AUC to 0.547, removing public-tape momentum and flow lowers it to 0.576, and a price/category-only baseline scores 0.464.
+
+The peer-leader hypothesis did not survive chronology. 12 wallets were selected only from early recurrence; later signals aligned with one returned +7.62%, while signals without alignment returned +29.67%. Recurring whales reveal shared market selection, but no stable upstream copier was identified.
 
 ## Dataset And Reconstruction
 
@@ -71,14 +105,14 @@ Tennis, soccer, Dota 2 and Counter-Strike account for most positive dollars. MLB
 
 | Market type | Markets | Cost | PnL | ROI | Taker share |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| series winner | 123 | $26.88M | +$5.79M | +21.55% | 80.0% |
+| series winner | 114 | $24.26M | +$7.57M | +31.20% | 78.7% |
 | match winner | 151 | $20.33M | +$1.90M | +9.36% | 58.1% |
-| single-game/map | 72 | $5.88M | -$3.11M | -52.98% | 75.0% |
+| single-game/map | 81 | $8.49M | -$4.89M | -57.55% | 80.2% |
 | outright | 15 | $1.60M | +$1.07M | +67.15% | 95.3% |
 | team to advance | 11 | $1.32M | +$223.9K | +17.01% | 87.5% |
 | short-horizon binary | 14 | $273.6K | -$237.5K | -86.81% | 4.0% |
 
-Series winners earn +$5.79M. Single-game/map bets lose $3.11M; their event-cluster bootstrap has a -83.7% to +1.9% interval. The replicator therefore excludes them.
+Series winners earn +$7.57M. Single-game/map bets lose $4.89M; their event-cluster bootstrap has a -83.6% to -18.1% interval. The replicator therefore excludes them.
 
 ### Timing
 
@@ -156,7 +190,7 @@ Even the high-taker subset falls from +23.8% to +5.6% after its top five winners
 
 1. Maker-rebate farming as the main edge. Net observed fee drag is far larger than maker rebates.
 2. A universal in-play latency edge. In-play-started markets are roughly flat to negative.
-3. Blind copy trading. The broad delayed baseline loses money.
+3. Unfiltered copy trading as a stable edge. The external-tape baseline is positive in aggregate, but its clustered interval crosses zero and top-five removal turns it negative.
 4. Stable, diversified alpha. Five winners are required to keep aggregate PnL positive.
 5. Map/game duplication. It is the largest identifiable strategy leak.
 
@@ -164,7 +198,7 @@ The closest economic analogy is informed liquidity demand inside a broader liqui
 
 ## Statistical Limits
 
-The event-cluster bootstrap gives overall ROI a -9.2% to +28.2% interval because profits are concentrated. The chronological descriptive classifier reaches 0.779 test ROC-AUC, versus 0.730 for average entry price alone, but it uses completed-position features and is not a deployable forecast.
+The event-cluster bootstrap gives overall ROI a -9.2% to +28.2% interval because profits are concentrated. The chronological descriptive classifier reaches 0.773 test ROC-AUC, versus 0.730 for average entry price alone, but it uses completed-position features and is not a deployable forecast.
 
 Selection bias remains: this wallet was investigated because it was exceptional. Results cover only 396 closed positions over roughly two months, event outcomes are dependent, and no public data identifies the trader's information source.
 
@@ -172,7 +206,9 @@ Selection bias remains: this wallet was investigated because it was exceptional.
 
 - [Polymarket market-data overview](https://docs.polymarket.com/market-data/overview)
 - [Polymarket maker rebates and fee curve](https://docs.polymarket.com/programs/maker-rebates)
+- [Polymarket Data API trades](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
 - [Polymarket liquidity rewards](https://docs.polymarket.com/programs/liquidity-rewards)
 - [Tetlock, Liquidity and Prediction Market Efficiency](https://business.columbia.edu/faculty/research/liquidity-and-prediction-market-efficiency)
+- [Bailey et al., The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
 - [BLAST official TI 2026 series results](https://blast.tv/dota/tournaments/the-international-2026/series)
-- Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [market_features.csv](./market_features.csv)
+- Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [edge_analysis.json](./edge_analysis.json), [peer_evidence.json](./peer_evidence.json), and [edge_features.csv](./edge_features.csv)

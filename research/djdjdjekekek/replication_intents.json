@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-25T13:48:39.000Z",
+  "generatedAt": "2026-08-25T15:44:22.000Z",
   "mode": "PAPER_ONLY",
   "targetWallet": "0x6d20c35f65d9899b6d6b74f8466e824580f9a165",
   "config": {
-    "generatedAt": "2026-08-25T13:48:39.421Z",
+    "generatedAt": "2026-08-25T15:44:22.223Z",
     "targetWallet": "0x6d20c35f65d9899b6d6b74f8466e824580f9a165",
     "mode": "PAPER_ONLY",
     "bankrollUsdc": 10000,
@@ -13,9 +13,10 @@
     "maxPortfolioBankrollPct": 5,
     "signalMaxAgeSeconds": 600,
     "targetCopyLagSeconds": 60,
-    "maxAdverseMove": 0.01,
-    "requirePostOnly": true,
-    "cancelAfterSeconds": 300,
+    "maxAdverseMove": 0.05,
+    "executionMode": "MARKETABLE_LIMIT_FOK",
+    "requirePostOnly": false,
+    "cancelAfterSeconds": 30,
     "strategy": {
       "signalSource": "taker",
       "thresholdUsdc": 25000,
@@ -34,7 +35,13 @@
       ],
       "minPrice": 0.3,
       "maxPrice": 0.85,
+      "minimumTakerBurst60Share": 0.8,
       "avoidCorrelatedEventExposure": true
+    },
+    "edgeModel": {
+      "version": 1,
+      "trainedThrough": "2026-08-24T15:50:48+00:00",
+      "minimumPredictedEdge": 0.05
     }
   },
   "candidatesBeforeBook": 0,
@@ -42,11 +49,7 @@
   "rejectionSummary": [
     {
       "reason": "NO_CONVICTION_SIGNAL",
-      "markets": 130
-    },
-    {
-      "reason": "STALE_SIGNAL",
-      "markets": 84
+      "markets": 128
     },
     {
       "reason": "DISCIPLINE_EXCLUDED",
@@ -54,11 +57,15 @@
     },
     {
       "reason": "MARKET_TYPE_EXCLUDED",
-      "markets": 72
+      "markets": 81
+    },
+    {
+      "reason": "STALE_SIGNAL",
+      "markets": 80
     },
     {
       "reason": "TRIGGER_PRICE_OUT_OF_RANGE",
-      "markets": 16
+      "markets": 13
     }
   ],
   "risk": {

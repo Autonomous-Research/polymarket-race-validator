@@ -133,9 +133,9 @@ async function readJson(filePath) {
     return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
 
-async function writeJson(filePath, value) {
+async function writeJson(filePath, value, space = 2) {
     await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, `${JSON.stringify(value, jsonReplacer, 2)}\n`);
+    await fs.writeFile(filePath, `${JSON.stringify(value, jsonReplacer, space)}\n`);
 }
 
 module.exports = {

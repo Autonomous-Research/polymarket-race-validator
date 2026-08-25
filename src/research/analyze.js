@@ -35,6 +35,7 @@ function classifyDiscipline(row, metadata = {}) {
 function classifyMarketType(row) {
     const title = String(row.title || '').toLowerCase();
     if (/\b(game|map) \d+ winner/.test(title)) return 'single-game/map';
+    if (/\(bo1\)/.test(title)) return 'single-game/map';
     if (/\(bo\d+\)/.test(title)) return 'series winner';
     if (title.includes('team to advance')) return 'team to advance';
     if (/will .* win/.test(title)) return 'outright';
@@ -653,6 +654,9 @@ function stripMarket(market) {
 function buildDeepAnalysis(snapshot, enrichment) {
     const markets = buildMarketRecords(snapshot, enrichment);
     const resolved = markets.filter((market) => market.closedCostBasisUsdc > 0);
+    const bo1 = resolved.filter((market) => /\(BO1\)/i.test(market.title));
+    const multiMapSeries = resolved.filter((market) => market.marketType === 'series winner');
+    const singleGameOrMap = resolved.filter((market) => market.marketType === 'single-game/map');
     const role = roleAnalysis(markets);
     const cash = cashAnalysis(snapshot, enrichment.onchain);
     const backtest = runBacktests(markets);
@@ -693,6 +697,11 @@ function buildDeepAnalysis(snapshot, enrichment) {
             activeCashPnlUsdc: sum(snapshot.positions, (position) => position.cashPnl),
             byDiscipline: aggregatePerformance(resolved, (market) => market.discipline),
             byMarketType: aggregatePerformance(resolved, (market) => market.marketType),
+            formatAudit: {
+                bo1: aggregatePerformance(bo1, () => 'BO1')[0] || null,
+                multiMapSeries: aggregatePerformance(multiMapSeries, () => 'multi-map series')[0] || null,
+                singleGameOrMap: aggregatePerformance(singleGameOrMap, () => 'single-game/map including BO1')[0] || null
+            },
             byEntryPrice: priceBins(snapshot),
             bySizeQuartile: sizeBuckets(resolved),
             byTakerNotionalShare: aggregatePerformance(resolved, (market) =>

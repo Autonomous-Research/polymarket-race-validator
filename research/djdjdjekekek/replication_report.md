@@ -1,83 +1,141 @@
-# Replication Prototype: Evidence, Rules And Limits
+# Replication Prototype: External-Tape Backtest
 
-Generated 2026-08-25T13:48:39.000Z. The implementation is paper-only and cannot sign or submit an order.
+Generated 2026-08-25T15:44:22.000Z. This implementation is paper-only and contains no signing or order-submission path.
 
-## Translation From Finding To Rule
+## What Changed
 
-| Finding | Observable rule | Guard |
-| --- | --- | --- |
-| Taker dollars, not maker fill count, carry the edge | Watch exact `takerOnly=true` BUY flow | Ignore maker fills as a directional trigger |
-| Conviction matters | Require at least $25.0K gross aggressive buys and 70.0% net directional concentration | No signal from small exploratory activity |
-| Profits cluster in selected domains | Allow Tennis, Soccer, Dota 2, Counter-Strike, League of Legends, Valorant | Exclude MLB, basketball, crypto and unclassified sports |
-| Maps/games leak badly | Exclude `single-game/map`, `short-horizon binary` | One condition per canonical event |
-| Chasing consumes the edge | Anchor a post-only paper bid at or below the target trigger | Skip if best ask moved over 0.01 against the signal |
-| Signals decay | Wait 60s, then expire at 600s | Cancel unfilled paper orders after 300s |
+The earlier prototype used the target's next future BUY as an execution proxy. That leaked the target's later behavior into fill selection and could not answer whether an unrelated follower had a tradable price. The replacement uses market-wide public taker prints and never consults a later target fill to decide execution.
 
-## Fixed Historical Test
+| Component | Locked behavior |
+| --- | --- |
+| Signal | Exact target taker BUY flow crosses $25.0K at >=70.0% directional concentration |
+| Urgency guard | At least 80.0% of observed target taker BUY notional arrived in the final 60 seconds |
+| Eligibility | Allowed disciplines, price 0.30-0.85, no single-map/BO1 or short-horizon market |
+| Event control | First eligible condition per canonical event |
+| Delay | 60 seconds after the signal |
+| Historical price | First direction-neutral public taker print in the next 60 seconds; trigger fallback if absent |
+| Cost stress | 5 cents adverse movement plus Polymarket's 3% fee curve |
+| Live paper execution | Marketable limit at the current ask, FOK, rejected above trigger + 0.05 or when displayed ask depth is insufficient |
+| Sizing | Fixed bankroll fraction; no attempt to predict the target's final position |
+| Model gate | Predicted win probability minus all-in price must exceed 5.0% |
 
-The rule was fixed from attribution before reporting the test period: target taker buys >= $25.0K, concentration >= 70.0%, price 0.30-0.85, allowed disciplines only, and no game/map markets. Markets were split chronologically 70/30.
+The BO1 exclusion is important. The corrected audit records a $1.78M loss across 9 BO1 markets rather than hiding them inside the profitable series bucket.
 
-| Execution | Train | Test | All |
+Because that correction was found after inspecting final losses, the audit also preserves the original-classifier counterfactual. Keeping BO1 eligible returns +5.27% over 84 events and +14.09% over 28 events after the same fixed boundary. Its later ROI after removing the top three winners is -2.01%.
+
+## Primary Historical Test
+
+This test includes all 80 eligible events. It does not discard signals lacking a convenient future print: 3 use the trigger-price fallback. Public-print coverage is 96.25%.
+
+| Period | Bets | Wins | P&L ($100 per bet) | ROI | Max drawdown |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Earlier 70% | 56 | 35 | +$47.71 | +0.85% | $786.07 |
+| Chronological final 30% | 24 | 17 | +$632.59 | +26.36% | $200.00 |
+| All | 80 | 52 | +$680.30 | +8.50% | $826.11 |
+
+The final-period IID bootstrap interval is -10.2% to +61.4%. Clustering by trading day widens it to -15.9% to +55.8% across 9 days. Both cross zero.
+
+The side falsification is harder to dismiss: target direction returned +26.36%, the opposite direction -46.03%, and randomized sides had a -9.87% median (one-sided `p=0.0301`). That supports directional information in this period; it does not remove wallet-selection bias.
+
+## Universe Attribution
+
+Blindly copying every canonical seed signal loses money. The nested ladder shows which observable guards change that result, using the same fixed 2026-08-11T00:21:37+00:00 boundary for every row:
+
+| Nested rule | All bets | All ROI | Bets after split | ROI after split |
+| --- | ---: | ---: | ---: | ---: |
+| All canonical $25K signals | 139 | -6.15% | 45 | -6.68% |
+| Add rapid 60-second burst | 96 | +3.42% | 33 | +6.36% |
+| Add map/short-market exclusion | 91 | +7.33% | 28 | +19.57% |
+| Add core disciplines | 63 | +17.69% | 21 | +33.32% |
+| Add 0.30-0.85 price guard | 54 | +24.37% | 19 | +41.82% |
+
+Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
+
+## Execution Stress
+
+### Slippage at a 60-second delay
+
+| Adverse stress | Earlier 70% | Final 30% | All |
 | --- | ---: | ---: | ---: |
-| Taker proxy: next target buy, +3 cents, observed fee | 27 bets / +16.61% | 30 bets / +3.98% | 57 bets / +9.96% |
-| Passive price-revisit upper bound | 20 bets / +19.28% | 18 bets / +15.09% | 38 bets / +17.29% |
+| 3c | +4.51% | +31.36% | +12.56% |
+| 5c | +0.85% | +26.36% | +8.50% |
+| 7c | -2.53% | +21.75% | +4.75% |
+| 10c | -7.16% | +15.47% | -0.37% |
 
-The untouched test period is positive under the taker proxy, but the bootstrap interval is wide: -28.8% to +37.0%. With only 30 bets, this is a forward-test candidate, not a demonstrated production edge.
+### Delay at five-cent stress
 
-The passive result is an upper bound. A later target buy at or below the trigger proves a price revisit, not our queue position or fill. The code therefore emits a post-only **paper intent** and records the live book; it does not credit a fill merely because a target print occurred.
+| Delay | Print coverage | Earlier 70% | Final 30% | All |
+| --- | ---: | ---: | ---: | ---: |
+| 15s | 96.3% | +0.68% | +28.60% | +9.06% |
+| 30s | 95.0% | +0.97% | +26.82% | +8.72% |
+| 60s | 96.3% | +0.85% | +26.36% | +8.50% |
+| 120s | 92.5% | +1.14% | +26.61% | +8.78% |
+| 300s | 98.8% | +3.78% | +35.59% | +13.32% |
 
-## Lag Sensitivity
+The public market usually did not reprice immediately: median target-direction markout is 0.0000 after 60 seconds and 0.0000 after five minutes. This gives a follower time in the observed tape, but a print proves neither available ask depth nor a fill for our order size.
 
-| Delay | Taker train bets / ROI | Taker test bets / ROI | Passive test price-revisit bets / ROI |
-| --- | ---: | ---: | ---: |
-| 15s | 39 / +9.45% | 36 / +6.06% | 26 / +15.72% |
-| 30s | 32 / +11.23% | 32 / +10.86% | 21 / +21.50% |
-| 60s | 27 / +16.61% | 30 / +3.98% | 18 / +15.09% |
-| 120s | 24 / +23.77% | 26 / +16.49% | 16 / +29.48% |
-| 300s | 12 / -7.02% | 21 / +33.80% | 8 / +74.52% |
+The lag rows reuse the same outcomes and are sensitivity checks, not five independent trials. The 300-second row must not be selected retrospectively as an "optimal" delay.
 
-Positive results from 15 to 120 seconds are more useful than a single optimized delay. The 300-second result has fewer bets and should not be treated as superior.
+## Leakage And Selection Audit
 
-## Prototype Behavior
+Requiring a future same-direction print looked reasonable but was outcome-dependent. 8 signals had no aligned print and only 3 won; 3 had no print at all and none won. Excluding them mechanically inflated ROI. The primary test therefore uses direction-neutral prints and a forced fallback.
 
-The monitor performs this state transition:
+A second guard tested twelve simple refinements on a 50/20/30 split. The selected `fresh-signal` gate returned +36.5% in development, -23.9% in validation, then +29.1% in the final slice. That reversal is a direct warning against narrating one attractive subgroup as a law.
 
-1. Fetch the target's public activity and exact taker transactions.
-2. Join current CLOB metadata and classify discipline, market type and canonical event.
-3. Accumulate net aggressive flow by outcome without using future fills.
-4. Reject categories, maps/games, stale signals, price extremes and duplicate event exposure.
-5. Fetch the current order book for surviving candidates.
-6. Emit a post-only paper BUY below the ask, capped by trigger price and bankroll rules.
-7. Record every rejection and expire the paper order after five minutes.
+## Walk-Forward Filter
 
-Current saved-data run: 0 live paper intents, 0 candidates before book checks, proposed exposure $0.00. A zero is expected when the snapshot contains no fresh qualifying signal.
+The deployable feature set is observable at signal time: trigger price, concentration, trigger-fill share, 60-second taker-burst share, prior maker share, signal age, five-minute public momentum and flow, pregame status, deposit lag, discipline and market type. For each prediction, training includes only earlier markets whose Gamma `closedTime` had passed. Coverage is 100.0%; the ambiguous closed-position timestamp is not used for label availability.
 
-## Risk Envelope
+| Walk-forward measure | Result |
+| --- | ---: |
+| Warmup / predictions | 40 / 40 |
+| ROC-AUC | 0.635 |
+| Selected | 15 bets, 10 wins |
+| Selected ROI | +27.54% |
+| Same-period burst-only ROI | +20.05% on 28 bets |
+| Same-period always-copy ROI | +5.40% |
+| Day-cluster 95% interval | -13.3% to +69.4% |
+| ROI after removing top 3 / top 5 winners | -0.7% / -22.1% |
+| Positive C/threshold sensitivity cells | 20 / 20 |
 
-| Control | Default |
+| Feature ablation | Walk-forward ROC-AUC |
+| --- | ---: |
+| Full observable feature set | 0.635 |
+| Remove 60-second target burst | 0.547 |
+| Remove public-tape momentum and flow | 0.576 |
+| Price and category only | 0.464 |
+
+The transparent burst gate improves the same-period baseline before modeling. The model raises ROI from +20.05% to +27.54%, but model ROI turns -0.7% after removing its top three winners versus +4.7% for the burst gate. The model is therefore secondary to the mandatory burst guard.
+
+The model is not using unresolved labels, but 15 bets are too few for deployment. The model family and features were designed during this investigation, so this is pseudo-out-of-sample evidence rather than a locked prospective trial. Its fit on all historical rows is used only to score forward paper signals; that in-sample fit is not counted as evidence.
+
+## Paper Monitor
+
+The monitor reconstructs target taker flow, enriches surviving candidates with the current book and the same one-hour market-wide tape window used in training, checks displayed ask depth, scores the frozen model, and emits a MARKETABLE_LIMIT_FOK paper intent only when price, depth, and edge guards pass. Current saved-data run: 0 intents from 0 pre-book candidates, with $0.00 proposed exposure. Zero is expected because the fixed snapshot contains no fresh signal.
+
+| Risk control | Default |
 | --- | ---: |
 | Mode | `PAPER_ONLY` |
-| Assumed paper bankroll | $10.0K |
+| Paper bankroll | $10.0K |
 | Per-order cap | min($100.00, 0.5% of bankroll) |
 | Per-event cap | 1.0% of bankroll |
 | Portfolio cap | 5.0% of bankroll |
-| Adverse price move | 0.01 |
-| Order type | Post-only limit, never market |
+| Maximum adverse move | 0.05 |
+| Time in force | FOK; intent expires after 30 seconds |
 
-No strategy inferred from two months and one selected wallet should be connected to live capital. A minimum useful next step is a locked-parameter forward paper test with at least 200 eligible signals, actual order-book snapshots, queue-aware fill accounting, and event-cluster confidence intervals.
+Before considering capital, the locked model needs a forward paper sample with stored order-book snapshots, observed FOK outcomes, depth slippage, and at least 200 eligible signals. The current code intentionally cannot trade.
 
-## Commands And Artifacts
+## Reproduce
 
-`npm run research:replicate` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json) and [replication_backtest.json](./replication_backtest.json) from saved data.
+- `npm run research:tape` collects [market_tape.json](./market_tape.json).
+- `npm run research:edge` builds [edge_analysis.json](./edge_analysis.json), [edge_features.csv](./edge_features.csv), and [edge_model.json](./edge_model.json).
+- `npm run research:replicate` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json), and [replication_backtest.json](./replication_backtest.json).
+- Historical audit contains 80 forced simulations.
 
-`npm run research:monitor` refreshes public target data, evaluates current books once, and still emits paper intents only.
+## Limits
 
-Implementation: [replicator.js](../../src/research/replicator.js). Historical audit contains 57 simulated signals.
-
-## Non-Negotiable Caveats
-
-- Target prints are not a complete historical order book.
-- The wallet was selected after exceptional performance; selection bias is material.
-- Signal outcome and profitability do not identify the trader's information source.
-- Geographic restrictions, platform terms, legal obligations and market integrity rules still apply.
+- Public prints do not reconstruct historical ask depth or queue priority.
+- Five cents is a stress assumption, not a guaranteed executable price.
+- The wallet was selected after exceptional performance; standard intervals do not correct that selection.
+- Outcomes and trading days remain dependent, and the sample covers roughly two months.
 - This is research software, not financial advice.

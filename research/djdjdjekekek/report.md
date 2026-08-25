@@ -1,46 +1,40 @@
 # @djdjdjekekek: Investigation And Replication Research
 
-## Discovery
+## Result
 
-This is a **two-layer trading operation**: 92.8% of fills are small maker executions, but 72.1% of dollars are aggressive taker flow. The passive layer loses in aggregate; the selective aggressive layer carries the edge. The trader's largest repeatable mistake is duplicating a match thesis into individual game/map markets.
+The account is a two-layer automated operation: 92.8% of fills are maker executions, while 72.1% of quote notional is aggressive taker flow. The deeper discovery is narrower: **rapid target taker sweeps in full-match or multi-map markets contain a delayed, execution-sensitive directional signal.**
 
-The onchain work independently resolves the type-3 Deposit Wallet to controller EOA `0xC332040b7ed35DeB84488bEEa049d8d34934141b`, links that owner directly to the EIP-7702 account responsible for $29.56M of funding, and reconciles the trading result to $5.91M of net extracted cash.
-
-## Evidence At A Glance
-
-| Measure | Result |
+| Evidence | Result |
 | --- | ---: |
-| Coverage | 28,235 fills, 386 markets, 396 closed positions |
-| Closed realized PnL | +$5.64M on $56.28M cost |
-| Confirmed economic result | $5.91M from net withdrawals, onchain stablecoins and open positions |
-| Maker execution | 92.8% of fills, 27.9% of notional |
-| Taker execution | 7.2% of fills, 72.1% of notional |
-| Markets >= 50% taker | +23.76% ROI; clustered 95% interval +1.3% to +44.7% |
-| Markets < 50% taker | -31.21% ROI; clustered 95% interval -61.7% to +0.1% |
-| Single game/map | -$3.11M, -52.98% ROI |
-| Fixed 60s copy proxy, untouched test | 30 bets, +3.98% ROI |
+| Confirmed economic result | $5.91M extracted above deposits |
+| High-taker market subset | +23.76% ROI; clustered interval +1.3% to +44.7% |
+| True multi-map series | 114 markets, +$7.57M, +31.20% ROI |
+| Single game/map including BO1 | 81 markets, -$4.89M, -57.55% ROI |
+| Forced external-tape backtest | 80 bets, +8.50% all-period ROI |
+| Blind all-signal external-tape copy | -6.15% all / -6.68% after fixed split |
+| Original-classifier BO1 counterfactual | 84 bets, +5.27% all / +14.09% later |
+| Chronological final period | 24 bets, +26.36% ROI; day-cluster interval -15.9% to +55.8% |
+| Expanding-window model | 15 selected bets, +27.54% ROI; ROC-AUC 0.635 |
 
-## What The Edge Is
+## Corrections And Rejections
 
-1. Pre-event selection in tennis, soccer and high-level esports series.
-2. Revealed conviction through large fee-paying taker buys, not raw fill count.
-3. Fast, automated capital deployment: median deposit-to-next-buy lag is 48 seconds.
-4. In-play inventory management around positions often established before the event.
+The original classifier treated BO1 as a series. Correcting it moves 9 markets that lost $1.78M into the single-map failure bucket. This correction was found while inspecting final losses and is explicitly not claimed as an untouched discovery.
 
-## What It Is Not
+The external backtest also fixes a more serious execution leak: it no longer uses the target's next future fill as the follower's price. It uses 143,507 unrelated market-wide prints, forces no-print signals into the test, adds five cents adverse slippage, applies fees, and permits only one condition per event.
 
-1. Not maker-rebate farming: $811.1K of observed taker fees dwarf $65.9K of public maker rebates.
-2. Not generic live betting: positions first entered in-play lose $572.7K in aggregate.
-3. Not safely copyable at any price: broad delayed copying loses, and the proposed test interval still crosses zero.
-4. Not diversified: removing the top five winners turns PnL into -$2.49M.
+No stable leader wallet was identified. Early-selected peer confirmation returned +7.62% on later bets, below the +29.67% return without confirmation. Eventual target size was also unpredictable. Neither peer identity nor inferred final size belongs in the model.
 
-## Deliverables
+## Onchain Attribution
 
-- [Onchain investigation](./onchain_report.md): controller resolution, contract anatomy, funding graph, cash-out routes and accounting proof.
-- [Deep trader report](./trader_report.md): execution-role reconstruction, actual bets, correlated events, statistical controls and edge thesis.
-- [Replication report](./replication_report.md): fixed signal rules, chronological backtest, risk controls and paper monitor.
-- [Structured analysis](./deep_analysis.json), [statistics](./statistical_analysis.json), [onchain evidence](./onchain_evidence.json), and [paper intents](./replication_intents.json).
+The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEEa049d8d34934141b`. That owner directly transacted with the EIP-7702 account responsible for $29.56M of funding. This establishes address control, not a natural-person identity. High-volume routers remain labeled as shared infrastructure.
+
+## Read In Order
+
+1. [Breakthrough audit](./breakthrough_report.md): the new signal, falsification tests, failed hypotheses and promotion criteria.
+2. [Replication report](./replication_report.md): exact execution assumptions, sensitivity and paper-monitor behavior.
+3. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.
+4. [Onchain report](./onchain_report.md): controller proof, funding graph and cash reconciliation.
 
 ## Bottom Line
 
-The discovery is not a magic copy-trading formula. It is a measurable separation between an automated maker shell and a high-conviction taker core, plus a measurable failure mode in correlated map exposure. The prototype follows only the observable aggressive signal, removes the known leaks, refuses stale or chased prices, and remains paper-only because the out-of-sample evidence is positive but not yet statistically decisive.
+This is a credible paper-trading discovery, not a cracked money machine. Direction beats randomized and opposite sides, the final chronological slice is positive, and the walk-forward filter improves its baseline. Yet both clustered confidence intervals still touch or cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.

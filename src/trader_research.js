@@ -3,7 +3,7 @@
 require('dotenv').config();
 
 const path = require('path');
-const { buildDeepAnalysis, classifyDiscipline } = require('./research/analyze');
+const { buildDeepAnalysis, buildMarketRecords, classifyDiscipline } = require('./research/analyze');
 const {
     collectMakerRebates,
     collectMarketMetadata,
@@ -13,6 +13,7 @@ const {
 } = require('./research/collect');
 const { readJson, writeJson } = require('./research/common');
 const { collectOnchainEvidence } = require('./research/onchain');
+const { collectMarketTapes } = require('./research/tape');
 const {
     buildHistoricalAudit,
     generatePaperIntents
@@ -113,6 +114,18 @@ async function analyzeSaved() {
     return analyze(snapshot, enrichment);
 }
 
+async function collectTapeSaved() {
+    const [snapshot, enrichment] = await Promise.all([
+        readJson(outputPath('snapshot.json')),
+        readJson(outputPath('enrichment.json'))
+    ]);
+    const markets = buildMarketRecords(snapshot, enrichment);
+    const tape = await collectMarketTapes(markets, snapshot.wallet, console.log);
+    await writeJson(outputPath('market_tape.json'), tape, 0);
+    console.log(`Public tape: ${tape.rows.toLocaleString()} taker prints across ${tape.successfulMarkets.toLocaleString()} markets.`);
+    return tape;
+}
+
 async function refreshOnchain() {
     const snapshot = await readJson(outputPath('snapshot.json'));
     const onchain = await collectOnchainEvidence(snapshot, console.log, outputPath('flow_transactions.json'));
@@ -128,19 +141,22 @@ async function refreshOnchain() {
 }
 
 async function replicateSaved() {
-    const [snapshot, enrichment, analysis] = await Promise.all([
+    const [snapshot, enrichment, analysis, edgeAnalysis, edgeModel] = await Promise.all([
         readJson(outputPath('snapshot.json')),
         readJson(outputPath('enrichment.json')),
-        readJson(outputPath('deep_analysis.json'))
+        readJson(outputPath('deep_analysis.json')),
+        readJson(outputPath('edge_analysis.json')),
+        readJson(outputPath('edge_model.json'))
     ]);
-    const paper = await generatePaperIntents(snapshot, enrichment);
-    const audit = buildHistoricalAudit(analysis);
+    const paper = await generatePaperIntents(snapshot, enrichment, { model: edgeModel });
+    const audit = buildHistoricalAudit(analysis, edgeAnalysis, edgeModel);
     await Promise.all([
         writeJson(outputPath('replicator_config.json'), paper.config),
         writeJson(outputPath('replication_intents.json'), paper),
         writeJson(outputPath('replication_backtest.json'), audit)
     ]);
-    console.log(`Paper replicator: ${paper.intents.length} current intents; ${audit.all.bets} historical simulations.`);
+    const historicalBets = audit.fixedExternalTapeBacktest?.all?.bets ?? audit.all?.bets ?? 0;
+    console.log(`Paper replicator: ${paper.intents.length} current intents; ${historicalBets} historical simulations.`);
     return { paper, audit };
 }
 
@@ -184,14 +200,16 @@ async function monitorOnce() {
 }
 
 async function reportSaved() {
-    const [analysis, stats, onchain, paper, audit] = await Promise.all([
+    const [analysis, stats, onchain, paper, audit, edge, peers] = await Promise.all([
         readJson(outputPath('deep_analysis.json')),
         readJson(outputPath('statistical_analysis.json')),
         readJson(outputPath('onchain_evidence.json')),
         readJson(outputPath('replication_intents.json')),
-        readJson(outputPath('replication_backtest.json'))
+        readJson(outputPath('replication_backtest.json')),
+        readJson(outputPath('edge_analysis.json')),
+        readJson(outputPath('peer_evidence.json'))
     ]);
-    const names = await writeReports(OUT_DIR, { analysis, stats, onchain, paper, audit });
+    const names = await writeReports(OUT_DIR, { analysis, stats, onchain, paper, audit, edge, peers });
     console.log(`Reports: ${names.join(', ')}`);
     return names;
 }
@@ -208,6 +226,10 @@ async function main() {
     }
     if (command === 'analyze') {
         await analyzeSaved();
+        return;
+    }
+    if (command === 'tape') {
+        await collectTapeSaved();
         return;
     }
     if (command === 'onchain') {
@@ -236,7 +258,7 @@ async function main() {
         console.log(JSON.stringify(await resolveProfile(TARGET), null, 2));
         return;
     }
-    throw new Error(`Unknown command: ${command}. Expected collect, enrich, onchain, analyze, replicate, monitor, report, all, or profile.`);
+    throw new Error(`Unknown command: ${command}. Expected collect, enrich, onchain, analyze, tape, replicate, monitor, report, all, or profile.`);
 }
 
 if (require.main === module) {
@@ -251,6 +273,7 @@ module.exports = {
     analyze,
     classifyDiscipline,
     collectEnrichment,
+    collectTapeSaved,
     collectSnapshot,
     monitorOnce,
     refreshOnchain,
