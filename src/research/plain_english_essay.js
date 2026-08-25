@@ -96,6 +96,31 @@ function renderHtml(analysis, edge) {
         + atlas.scenarioCounts.feeByAdversePricePerStrategy
         + atlas.scenarioCounts.breadthByAdversePrice
         + atlas.scenarioCounts.breadthByLatency;
+    const capacity = edge.historicalTapeCapacity;
+    const liveCapacity = edge.liveLiquidityCapacity;
+    const closing = edge.closingLineAudit;
+    const compact = edge.compactFreshMechanism;
+    const alternatives = compact.alternativeMechanisms;
+    const totalExecutionCells = atlasCells + capacity.scenarioCount;
+    const historicalCapacityCell = (stake, window, proxy = 'allPrints', participation = 100) =>
+        capacity.grid.find((row) =>
+            row.strategy === 'breadthHeldOut'
+            && row.proxy === proxy
+            && row.windowSeconds === window
+            && row.bufferCents === 1
+            && row.participationRatePct === participation
+            && row.stakeUsdc === stake
+        );
+    const liveCapacityCell = (stake) => liveCapacity.summary.find((row) =>
+        row.segment === 'all' && row.bufferCents === 1 && row.stakeUsdc === stake
+    );
+    const capacityTableRows = [25, 100, 1000, 10000, 25000].map((stake) => {
+        const live = liveCapacityCell(stake);
+        const oneSecond = historicalCapacityCell(stake, 1);
+        const sixtySeconds = historicalCapacityCell(stake, 60);
+        const aligned = historicalCapacityCell(stake, 60, 'reportedAlignedBuys');
+        return `<tr><td>${money(stake)}</td><td class="number">${plainPct(live.fillRatePct, 1)}</td><td class="number">${plainPct(oneSecond.fillRatePct, 1)}</td><td class="number">${plainPct(sixtySeconds.fillRatePct, 1)}</td><td class="number">${plainPct(aligned.fillRatePct, 1)}</td></tr>`;
+    }).join('');
     const blindRisk = atlas.risk.blindCopy;
     const breadthRisk = atlas.risk.breadthAll;
     const heldOutRisk = atlas.risk.breadthHeldOut;
@@ -353,7 +378,9 @@ function renderHtml(analysis, edge) {
         section { margin-top: 14mm; }
         .contents { display: none; }
         .headline-fact strong { font-size: 22pt; }
-        .bottom-line, .warning, .finding, .plain-language, .alpha-definition, .parameter-summary, .rule, .verdict { break-inside: avoid; page-break-inside: avoid; }
+        .bottom-line, .warning, .finding, .plain-language, .alpha-definition, .parameter-summary, .verdict { break-inside: avoid; page-break-inside: avoid; }
+        .rule { break-inside: auto; page-break-inside: auto; }
+        .rule .steps li { break-inside: avoid; page-break-inside: avoid; }
         figure img { max-height: 178mm; object-fit: contain; }
         a { color: inherit; }
         .sources { font-size: 9pt; line-height: 1.32; }
@@ -370,7 +397,7 @@ function renderHtml(analysis, edge) {
     <div class="page">
         <p class="kicker">Plain-English alpha and execution dossier</p>
         <h1>Inside the whale's alpha: copying loses, atomic breadth wins.</h1>
-        <p class="dek">A transaction-level investigation, ${number(atlasCells)}-cell parameter atlas, and literal specification of the strongest public alpha footprint we could recover from the chain.</p>
+        <p class="dek">A transaction-level investigation, ${number(totalExecutionCells)} execution-and-capacity scenarios, and the closest public fingerprint of the trader's hidden decision process that the evidence can support.</p>
         <p class="dateline">Public-data study covering ${isoDate(analysis.coverage.firstTrade)} to ${isoDate(analysis.coverage.lastTrade)}. Analysis generated ${isoDate(edge.generatedAt)}.</p>
         <div class="headline-facts" aria-label="Headline findings">
             <div class="headline-fact"><strong class="negative">${pct(blind.all.roiPct, 2)}</strong><span>return from blindly copying all ${number(blind.all.bets)} large signals</span></div>
@@ -385,10 +412,13 @@ function renderHtml(analysis, edge) {
         <a href="#answer">The answer</a>
         <a href="#copying">Blind copying</a>
         <a href="#parameter-atlas">Parameter atlas</a>
+        <a href="#capacity">Size and fills</a>
         <a href="#chain">Inside the trade</a>
         <a href="#discovery">The discovery</a>
         <a href="#speed">Copy speed</a>
         <a href="#alpha">His alpha</a>
+        <a href="#mechanism">The mechanism</a>
+        <a href="#closing">Closing line</a>
         <a href="#algorithm">The rule</a>
         <a href="#tests">Stress tests</a>
         <a href="#risk">Risk</a>
@@ -397,13 +427,15 @@ function renderHtml(analysis, edge) {
 
     <section id="answer">
         <h2>The answer in thirty seconds</h2>
-        <p class="lead">His observable edge is <strong>selective, informed-looking liquidity consumption</strong>. The important trades do not just spend more money. In one mined transaction, they take offers from an unusually broad set of accounts already waiting in the order book.</p>
-        <div class="bottom-line"><strong>Bottom line:</strong> among otherwise eligible events, transactions that matched at least <strong>18 distinct maker accounts</strong> won 23 of 30 and returned ${pct(breadth.roiPct, 1)} after the original conservative execution assumptions. Transactions below 18 returned ${pct(narrow.roiPct, 1)}. That is the clearest public fingerprint of when this trader appears to mean the trade.</div>
+        <p class="lead">His observable edge is <strong>selective, informed-looking liquidity consumption</strong>. The strongest trades are broad, compact, and fresh: one mined BUY consumes offers from many makers, stays within only a few price levels, and takes recently signed liquidity.</p>
+        <div class="bottom-line"><strong>Bottom line:</strong> at least <strong>18 distinct maker accounts</strong> is the frozen first-stage signal: 23 wins from 30 and ${pct(breadth.roiPct, 1)} after the original stress, versus ${pct(narrow.roiPct, 1)} below 18. The closest second-stage mechanism is <strong>18+ makers, no more than three price levels, and median maker age no more than five minutes</strong>: it went 6/7 and returned ${pct(compact.heldOut.roiPct, 1)} held out. But that seven-trade refinement is post-hoc, and closing prices did not validate the broad signals. The private source of the trader's judgment is not cracked.</div>
         <ol class="steps">
             <li><strong>The headline is misleading.</strong> The wallet made ${money(analysis.performance.realizedPnlUsdc)}, but its top five winners produced ${plainPct(analysis.concentration.top5ContributionPct, 0)} of net profit. Removing those five makes the wallet negative.</li>
             <li><strong>Blind copying is not the edge.</strong> ${number(blind.all.bets)} delayed ${money(100)} copies lost ${money(Math.abs(blind.all.profitUsdc), 2)}. The later sample also lost ${pct(blind.later.roiPct, 2)}.</li>
             <li><strong>The public trade feed hides structure.</strong> We decoded all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions. Every one was a successful V2 <code>matchOrders</code> call with the target as the BUY taker.</li>
             <li><strong>Breadth separated signal from noise.</strong> Broad sweeps beat the market price by ${pp(breadthCalibration.calibrationGapPctPoints, 1)}; narrower transactions missed it by ${pp(narrowCalibration.calibrationGapPctPoints, 1)}.</li>
+            <li><strong>Size changes copyability.</strong> At +1 cent, a current liquid-market snapshot could fully fill ${plainPct(liveCapacityCell(100).fillRatePct, 1)} of ${money(100)} FOK orders but only ${plainPct(liveCapacityCell(25000).fillRatePct, 1)} at ${money(25000)}. One second after the historical broad sweeps, even an optimistic all-print ceiling covered only ${plainPct(historicalCapacityCell(100, 1).fillRatePct, 1)} of ${money(100)} requests.</li>
+            <li><strong>The market did not confirm the story before play.</strong> Broad pregame signals had median closing-line value of ${number(closing.breadthPregame.medianClosingLineValueCents, 2)} cents, with only ${number(closing.breadthPregame.positiveClosingLineEvents)} of ${number(closing.breadthPregame.events)} positive.</li>
         </ol>
     </section>
 
@@ -496,6 +528,55 @@ function renderHtml(analysis, edge) {
         <figcaption>Fast scenarios still have roughly 99% public-print coverage. Missing prints are kept with a fallback instead of being dropped, but a public print still does not prove historical ask depth or queue position.</figcaption>
     </figure>
 
+    <section id="capacity">
+        <h2>The missing dimension: can the copy actually fit?</h2>
+        <p class="lead">A backtest that changes price but assumes every requested dollar fills is incomplete. Size determines whether an FOK order trades at all, and the whale has usually consumed the most obvious liquidity before a public follower can react.</p>
+        <p>We added <strong>${number(capacity.scenarioCount)} capacity cells</strong> on top of the ${number(atlasCells)}-cell parameter atlas: five accumulation windows, four price buffers, four participation limits, ten requested stake sizes, two turnover proxies, and three strategy samples. Together the report now evaluates <strong>${number(totalExecutionCells)} execution-and-capacity scenarios</strong>.</p>
+        <div class="parameter-summary">
+            <div><strong>${number(liveCapacity.coverage.eligibleTokenSides)}</strong><span>current token-side books in the liquid sports sample</span></div>
+            <div><strong>${number(capacity.breadthHeldOutEvents.length)}</strong><span>historical held-out breadth signals</span></div>
+            <div><strong>${money(liveCapacityCell(100).availableNotionalUsdc.median, 0)}</strong><span>median displayed depth through +1c today</span></div>
+            <div><strong>${number(capacity.scenarioCount)}</strong><span>stake, speed, buffer, proxy, and participation cells</span></div>
+        </div>
+        <table class="comparison">
+            <thead><tr><th>Requested stake at +1c</th><th class="number">Current immediate FOK</th><th class="number">Post-sweep 1s all prints</th><th class="number">Post-sweep 60s all prints</th><th class="number">Post-sweep 60s aligned BUYs</th></tr></thead>
+            <tbody>${capacityTableRows}</tbody>
+        </table>
+        <div class="warning"><strong>Do not merge these columns into one promise.</strong> Current FOK is executable displayed depth, but it was sampled now from high-volume moneylines and not after this whale traded. Historical columns are cumulative public turnover after the signal, not simultaneous asks. The all-print column is deliberately optimistic because it treats direction-neutral prints as replaceable capacity.</div>
+    </section>
+
+    <figure>
+        <img src="figures/live_fok_capacity_surface.png" alt="Three heatmaps showing immediate FOK fill rates by stake and price buffer in current sports moneyline books.">
+        <figcaption><strong>What size does to a real book:</strong> ${money(100)} through +1 cent fit in ${plainPct(liveCapacityCell(100).fillRatePct, 1)} of the sampled token sides; ${money(10000)} fit in ${plainPct(liveCapacityCell(10000).fillRatePct, 1)}; ${money(25000)} fit in only ${plainPct(liveCapacityCell(25000).fillRatePct, 1)}. Larger buffers raise fill coverage by authorizing worse prices.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/live_depth_survival.png" alt="Curves showing current full-fill rates and conditional VWAP slippage by requested FOK size.">
+        <figcaption>The left panel contains the main size penalty: rejected orders. The right panel conditions on books that could fill completely, so the modest VWAP numbers cannot be read as proof that large orders are generally easy to execute.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/capacity_reality_gap.png" alt="Line chart comparing current generic FOK capacity with observed post-sweep historical turnover.">
+        <figcaption>The timing problem is visible. Generic liquid books often look deep before anyone trades. Immediately after a broad target sweep, the optimistic turnover ceiling is far lower because the first mover has already removed supply.</figcaption>
+    </figure>
+
+    <section>
+        <h2>A realistic size projection is mostly a rejection projection</h2>
+        <p>For the 21 held-out breadth signals, a ${money(100)} request at +1 cent found enough <em>total observed prints</em> within one second only ${plainPct(historicalCapacityCell(100, 1).fillRatePct, 1)} of the time. Waiting 60 seconds raised that optimistic ceiling to ${plainPct(historicalCapacityCell(100, 60).fillRatePct, 1)}. Restricting participation to 25% cut the 60-second figure to ${plainPct(historicalCapacityCell(100, 60, 'allPrints', 25).fillRatePct, 1)}. Using only reported aligned BUYs produced ${plainPct(historicalCapacityCell(100, 60, 'reportedAlignedBuys').fillRatePct, 1)}.</p>
+        <p>At ${money(1000)}, the one-second all-print ceiling covered ${plainPct(historicalCapacityCell(1000, 1).fillRatePct, 1)} of held-out signals. At ${money(10000)}, it covered ${plainPct(historicalCapacityCell(10000, 1).fillRatePct, 1)}. Those numbers do not say the remaining trades partially filled: an FOK instruction rejects the whole order when displayed depth is short.</p>
+        <div class="plain-language"><b>Practical paper rule:</b> calculate the ordinary risk cap, then reduce it to at most 10% of displayed ask notional through the one-cent limit. Reject the signal below ${money(25)}. Walk every eligible ask level to estimate VWAP, submit no order in this repository, and record would-fill versus would-reject. This avoids pretending a ${money(100)} strategy scales linearly to ${money(10000)}.</div>
+    </section>
+
+    <figure>
+        <img src="figures/historical_capacity_surface.png" alt="Heatmaps showing post-sweep turnover coverage across stake, speed, participation, and public-print proxies.">
+        <figcaption>Capacity disappears fastest at large stake and short delay. The middle panel limits the hypothetical follower to 25% of observed turnover. The right panel uses the narrower reported-side proxy. None is a reconstructed historical book.</figcaption>
+    </figure>
+
+    <figure>
+        <img src="figures/historical_size_projection.png" alt="Curves showing historical capacity coverage and retrospective outcome-weighted returns by requested stake.">
+        <figcaption>The outcome-weighted panel is intentionally labeled as retrospective: capacity selects which known events remain in the sample. It is useful for diagnosing scale and selection effects, not for forecasting profit.</figcaption>
+    </figure>
+
     <section id="chain">
         <h2>The breakthrough came from looking inside the trade</h2>
         <p class="lead">A public feed row says the whale bought one outcome. Polygon calldata says exactly how that buy was assembled.</p>
@@ -580,6 +661,43 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
         <p>This distinction matters. We did not reverse-engineer his sports model or prove private information. We recovered an <strong>observable gating variable</strong> that identifies when his action historically contained information beyond the market price. That is the most literal alpha statement public evidence supports.</p>
     </section>
 
+    <section id="mechanism">
+        <h2>The closest answer to “what is his secret?”</h2>
+        <p class="lead">Within broad sweeps, the best transactions are <strong>compact and fresh</strong>: many separate makers are consumed, but the order does not chase through a long price ladder, and the typical maker order was signed within five minutes.</p>
+        <div class="alpha-definition">
+            <h3>Exploratory mechanism fingerprint</h3>
+            <div class="equation">Strong(tx) = distinct makers &gt;= 18<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND distinct execution price levels &lt;= 3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND median maker-order age &lt;= 300 seconds</div>
+            <p>Development selected the three-level and 300-second bounds from the declared grid. It found 5 bets, all winners, at ${pct(compact.development.roiPct, 1)}. The unchanged rule then found 7 held-out bets, 6 winners, at ${pct(compact.heldOut.roiPct, 2)}. Across all history it went ${number(compact.all.wins)}/${number(compact.all.bets)} at ${pct(compact.all.roiPct, 2)}; the other broad sweeps went ${number(compact.otherBroadSweeps.wins)}/${number(compact.otherBroadSweeps.bets)} at ${pct(compact.otherBroadSweeps.roiPct, 2)}.</p>
+        </div>
+        <p><strong>Interpretation:</strong> this looks less like reckless price chasing and more like decisive acceptance of dense, recently posted liquidity. The wallet is taking a lot of independent-looking supply while the price ladder remains compact. That geometry is a closer footprint of high conviction than dollar amount, flow speed, or maker count alone.</p>
+        <h3>Two attractive explanations failed</h3>
+        <ul class="fact-list">
+            <li><strong>Not stale-quote harvesting.</strong> Median maker age was ${number(alternatives.staleLiquidity.broadMedianMakerAgeSeconds, 1)} seconds in broad sweeps and ${number(alternatives.staleLiquidity.narrowMedianMakerAgeSeconds, 1)} seconds in narrow ones. More importantly, broad winners consumed maker orders with median age ${number(alternatives.staleLiquidity.broadWinnerMedianMakerAgeSeconds, 1)} seconds, versus ${number(alternatives.staleLiquidity.broadLossMedianMakerAgeSeconds, 1)} seconds for broad losses. Winners were fresher, not staler.</li>
+            <li><strong>Not one recurring set of weak counterparties.</strong> The 30 broad signals touched ${number(alternatives.recurringMakerIdentity.uniqueMakersAcrossBroadSignals)} unique maker accounts; ${number(alternatives.recurringMakerIdentity.makersSeenInMultipleBroadSignals)} appeared in multiple broad signals. Winners and losses had similar prior-seen maker shares, ${plainPct(alternatives.recurringMakerIdentity.winnerMedianPriorSeenMakerSharePct, 1)} versus ${plainPct(alternatives.recurringMakerIdentity.lossMedianPriorSeenMakerSharePct, 1)}. Prior target-side outcomes against those makers also failed to separate the groups cleanly.</li>
+        </ul>
+        <div class="warning"><strong>This is the sharpest lead, not a solved private model.</strong> The compact-fresh family was proposed after inspecting the wallet. A 20,000-draw null that repeated the stated grid gave p=${number(compact.comparisons.selectionCorrectedMarketNull.oneSidedPValue, 4)}, but it cannot correct for every idea considered. The held-out sample contains seven bets, and its day-cluster 95% ROI interval runs from ${pct(compact.heldOutDayClusterBootstrap.ci95LowPct, 1)} to ${pct(compact.heldOutDayClusterBootstrap.ci95HighPct, 1)}.</div>
+    </section>
+
+    <figure>
+        <img src="figures/compact_fresh_mechanism.png" alt="Charts comparing broad sweeps with the compact-fresh exploratory transaction geometry.">
+        <figcaption>The second-stage fingerprint concentrates the result, including in the held-out block, but the sample is too small to promote it into a live strategy. The paper monitor records it as a shadow tag while the frozen 18-maker rule remains the primary gate.</figcaption>
+    </figure>
+
+    <section id="closing">
+        <h2>The closing line refuses to confirm the secret</h2>
+        <p class="lead">A genuinely informed pregame bet should often move toward the trader's side before play. That independent check did not happen here.</p>
+        <p>We found a final non-target public print before recorded start for all ${number(closing.allEligiblePregame.events)} eligible pregame events. The median print was only ${number(closing.allEligiblePregame.closingPrintStalenessSeconds.median, 0)} seconds before start. Among the ${number(closing.breadthPregame.events)} broad pregame sweeps, median closing-line value was <strong>${number(closing.breadthPregame.medianClosingLineValueCents, 2)} cents</strong> and mean value was ${number(closing.breadthPregame.meanClosingLineValueCents, 2)} cents. Only ${number(closing.breadthPregame.positiveClosingLineEvents)} of ${number(closing.breadthPregame.events)} closed higher for the target side.</p>
+        <p>A one-sided sign test for positive broad-sweep CLV gave p=${number(closing.tests.breadthPositiveClvSignTest.oneSidedPValueForPositiveClv, 3)}. Broad and narrow CLV distributions were not distinguishable either, with two-sided Mann-Whitney p=${number(closing.tests.breadthVsNarrowMannWhitney.twoSidedPValue, 3)}. The broad group still won ${number(closing.breadthPregame.wins)}/${number(closing.breadthPregame.events)}, leaving a ${pp(closing.breadthPregame.closingCalibrationGapPctPoints, 1)} settlement gap even at closing prices, but the market itself did not validate that information before the games began.</p>
+        <div class="warning"><strong>This blocks the “arm the wallet” conclusion.</strong> Settlement outcomes look exceptional, but pregame price discovery does not confirm them, the compact-fresh pregame subset contains only ${number(closing.compactFreshBreadthPregame.events)} event, and historical fill capacity is uncertain. A live-money system would be acting on an unresolved contradiction, not a cracked code.</div>
+    </section>
+
+    <figure>
+        <img src="figures/closing_line_validation.png" alt="Chronological and distribution charts of closing-line value for broad and narrow pregame signals.">
+        <figcaption>Broad sweeps won more often at settlement, yet their prices generally did not strengthen before play. This is the report's strongest negative result and the main reason the mechanism remains a prospective paper hypothesis.</figcaption>
+    </figure>
+
     <figure>
         <img src="figures/breadth_threshold_cost_surface.png" alt="Heatmap showing held-out ROI for maker-breadth cutoffs from five through thirty and adverse execution costs from zero through thirty cents.">
         <figcaption><strong>Breadth by cost:</strong> the dark horizontal outline is the frozen 18-maker row. Neighboring cutoffs form a broad profitable region at realistic costs; very strict rows are based on tiny samples and are not alternative strategies.</figcaption>
@@ -608,8 +726,8 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </figure>
 
     <section id="algorithm">
-        <h2>The algorithm: atomic-breadth-18</h2>
-        <p class="lead">This is the discovery translated into a rule that can be frozen and tested prospectively.</p>
+        <h2>The algorithm: atomic-breadth-18, paper only</h2>
+        <p class="lead">This is the frozen discovery translated into a capacity-aware prospective monitor. It is ready to observe and emit paper intents; it is intentionally not armed with wallet keys or order submission.</p>
         <div class="rule">
             <h3>Paper-trading specification</h3>
             <ol class="steps">
@@ -618,12 +736,15 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
                 <li>Require the target to be at least 70% concentrated on one outcome and the trigger price to be 30 through 85 cents.</li>
                 <li>Decode the mined V2 <code>matchOrders</code> transaction and verify that the target is the BUY taker for the signaled token.</li>
                 <li>Count distinct addresses in <code>makerOrders[].maker</code>. Continue only when the count is at least <strong>18</strong>.</li>
-                <li>Do not add an artificial delay. Snapshot the live best ask and displayed depth as soon as the mined call is decoded. Record block-to-detection and detection-to-order latency separately.</li>
-                <li>Create a paper-only marketable FOK limit for a fixed ${money(100)} stake, capped at one cent above the first observed best ask and never above 0.90. Record a rejection when displayed depth is insufficient; never assume a fill.</li>
-                <li>Hold accepted paper fills to resolution. Mark at least 80% final-minute taker flow as high confidence, but do not make it a second gate yet.</li>
+                <li>Record whether the sweep also has at most three price levels and median maker age at most 300 seconds. This is a shadow tag, not a production gate, until it has a larger prospective sample.</li>
+                <li>At the first observation at least one second after the block timestamp, snapshot every displayed ask level. Historical data cannot honestly distinguish 0.1 from 0.5 seconds.</li>
+                <li>Set the ordinary risk cap to the minimum of ${money(100)}, 0.5% of bankroll, and 1% event exposure. Then reduce it again to at most <strong>10% of displayed ask notional</strong> through the price limit. Reject orders below ${money(25)}.</li>
+                <li>Walk asks to calculate exact paper VWAP. The FOK limit is at most one cent above best ask, five cents above trigger, and 0.90 absolutely. If the complete size cannot fill, record a rejection rather than a partial fantasy fill.</li>
+                <li>Require the frozen model's predicted edge after fee-adjusted VWAP, keep one position per correlated event, cap portfolio exposure at 5%, and hold accepted paper fills to resolution.</li>
             </ol>
         </div>
-        <p>The one-cent FOK buffer is a prospective paper convention, not a claim that historical depth existed. The replay's one-second plus one-cent cell is the closest available proxy and returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)} in the held-out half. The original 60-second plus five-cent case remains the registered comparison. No live orders, martingale, inferred eventual whale size, discretionary exits, or threshold changes after a bad result.</p>
+        <p>The one-cent FOK buffer is a prospective paper convention, not a claim that historical depth existed. The replay's one-second plus one-cent price-only cell returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)} in the held-out half, but only ${plainPct(historicalCapacityCell(100, 1).fillRatePct, 1)} had ${money(100)} of optimistic one-second all-print capacity. The original 60-second plus five-cent case remains the registered comparison. No live orders, private keys, approvals, martingale, inferred eventual whale size, discretionary exits, or threshold changes after a bad result are implemented.</p>
+        <div class="warning"><strong>Why the repository will not “just arm the wallet”:</strong> the closing-line test is negative, the compact-fresh held-out sample is seven, and post-sweep FOK depth is unknown. Connecting signing and submission now would convert unresolved research risk into unattended financial risk without adding evidence.</div>
     </section>
 
     <section id="tests">
@@ -736,10 +857,13 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             <li><strong>The held-out win-count test is suggestive, not decisive.</strong> Its one-sided Poisson-binomial p-value is ${number(heldOutCalibration.poissonBinomialUpperTailPValue, 3)}.</li>
             <li><strong>The threshold-search simulation is barely below 0.05.</strong> Its p-value is ${number(thresholdNull.oneSidedPValue, 3)}, not overwhelming evidence.</li>
             <li><strong>The ${number(atlasCells)} atlas cells are not ${number(atlasCells)} confirmations.</strong> They map sensitivity around one frozen rule. Treating the best cell as a new discovery would be parameter mining.</li>
+            <li><strong>The ${number(capacity.scenarioCount)} capacity cells are also not independent evidence.</strong> They reuse the same events while varying stake, window, buffer, participation, and print proxy.</li>
             <li><strong>The wallet and feature family were chosen retrospectively.</strong> The null simulation corrects the stated maker-count cutoff search, not every idea considered during the investigation.</li>
+            <li><strong>The compact-fresh mechanism is second-stage research.</strong> Its held-out block contains only seven bets, and its cluster interval includes a loss.</li>
             <li><strong>The history spans roughly two months.</strong> A market regime, one operator, or one sports calendar can change.</li>
             <li><strong>The held-out result is winner-concentrated.</strong> Removing its five most profitable winners changes held-out ROI to ${pct(heldOutRisk.roiWithoutTopWinnersPct['5'], 1)}.</li>
             <li><strong>Execution is still a proxy.</strong> Public prints show activity, not guaranteed historical ask depth, queue position, partial fills, or API publication latency.</li>
+            <li><strong>Closing-line value is negative.</strong> The pregame market did not independently confirm the broad-sweep side before play.</li>
         </ul>
         <div class="warning"><strong>Correct conclusion:</strong> this is a real, testable discovery in the available sample, not proof of future profit. It earns a frozen prospective paper test. It does not earn live capital yet.</div>
     </section>
@@ -752,8 +876,11 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
                 <tr><td>Blindly copying every large signal lost money.</td><td><strong class="positive">Observed fact</strong></td><td>${number(blind.all.bets)} forced bets under declared execution assumptions.</td></tr>
                 <tr><td>All trigger transactions made the wallet the BUY taker.</td><td><strong class="positive">On-chain fact</strong></td><td>${number(edge.coverage.targetAsDecodedTaker)} of ${number(edge.coverage.decodedTriggerTransactions)} decoded V2 transactions.</td></tr>
                 <tr><td>Sweeps across 18 or more makers carried the edge.</td><td><strong class="positive">Observed in sample</strong></td><td>23 wins from 30, ${pct(breadth.roiPct, 1)} ROI, with a positive held-out half.</td></tr>
+                <tr><td>Compact, fresh breadth is the closest observable mechanism.</td><td><strong class="positive">Exploratory lead</strong></td><td>6/7 held out, but selected post-hoc and the day-cluster interval includes losses.</td></tr>
                 <tr><td>Blind copy bots must be under one second.</td><td><strong class="negative">Not supported</strong></td><td>No sub-minute latency cliff appeared; roughly two cents of adverse price erased the blind-copy margin.</td></tr>
+                <tr><td>A ${money(10000)} copy fills like a ${money(100)} copy.</td><td><strong class="negative">False</strong></td><td>Current +1c FOK coverage fell from ${plainPct(liveCapacityCell(100).fillRatePct, 1)} at ${money(100)} to ${plainPct(liveCapacityCell(10000).fillRatePct, 1)} at ${money(10000)} even in a favorable liquid-market sample.</td></tr>
                 <tr><td>Breadth is only a disguise for dollar size.</td><td><strong class="negative">Not supported</strong></td><td>Notional was null after breadth, urgency, and period controls: p=${number(notionalCoefficient.robustPValue, 3)}.</td></tr>
+                <tr><td>Closing prices confirm the broad-sweep information.</td><td><strong class="negative">Not supported</strong></td><td>Median broad pregame CLV was ${number(closing.breadthPregame.medianClosingLineValueCents, 2)}c; only ${number(closing.breadthPregame.positiveClosingLineEvents)}/${number(closing.breadthPregame.events)} were positive.</td></tr>
                 <tr><td>The trader has private information.</td><td><strong class="negative">Not established</strong></td><td>Behavior is consistent with informed trading, but public data cannot identify the source.</td></tr>
                 <tr><td>The algorithm is ready for live money.</td><td><strong class="negative">No</strong></td><td>Short history, 21 post-selection bets, and proxy execution still leave material uncertainty.</td></tr>
             </tbody>
@@ -763,10 +890,10 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     <section id="verdict" class="verdict">
         <h2>The honest verdict</h2>
         <p><strong>The discovery is not &ldquo;copy this whale.&rdquo;</strong> That strategy lost.</p>
-        <p><strong>His edge, as far as public evidence can reveal it, is knowing when to demand a lot of liquidity from a lot of counterparties at once.</strong> The breadth of the atomic sweep is the footprint. The hidden model or information that causes him to do it remains private.</p>
+        <p><strong>His edge, as far as public evidence can reveal it, is knowing when to accept a dense block of fresh liquidity from many counterparties without chasing far through price levels.</strong> Broad, compact, fresh atomic sweeps are the closest observable footprint. The hidden model, feed, information, or judgment that causes him to act remains private.</p>
         <p>The frozen algorithm is <strong>atomic-breadth-18</strong>. Historical result: ${number(breadth.wins)} wins from ${number(breadth.bets)}, ${pct(breadth.roiPct, 2)} after the original stressed costs. Post-selection result: ${number(heldOut.wins)} wins from ${number(heldOut.bets)}, ${pct(heldOut.roiPct, 2)}.</p>
-        <p>For an indiscriminate bot, the historical break-even execution allowance at one second was only ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents. The lesson is not &ldquo;buy a faster server.&rdquo; It is &ldquo;reject weak signals and control the paid price.&rdquo;</p>
-        <p><strong>Decision:</strong> collect at least 200 new eligible signals in paper mode without changing the rule. Record actual order-book depth, rejected orders, partial fills, and end-to-end latency. Capital should wait until a genuinely unseen sample remains profitable after costs and after removing its biggest winners.</p>
+        <p>For an indiscriminate bot, the historical break-even execution allowance at one second was only ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents. Size adds a second failure mode: the order can be completely rejected. The lesson is not &ldquo;buy a faster server.&rdquo; It is &ldquo;reject weak signals, cap depth participation, and control the paid price.&rdquo;</p>
+        <p><strong>Decision:</strong> run the capacity-aware monitor for at least 200 new eligible paper signals without changing the 18-maker rule. Shadow-score compact-fresh geometry. Record decoded transaction shape, actual book depth, FOK rejection, VWAP, end-to-end latency, closing line, and resolution. Capital waits until a genuinely unseen sample has positive CLV and remains profitable after real fill constraints and after removing its biggest winners.</p>
     </section>
 
     <section>
@@ -777,6 +904,10 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             <dt>Atomic sweep</dt><dd>One mined transaction in which a taker order matches several already-signed maker orders together.</dd>
             <dt>Maker breadth</dt><dd>The number of distinct maker addresses consumed by that transaction. It counts accounts, not verified people.</dd>
             <dt>Adverse price</dt><dd>How many extra cents a follower pays above the first public execution reference because of spread, consumed depth, or market reaction.</dd>
+            <dt>FOK</dt><dd>Fill or kill. The entire requested order trades immediately at or below its limit, or none of it trades.</dd>
+            <dt>VWAP</dt><dd>Volume-weighted average price across every ask level needed to fill an order. It is the true average paid when one order walks several prices.</dd>
+            <dt>Closing-line value</dt><dd>The final pregame probability minus the entry probability for the selected side. Positive means the market moved toward the bet before play.</dd>
+            <dt>Maker-order age</dt><dd>How long a signed maker order had been resting when the target consumed it. Fresh means recently posted, not necessarily well informed.</dd>
             <dt>Implied probability</dt><dd>A 60-cent contract roughly represents a market-estimated 60% chance before trading costs.</dd>
             <dt>Calibration gap</dt><dd>The actual win rate minus the win rate implied by prices. Positive is good only if it survives costs and honest testing.</dd>
             <dt>ROI</dt><dd>Profit divided by total stake. A 10% ROI means ${money(10)} profit for each ${money(100)} staked.</dd>
@@ -790,6 +921,8 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
         <p>This essay is a human-readable rendering of committed machine-readable evidence. The core calculations can be audited in:</p>
         <ul>
             <li><a href="edge_analysis.json">edge_analysis.json</a>: blind-copy and atomic-breadth backtests, chronology, null simulation, controls, ${number(atlasCells)} parameter-atlas cells, risk diagnostics, and break-even frontiers.</li>
+            <li><a href="liquidity_capacity.json">liquidity_capacity.json</a>: timestamped current CLOB ask ladders and exact FOK walks across stake and price-buffer scenarios.</li>
+            <li><a href="closing_lines.json">closing_lines.json</a>: final non-target pregame public prints used for the independent closing-line audit.</li>
             <li><a href="edge_features.csv">edge_features.csv</a>: one row per reconstructed signal, including decoded maker breadth and information available by signal time.</li>
             <li><a href="trigger_transactions.json">trigger_transactions.json</a>: decoded <code>matchOrders</code> calldata and derived fill anatomy for all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions.</li>
             <li><a href="deep_analysis.json">deep_analysis.json</a>: wallet-level execution, market format, profit, fee, and concentration facts.</li>
@@ -799,9 +932,13 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
         <ul>
             <li><a href="https://github.com/Polymarket/ctf-exchange-v2">Official Polymarket CTF Exchange V2 repository</a>, including <a href="https://github.com/Polymarket/ctf-exchange-v2/blob/main/src/exchange/mixins/Trading.sol"><code>matchOrders</code> execution</a> and the <a href="https://github.com/Polymarket/ctf-exchange-v2/blob/main/src/exchange/libraries/Structs.sol">signed order structure</a>.</li>
             <li><a href="https://docs.polymarket.com/concepts/order-lifecycle">Official Polymarket order lifecycle</a>, distinguishing off-chain <code>MATCHED</code>, on-chain <code>MINED</code>, and final <code>CONFIRMED</code> trade states.</li>
+            <li><a href="https://docs.polymarket.com/api-reference/market-data/get-order-book">Official Polymarket order-book endpoint</a> and <a href="https://docs.polymarket.com/api-reference/market-data/get-order-books-request-body">batch order-book endpoint</a>, used for the current displayed-depth snapshot.</li>
+            <li><a href="https://docs.polymarket.com/concepts/order-lifecycle">Official FOK lifecycle documentation</a>: a fill-or-kill order must execute completely or reject.</li>
+            <li><a href="https://docs.polymarket.com/trading/fees">Official Polymarket fee documentation</a>, including the probability-dependent fee formula used in the paper calculations.</li>
             <li><a href="https://docs.polymarket.com/api-reference/wss/market">Official public market WebSocket</a>, documenting millisecond-stamped book and trade events available prospectively but absent from this historical second-resolution tape.</li>
             <li><a href="https://arxiv.org/abs/2604.24366">Dubach, The Anatomy of a Decentralized Prediction Market</a>, supporting use of authoritative on-chain direction rather than potentially ambiguous public labels.</li>
             <li><a href="https://doi.org/10.1016/0304-405X(87)90029-8">Easley and O'Hara, Price, Trade Size, and Information in Securities Markets</a>, classic context for why aggressive trade structure can contain information.</li>
+            <li><a href="https://arxiv.org/abs/2605.00864">Cheng, Yang, and Zou, Arbitrage Analysis in Polymarket NBA Markets</a>, independent order-book evidence that executable opportunities can be sharply bounded by shallow depth. It is microstructure context, not validation of this wallet strategy.</li>
             <li><a href="https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf">Bailey et al., The Probability of Backtest Overfitting</a>.</li>
         </ul>
         <p><strong>Limit:</strong> this is public-wallet research, not proof of identity, distinct human counterparties, private information, causality, historical executable depth, or future profit. It is not financial advice.</p>
@@ -809,7 +946,7 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
 </main>
 
 <footer>
-    <div class="page">Polymarket trader investigation &middot; 24-figure alpha and execution dossier &middot; Generated from committed evidence</div>
+    <div class="page">Polymarket trader investigation &middot; 31-figure alpha, capacity, and execution dossier &middot; Generated from committed evidence</div>
 </footer>
 </body>
 </html>`;

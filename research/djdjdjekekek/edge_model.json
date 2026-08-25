@@ -132,9 +132,14 @@
   "decision": {
     "minimumPredictedEdge": 0.05,
     "minimumTakerBurst60Share": 0.8,
+    "minimumOnchainUniqueMakers": 18,
+    "compactFreshShadowMaximumPriceLevels": 3,
+    "compactFreshShadowMaximumMedianMakerAgeSeconds": 300,
     "feeRate": 0.03,
     "modeledSlippageCents": 5,
-    "copyLagSeconds": 60
+    "copyLagSeconds": 60,
+    "prospectivePaperMinimumLagSeconds": 1,
+    "warning": "The 60-second lag belongs to the historical model fit. Prospective paper intents use current decoded calldata and live FOK depth; compact-fresh is recorded as a shadow tag, not a live-money gate."
   },
   "training": {
     "bets": 80,

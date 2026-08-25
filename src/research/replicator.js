@@ -2,8 +2,9 @@
 
 const { buildMarketRecords } = require('./analyze');
 const { EXCLUDED_MARKET_TYPES, baseStrategy, findSignal } = require('./backtest');
-const { CLOB_API, getJson, iso, pct, sum } = require('./common');
+const { BLOCKSCOUT_API, CLOB_API, getJson, iso, pct, sum } = require('./common');
 const { collectTapeWindow } = require('./tape');
+const { parseTriggerTransaction } = require('./trigger_transactions');
 
 const DEFAULT_PAPER_CONFIG = {
     mode: 'PAPER_ONLY',
@@ -12,9 +13,13 @@ const DEFAULT_PAPER_CONFIG = {
     maxOrderBankrollPct: 0.5,
     maxEventBankrollPct: 1,
     maxPortfolioBankrollPct: 5,
-    signalMaxAgeSeconds: 600,
-    targetCopyLagSeconds: 60,
+    signalMaxAgeSeconds: 30,
+    targetCopyLagSeconds: 1,
     maxAdverseMove: 0.05,
+    bookSweepBuffer: 0.01,
+    absoluteMaxPrice: 0.90,
+    maxDisplayedDepthParticipationPct: 10,
+    minCapacityOrderUsdc: 25,
     executionMode: 'MARKETABLE_LIMIT_FOK',
     requirePostOnly: false,
     cancelAfterSeconds: 30
@@ -37,6 +42,10 @@ function buildReplicatorConfig(wallet, overrides = {}) {
             minPrice: strategy.minPrice,
             maxPrice: strategy.maxPrice,
             minimumTakerBurst60Share: 0.8,
+            minimumOnchainUniqueMakers: 18,
+            exploratoryMaximumPriceLevels: 3,
+            exploratoryMaximumMedianMakerAgeSeconds: 300,
+            requireExploratoryCompactFresh: false,
             avoidCorrelatedEventExposure: strategy.avoidCorrelatedEventExposure,
             ...strategyOverrides
         },
@@ -76,7 +85,9 @@ function marketableLimit(
     triggerPrice,
     book,
     maxAdverseMove = DEFAULT_PAPER_CONFIG.maxAdverseMove,
-    requiredNotionalUsdc = 0
+    requiredNotionalUsdc = 0,
+    bookSweepBuffer = DEFAULT_PAPER_CONFIG.bookSweepBuffer,
+    absoluteMaxPrice = DEFAULT_PAPER_CONFIG.absoluteMaxPrice
 ) {
     const tickSize = Number(book.tick_size || book.tickSize || 0.01);
     const bestBid = bestPrice(book.bids, 'bid');
@@ -85,9 +96,38 @@ function marketableLimit(
     if (bestAsk > triggerPrice + maxAdverseMove) {
         return { eligible: false, reason: 'PRICE_RAN_AWAY', bestBid, bestAsk, tickSize };
     }
-    const availableAskShares = sum((book.asks || []).filter((level) =>
-        Number(level.price) <= bestAsk + 1e-12), (level) => Number(level.size || 0));
-    const availableAskNotionalUsdc = availableAskShares * bestAsk;
+    const maximumPrice = Math.min(
+        bestAsk + bookSweepBuffer,
+        triggerPrice + maxAdverseMove,
+        absoluteMaxPrice
+    );
+    const limitPrice = roundToTick(maximumPrice, tickSize);
+    const eligibleAsks = (book.asks || []).map((level) => ({
+        price: Number(level.price),
+        size: Number(level.size || 0)
+    })).filter((level) => Number.isFinite(level.price)
+        && Number.isFinite(level.size)
+        && level.size > 0
+        && level.price <= limitPrice + 1e-12)
+        .sort((a, b) => a.price - b.price);
+    const availableAskShares = sum(eligibleAsks, (level) => level.size);
+    const availableAskNotionalUsdc = sum(
+        eligibleAsks, (level) => level.price * level.size
+    );
+    let remainingNotionalUsdc = requiredNotionalUsdc;
+    let estimatedShares = 0;
+    let worstFillPrice = null;
+    for (const level of eligibleAsks) {
+        if (remainingNotionalUsdc <= 1e-9) break;
+        const availableNotional = level.price * level.size;
+        const matchedNotional = Math.min(remainingNotionalUsdc, availableNotional);
+        estimatedShares += matchedNotional / level.price;
+        remainingNotionalUsdc -= matchedNotional;
+        worstFillPrice = level.price;
+    }
+    const estimatedVwap = requiredNotionalUsdc > 0 && remainingNotionalUsdc <= 1e-9
+        ? requiredNotionalUsdc / estimatedShares
+        : null;
     if (requiredNotionalUsdc > 0 && availableAskNotionalUsdc < requiredNotionalUsdc) {
         return {
             eligible: false,
@@ -95,19 +135,77 @@ function marketableLimit(
             bestBid,
             bestAsk,
             tickSize,
+            limitPrice,
             availableAskShares,
-            availableAskNotionalUsdc
+            availableAskNotionalUsdc,
+            eligibleAskLevels: eligibleAsks.length,
+            estimatedFillFractionPct: Math.max(
+                0,
+                (requiredNotionalUsdc - remainingNotionalUsdc) / requiredNotionalUsdc * 100
+            )
         };
     }
     return {
         eligible: true,
-        limitPrice: bestAsk,
+        limitPrice,
         bestBid,
         bestAsk,
         tickSize,
         availableAskShares,
-        availableAskNotionalUsdc
+        availableAskNotionalUsdc,
+        eligibleAskLevels: eligibleAsks.length,
+        estimatedVwap,
+        worstFillPrice
     };
+}
+
+function capacityCappedNotional(riskCapUsdc, availableAskNotionalUsdc, config) {
+    const depthCap = Number(availableAskNotionalUsdc || 0)
+        * Number(config.maxDisplayedDepthParticipationPct || 0) / 100;
+    const proposed = Math.min(Number(riskCapUsdc || 0), depthCap);
+    return proposed >= Number(config.minCapacityOrderUsdc || 0)
+        ? Number(proposed.toFixed(2))
+        : 0;
+}
+
+function isCompactFreshSweep(decoded, config) {
+    const rawPriceLevels = decoded?.sweep?.uniquePriceLevels;
+    const rawMedianMakerAgeSeconds = decoded?.sweep?.restingAgeMedianSeconds;
+    const priceLevels = Number(rawPriceLevels);
+    const medianMakerAgeSeconds = Number(rawMedianMakerAgeSeconds);
+    return rawPriceLevels !== null && rawPriceLevels !== undefined
+        && rawMedianMakerAgeSeconds !== null && rawMedianMakerAgeSeconds !== undefined
+        && Number.isFinite(priceLevels)
+        && Number.isFinite(medianMakerAgeSeconds)
+        && priceLevels <= Number(config.strategy.exploratoryMaximumPriceLevels)
+        && medianMakerAgeSeconds <= Number(config.strategy.exploratoryMaximumMedianMakerAgeSeconds);
+}
+
+function decodedSweepEligibility(decoded, config) {
+    if (!decoded?.takerIsTarget) return 'TARGET_NOT_DECODED_TAKER';
+    if (decoded.taker?.side !== 'BUY') return 'TARGET_NOT_BUY_TAKER';
+    if (!decoded.taker?.tokenMatchesSignal) return 'DECODED_TOKEN_MISMATCH';
+    if (Number(decoded.sweep?.uniqueMakers || 0) < Number(config.strategy.minimumOnchainUniqueMakers)) {
+        return 'MAKER_BREADTH_BELOW_THRESHOLD';
+    }
+    const compactFresh = isCompactFreshSweep(decoded, config);
+    if (config.strategy.requireExploratoryCompactFresh && !compactFresh) {
+        return 'COMPACT_FRESH_SHADOW_RULE_NOT_MET';
+    }
+    return null;
+}
+
+function decodeCurrentTrigger(transaction, row, targetWallet) {
+    return parseTriggerTransaction(transaction, {
+        conditionId: row.market.conditionId,
+        eventKey: row.market.eventKey,
+        seedSignal: row.signal,
+        targetWallet,
+        tokens: (row.market.metadata?.tokens || []).map((token) => ({
+            outcome: token.outcome,
+            tokenId: token.token_id || token.tokenId
+        }))
+    });
 }
 
 function median(values) {
@@ -268,6 +366,8 @@ function rejectionSummary(rows) {
 async function generatePaperIntents(snapshot, enrichment, options = {}) {
     const nowTimestamp = Number(options.nowTimestamp || Math.floor(Date.now() / 1000));
     const edgeModel = options.model || null;
+    const fetchTransaction = options.fetchTransaction || ((hash) =>
+        getJson(`${BLOCKSCOUT_API}/transactions/${hash}`));
     const config = buildReplicatorConfig(snapshot.wallet, {
         ...options.config,
         strategy: {
@@ -315,20 +415,61 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
             if (targetFeatures.takerBurst60Share < config.strategy.minimumTakerBurst60Share) {
                 return { ...row, rejection: 'TAKER_BURST_TOO_SLOW', model: { features: targetFeatures } };
             }
-            const [book, publicRows] = await Promise.all([
+            const [book, publicRows, transaction] = await Promise.all([
                 getJson(`${CLOB_API}/book`, { token_id: row.token.token_id }),
                 collectTapeWindow(
                     row.market.conditionId,
                     row.signal.timestamp - 3_600,
                     row.signal.timestamp,
                     1
-                ).catch(() => [])
+                ).catch(() => []),
+                fetchTransaction(row.signal.triggerHash).catch((error) => ({
+                    fetchError: error.message
+                }))
             ]);
+            if (transaction.fetchError) {
+                return {
+                    ...row,
+                    rejection: 'TRIGGER_TRANSACTION_UNAVAILABLE',
+                    error: transaction.fetchError
+                };
+            }
+            let decodedSweep;
+            try {
+                decodedSweep = decodeCurrentTrigger(transaction, row, snapshot.wallet);
+            } catch (error) {
+                return { ...row, rejection: 'TRIGGER_DECODE_UNAVAILABLE', error: error.message };
+            }
+            const sweepRejection = decodedSweepEligibility(decodedSweep, config);
+            if (sweepRejection) {
+                return { ...row, rejection: sweepRejection, decodedSweep };
+            }
+            const capacityQuote = marketableLimit(
+                row.signal.triggerPrice,
+                book,
+                config.maxAdverseMove,
+                0,
+                config.bookSweepBuffer,
+                config.absoluteMaxPrice
+            );
+            if (!capacityQuote.eligible) {
+                return { ...row, rejection: capacityQuote.reason, book: capacityQuote };
+            }
+            const capacityOrderUsdc = capacityCappedNotional(
+                orderUsdc,
+                capacityQuote.availableAskNotionalUsdc,
+                config
+            );
+            if (!capacityOrderUsdc) {
+                return { ...row, rejection: 'CAPACITY_SIZE_BELOW_MINIMUM', book: capacityQuote };
+            }
             const limit = marketableLimit(
                 row.signal.triggerPrice,
                 book,
                 config.maxAdverseMove,
-                orderUsdc
+                capacityOrderUsdc,
+                config.bookSweepBuffer,
+                config.absoluteMaxPrice
             );
             if (!limit.eligible) return { ...row, rejection: limit.reason, book: limit };
             const modelFeatures = {
@@ -337,9 +478,10 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
             };
             const predictedWinProbability = scoreEdgeModel(modelFeatures, edgeModel);
             const feeRate = Number(edgeModel.decision?.feeRate ?? 0.03);
-            const allInPrice = feeAdjustedPrice(limit.limitPrice, feeRate);
+            const allInPrice = feeAdjustedPrice(limit.estimatedVwap, feeRate);
             const predictedEdge = predictedWinProbability - allInPrice;
             const minimumPredictedEdge = Number(edgeModel.decision?.minimumPredictedEdge ?? 0.05);
+            const compactFreshCandidate = isCompactFreshSweep(decodedSweep, config);
             if (predictedEdge < minimumPredictedEdge) {
                 return {
                     ...row,
@@ -366,7 +508,7 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
                     outcome: row.signal.outcome,
                     limitPrice: limit.limitPrice,
                     estimatedAllInPrice: allInPrice,
-                    notionalUsdc: orderUsdc,
+                    notionalUsdc: capacityOrderUsdc,
                     targetSignal: {
                         time: iso(row.signal.timestamp),
                         ageSeconds: nowTimestamp - row.signal.timestamp,
@@ -376,12 +518,24 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
                         triggerPrice: row.signal.triggerPrice,
                         transactionHash: row.signal.triggerHash
                     },
+                    decodedSweep: {
+                        uniqueMakers: decodedSweep.sweep.uniqueMakers,
+                        makerOrderCount: decodedSweep.sweep.makerOrderCount,
+                        uniquePriceLevels: decodedSweep.sweep.uniquePriceLevels,
+                        medianMakerAgeSeconds: decodedSweep.sweep.restingAgeMedianSeconds,
+                        weightedTargetPrice: decodedSweep.sweep.weightedTargetPrice,
+                        compactFreshCandidate
+                    },
                     marketCheck: {
                         bestBid: limit.bestBid,
                         bestAsk: limit.bestAsk,
                         tickSize: limit.tickSize,
                         availableAskShares: limit.availableAskShares,
                         availableAskNotionalUsdc: limit.availableAskNotionalUsdc,
+                        eligibleAskLevels: limit.eligibleAskLevels,
+                        estimatedVwap: limit.estimatedVwap,
+                        worstFillPrice: limit.worstFillPrice,
+                        displayedDepthParticipationPct: config.maxDisplayedDepthParticipationPct,
                         adverseMoveFromTrigger: limit.bestAsk - row.signal.triggerPrice
                     },
                     edgeModel: {
@@ -396,6 +550,9 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
                         'marketable-limit-fok',
                         'five-cent-max-adverse-move',
                         'displayed-ask-depth',
+                        'displayed-depth-participation-cap',
+                        'decoded-atomic-breadth-18',
+                        'compact-fresh-shadow-tag',
                         'rapid-taker-burst',
                         'minimum-model-edge',
                         'one-condition-per-correlated-event'
@@ -434,6 +591,9 @@ async function generatePaperIntents(snapshot, enrichment, options = {}) {
 
 function buildHistoricalAudit(analysis, edgeAnalysis = null, edgeModel = null) {
     if (edgeAnalysis) {
+        const blindCopyCounterfactual = Object.fromEntries([
+            'definition', 'all', 'earlier', 'later', 'calibration', 'decision'
+        ].map((key) => [key, edgeAnalysis.blindCopyCounterfactual[key]]));
         return {
             methodology: edgeAnalysis.methodology,
             strategy: {
@@ -447,7 +607,7 @@ function buildHistoricalAudit(analysis, edgeAnalysis = null, edgeModel = null) {
                 } : null
             },
             fixedExternalTapeBacktest: edgeAnalysis.fixedExternalTapeBacktest,
-            blindCopyCounterfactual: edgeAnalysis.blindCopyCounterfactual,
+            blindCopyCounterfactual,
             universeSensitivity: edgeAnalysis.universeSensitivity,
             bo1ClassificationSensitivity: edgeAnalysis.bo1ClassificationSensitivity,
             subgroupChronology: edgeAnalysis.subgroupChronology,
@@ -481,9 +641,13 @@ module.exports = {
     bestPrice,
     buildHistoricalAudit,
     buildReplicatorConfig,
+    capacityCappedNotional,
     candidateRows,
+    decodeCurrentTrigger,
+    decodedSweepEligibility,
     feeAdjustedPrice,
     generatePaperIntents,
+    isCompactFreshSweep,
     liveEligibility,
     marketableLimit,
     postOnlyLimit,

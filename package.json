@@ -13,6 +13,7 @@
     "research:analyze": "node src/trader_research.js analyze",
     "research:tape": "node src/trader_research.js tape",
     "research:triggers": "node src/research/trigger_transactions.js",
+    "research:capacity-data": "${PYTHON:-python3} src/research/capacity_data.py",
     "research:edge": "${PYTHON:-python3} src/research/edge_analysis.py",
     "research:graphics": "${PYTHON:-python3} src/research/report_graphics.py",
     "research:essay": "node src/research/plain_english_essay.js",
@@ -22,7 +23,7 @@
     "research:replicate": "node src/trader_research.js replicate",
     "research:monitor": "node src/trader_research.js monitor",
     "research:report": "node src/trader_research.js report",
-    "research:all": "node src/trader_research.js all && npm run research:tape && npm run research:triggers && npm run research:stats && npm run research:edge && npm run research:graphics && npm run research:peers && node src/trader_research.js replicate && node src/trader_research.js report && npm run research:essay",
+    "research:all": "node src/trader_research.js all && npm run research:tape && npm run research:triggers && npm run research:stats && npm run research:edge && npm run research:capacity-data && npm run research:edge && npm run research:graphics && npm run research:peers && node src/trader_research.js replicate && node src/trader_research.js report && npm run research:essay",
     "test": "node --test test/*.test.js"
   },
   "author": "",

@@ -23,7 +23,10 @@ const { parseTriggerTransaction } = require('../src/research/trigger_transaction
 const {
     activeEventKeys,
     buildReplicatorConfig,
+    capacityCappedNotional,
+    decodedSweepEligibility,
     feeAdjustedPrice,
+    isCompactFreshSweep,
     marketableLimit,
     postOnlyLimit,
     publicSignalFeatures,
@@ -191,6 +194,33 @@ test('paper config cannot be switched to live and excludes known leaks', () => {
     assert.strictEqual(config.strategy.minimumTakerBurst60Share, 0.8);
     assert.strictEqual(config.executionMode, 'MARKETABLE_LIMIT_FOK');
     assert.strictEqual(config.requirePostOnly, false);
+    assert.strictEqual(config.bookSweepBuffer, 0.01);
+    assert.strictEqual(config.absoluteMaxPrice, 0.90);
+    assert.strictEqual(config.maxDisplayedDepthParticipationPct, 10);
+    assert.strictEqual(config.minCapacityOrderUsdc, 25);
+    assert.strictEqual(config.targetCopyLagSeconds, 1);
+    assert.strictEqual(config.signalMaxAgeSeconds, 30);
+    assert.strictEqual(config.strategy.minimumOnchainUniqueMakers, 18);
+    assert.strictEqual(config.strategy.requireExploratoryCompactFresh, false);
+});
+
+test('paper monitor requires decoded atomic breadth and shadow-tags compact fresh sweeps', () => {
+    const config = buildReplicatorConfig('0x0000000000000000000000000000000000000001');
+    const decoded = {
+        takerIsTarget: true,
+        taker: { side: 'BUY', tokenMatchesSignal: true },
+        sweep: { uniqueMakers: 18, uniquePriceLevels: 3, restingAgeMedianSeconds: 299 }
+    };
+    assert.strictEqual(decodedSweepEligibility(decoded, config), null);
+    assert.strictEqual(isCompactFreshSweep(decoded, config), true);
+    assert.strictEqual(decodedSweepEligibility({
+        ...decoded,
+        sweep: { ...decoded.sweep, uniqueMakers: 17 }
+    }, config), 'MAKER_BREADTH_BELOW_THRESHOLD');
+    assert.strictEqual(isCompactFreshSweep({
+        ...decoded,
+        sweep: { ...decoded.sweep, restingAgeMedianSeconds: null }
+    }, config), false);
 });
 
 test('committed edge artifact preserves the blind-copy rejection and tight falsification', () => {
@@ -274,6 +304,31 @@ test('committed atomic breadth edge is development-selected and held-out positiv
     assert.ok(atomic.thresholdSelection.marketNullSimulation.oneSidedPValue < 0.05);
 });
 
+test('capacity and mechanism artifacts retain their scope and negative validation', () => {
+    const capacity = edgeAnalysis.historicalTapeCapacity;
+    const live = edgeAnalysis.liveLiquidityCapacity;
+    const closing = edgeAnalysis.closingLineAudit;
+    const compact = edgeAnalysis.compactFreshMechanism;
+    assert.strictEqual(capacity.scenarioCount, 4_800);
+    assert.strictEqual(capacity.grid.length, 4_800);
+    assert.ok(live.coverage.eligibleTokenSides > 100);
+    const liveHundred = live.summary.find((row) =>
+        row.segment === 'all' && row.bufferCents === 1 && row.stakeUsdc === 100
+    );
+    const liveTenThousand = live.summary.find((row) =>
+        row.segment === 'all' && row.bufferCents === 1 && row.stakeUsdc === 10_000
+    );
+    assert.ok(liveHundred.fillRatePct > liveTenThousand.fillRatePct);
+    assert.strictEqual(compact.selection.selectedMaximumPriceLevels, 3);
+    assert.strictEqual(compact.selection.selectedMaximumMedianMakerAgeSeconds, 300);
+    assert.strictEqual(compact.heldOut.bets, 7);
+    assert.strictEqual(compact.heldOut.wins, 6);
+    assert.match(compact.warning, /post|after inspecting/i);
+    assert.ok(closing.breadthPregame.medianClosingLineValueCents < 0);
+    assert.strictEqual(closing.breadthPregame.positiveClosingLineEvents, 4);
+    assert.ok(closing.tests.breadthPositiveClvSignTest.oneSidedPValueForPositiveClv > 0.5);
+});
+
 test('copy execution audit spans same-second through five minutes and solves break-even cost', () => {
     const blind = edgeAnalysis.blindCopyCounterfactual;
     const atomic = edgeAnalysis.atomicBreadthEdge;
@@ -311,6 +366,11 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
     assert.match(html, /1\.53 cents/);
     assert.match(html, /His alpha, literally/);
     assert.match(html, /1,444-cell parameter atlas/);
+    assert.match(html, /6,244 execution-and-capacity scenarios/);
+    assert.match(html, /compact and fresh/);
+    assert.match(html, /median closing-line value was <strong>-0\.67 cents/);
+    assert.match(html, /only 38\.1% had \$100 of optimistic one-second all-print capacity/);
+    assert.match(html, /will not “just arm the wallet”/);
     assert.match(html, /0\.1-second bot and a 0\.5-second bot cannot be separated honestly/);
     assert.match(html, /p=0\.046/);
     for (const figure of [
@@ -337,7 +397,14 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
         'alpha_equity_drawdown',
         'alpha_subgroup_robustness',
         'alpha_daily_pnl',
-        'alpha_leave_one_discipline_out'
+        'alpha_leave_one_discipline_out',
+        'live_fok_capacity_surface',
+        'live_depth_survival',
+        'historical_capacity_surface',
+        'historical_size_projection',
+        'capacity_reality_gap',
+        'closing_line_validation',
+        'compact_fresh_mechanism'
     ]) {
         assert.match(html, new RegExp(`figures/${figure}\\.png`));
     }
@@ -364,7 +431,8 @@ test('marketable paper limit enforces the modeled adverse-move ceiling', () => {
         asks: [{ price: '0.48', size: '100' }]
     });
     assert.strictEqual(accepted.eligible, true);
-    assert.strictEqual(accepted.limitPrice, 0.48);
+    assert.strictEqual(accepted.limitPrice, 0.49);
+    assert.strictEqual(accepted.eligibleAskLevels, 1);
 
     const rejected = marketableLimit(0.44, {
         tick_size: '0.01',
@@ -380,6 +448,29 @@ test('marketable paper limit enforces the modeled adverse-move ceiling', () => {
     }, 0.05, 50);
     assert.strictEqual(shallow.reason, 'INSUFFICIENT_ASK_DEPTH');
     assert.strictEqual(shallow.availableAskNotionalUsdc, 48);
+    assert.strictEqual(shallow.estimatedFillFractionPct, 96);
+});
+
+test('marketable FOK quote walks multiple levels and capacity sizing limits participation', () => {
+    const quote = marketableLimit(0.44, {
+        tick_size: '0.01',
+        bids: [{ price: '0.47', size: '100' }],
+        asks: [
+            { price: '0.50', size: '100' },
+            { price: '0.48', size: '50' },
+            { price: '0.49', size: '100' }
+        ]
+    }, 0.05, 60, 0.02);
+    assert.strictEqual(quote.eligible, true);
+    assert.strictEqual(quote.limitPrice, 0.49);
+    assert.strictEqual(quote.eligibleAskLevels, 2);
+    assert.ok(quote.estimatedVwap > 0.48 && quote.estimatedVwap < 0.49);
+    assert.strictEqual(quote.worstFillPrice, 0.49);
+
+    const config = buildReplicatorConfig('0x0000000000000000000000000000000000000001');
+    assert.strictEqual(capacityCappedNotional(50, 1_000, config), 50);
+    assert.strictEqual(capacityCappedNotional(100, 333.33, config), 33.33);
+    assert.strictEqual(capacityCappedNotional(100, 200, config), 0);
 });
 
 test('edge model scorer reproduces standardized numeric and categorical logit', () => {

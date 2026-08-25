@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T18:44:01.627322+00:00",
+  "generatedAt": "2026-08-25T20:28:18.539933+00:00",
   "source": {
     "edge": "research/djdjdjekekek/edge_analysis.json",
     "features": "research/djdjdjekekek/edge_features.csv",
@@ -53,7 +53,21 @@
     "figures/alpha_daily_pnl.png",
     "figures/alpha_daily_pnl.svg",
     "figures/alpha_leave_one_discipline_out.png",
-    "figures/alpha_leave_one_discipline_out.svg"
+    "figures/alpha_leave_one_discipline_out.svg",
+    "figures/live_fok_capacity_surface.png",
+    "figures/live_fok_capacity_surface.svg",
+    "figures/live_depth_survival.png",
+    "figures/live_depth_survival.svg",
+    "figures/historical_capacity_surface.png",
+    "figures/historical_capacity_surface.svg",
+    "figures/historical_size_projection.png",
+    "figures/historical_size_projection.svg",
+    "figures/capacity_reality_gap.png",
+    "figures/capacity_reality_gap.svg",
+    "figures/closing_line_validation.png",
+    "figures/closing_line_validation.svg",
+    "figures/compact_fresh_mechanism.png",
+    "figures/compact_fresh_mechanism.svg"
   ],
   "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content."
 }

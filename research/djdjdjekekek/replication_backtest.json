@@ -1,21 +1,27 @@
 {
   "methodology": {
     "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
-    "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second window, five cents adverse slippage, and the observed 3% fee curve. A trigger-price fallback forces every eligible signal into the test when no print exists.",
+    "atomicBreadth": "Decode the mined CTF Exchange V2 matchOrders calldata at the trigger and count distinct maker addresses in the transaction's makerOrders array.",
+    "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-30-cent adverse-price grid, and fee-curve stress from 0% through 5%. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents; the prospective paper convention is immediate observation with a one-cent marketable-limit buffer and actual depth recorded.",
+    "capacity": "Historical post-trigger public turnover is reported as a non-simultaneous capacity envelope across stake, time, price, and participation assumptions. A separately timestamped active-moneyline snapshot walks actual displayed asks for immediate FOK capacity.",
+    "closingLine": "For pregame signals only, use the final non-target public print before the recorded game start as an independent directional validation mark.",
     "eventLeakage": "Eligible conditions are sorted by signal time and only the first condition per canonical event is retained.",
     "labelTiming": "Walk-forward labels become available at Gamma market closedTime, not the ambiguous closed-positions timestamp.",
-    "selection": "The threshold and map-exclusion rule predate this tape analysis. BO1 was corrected from series to single-map after inspecting final-period losses, so that semantic correction is disclosed rather than presented as a pristine unseen discovery. Refinements use a declared 50/20/30 development-validation-final split.",
+    "selection": "The $25,000 signal threshold and map-exclusion rule predate this tape analysis. BO1 was corrected from series to single-map after inspecting final-period losses, so that semantic correction is disclosed rather than presented as a pristine unseen discovery. Refinements use a declared 50/20/30 development-validation-final split.",
     "limitations": [
-      "A public trade print proves market activity, not the exact historical ask depth available to a follower; the five-cent stress is a conservative proxy.",
+      "A public trade print proves market activity, not the exact historical ask depth available to a follower; the adverse-price grid is a scenario surface, not a reconstructed order book.",
+      "Tape and block timestamps have one-second resolution. Same-second entry is an optimistic bound, while 0.1-second and 0.5-second bots cannot be distinguished from one another in these historical data.",
       "The account was selected after exceptional performance, so trader-selection bias remains.",
       "The model family and feature set were chosen during this investigation; expanding-window predictions are pseudo-out-of-sample, not a locked prospective trial.",
       "The urgency calibration and stratified mechanism audits were designed after observing this sample; their p-values diagnose compatibility with narrow nulls but do not correct for discovery search.",
-      "The sample spans only about two months and event returns are highly concentrated."
+      "The atomic-breadth family was discovered retrospectively. Its integer threshold is selected only on the first half, and a separate simulation repeats that search, but wallet and feature-family selection remain uncorrected.",
+      "The sample spans only about two months and event returns are highly concentrated.",
+      "Current displayed sports-book depth is a favorable cross-sectional reference and cannot be substituted for the unknown depth remaining immediately after the target's sweep."
     ]
   },
   "strategy": {
     "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
-    "execution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second window, five cents adverse slippage, and the observed 3% fee curve. A trigger-price fallback forces every eligible signal into the test when no print exists.",
+    "execution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-30-cent adverse-price grid, and fee-curve stress from 0% through 5%. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents; the prospective paper convention is immediate observation with a one-cent marketable-limit buffer and actual depth recorded.",
     "excludedMarketTypes": [
       "single-game/map",
       "short-horizon binary"
@@ -25,9 +31,14 @@
       "decision": {
         "minimumPredictedEdge": 0.05,
         "minimumTakerBurst60Share": 0.8,
+        "minimumOnchainUniqueMakers": 18,
+        "compactFreshShadowMaximumPriceLevels": 3,
+        "compactFreshShadowMaximumMedianMakerAgeSeconds": 300,
         "feeRate": 0.03,
         "modeledSlippageCents": 5,
-        "copyLagSeconds": 60
+        "copyLagSeconds": 60,
+        "prospectivePaperMinimumLagSeconds": 1,
+        "warning": "The 60-second lag belongs to the historical model fit. Prospective paper intents use current decoded calldata and live FOK depth; compact-fresh is recorded as a shadow tag, not a live-money gate."
       },
       "training": {
         "bets": 80,

@@ -1166,6 +1166,349 @@ def alpha_leave_one_discipline_out(edge: dict, output_dir: Path) -> list[str]:
     return save_figure(fig, output_dir, "alpha_leave_one_discipline_out")
 
 
+def money_label(value: float) -> str:
+    if value >= 1_000:
+        return f"${value / 1_000:g}k"
+    return f"${value:g}"
+
+
+def live_fok_capacity_surface(edge: dict, output_dir: Path) -> list[str]:
+    rows = edge["liveLiquidityCapacity"]["summary"]
+    stakes = sorted({row["stakeUsdc"] for row in rows})
+    buffers = sorted({row["bufferCents"] for row in rows})
+    segments = [
+        ("all", "All sampled moneylines"),
+        ("pregame", "Pregame only"),
+        ("live", "Already live"),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(15.4, 8.2), sharey=True)
+    image_handle = None
+    for axis, (segment, title) in zip(axes, segments):
+        lookup = {
+            (row["stakeUsdc"], row["bufferCents"]): row
+            for row in rows if row["segment"] == segment
+        }
+        matrix = np.array([
+            [lookup.get((stake, buffer), {}).get("fillRatePct", np.nan) for buffer in buffers]
+            for stake in stakes
+        ])
+        image_handle = axis.imshow(matrix, vmin=0, vmax=100, cmap="YlGnBu", aspect="auto")
+        for row_index, stake in enumerate(stakes):
+            for column_index, buffer in enumerate(buffers):
+                value = matrix[row_index, column_index]
+                if not np.isnan(value):
+                    axis.text(
+                        column_index, row_index, f"{value:.0f}%",
+                        ha="center", va="center", fontsize=8.2,
+                        color="white" if value >= 58 else INK,
+                        fontweight="bold" if value >= 80 else "normal",
+                    )
+        sample = next((row for row in rows if row["segment"] == segment), None)
+        count = sample["tokenSides"] if sample else 0
+        axis.set_title(f"{title}\n{count} token sides", fontsize=13)
+        axis.set_xticks(np.arange(len(buffers)), [f"+{buffer:g}c" for buffer in buffers])
+        axis.set_xlabel("Maximum walk above best ask")
+        axis.spines[:].set_visible(False)
+
+    axes[0].set_yticks(np.arange(len(stakes)), [money_label(stake) for stake in stakes])
+    axes[0].set_ylabel("Requested FOK stake")
+    fig.suptitle("Displayed depth falls away as requested copy size rises", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    if image_handle is not None:
+        colorbar_axis = fig.add_axes([0.938, 0.22, 0.014, 0.54])
+        colorbar = fig.colorbar(image_handle, cax=colorbar_axis)
+        colorbar.set_label("Books able to fill the entire FOK order")
+    fig.text(
+        0.04, 0.015,
+        "Current cross-section of high-volume sports moneyline books from the official CLOB API. A fill means displayed asks could satisfy the whole order; it is not a post-signal backtest and the sample favors liquid markets.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.16, left=0.08, right=0.91, wspace=0.12)
+    return save_figure(fig, output_dir, "live_fok_capacity_surface")
+
+
+def live_depth_survival(edge: dict, output_dir: Path) -> list[str]:
+    rows = [row for row in edge["liveLiquidityCapacity"]["summary"] if row["segment"] == "all"]
+    stakes = sorted({row["stakeUsdc"] for row in rows})
+    buffers = sorted({row["bufferCents"] for row in rows})
+    lookup = {(row["stakeUsdc"], row["bufferCents"]): row for row in rows}
+
+    fig, axes = plt.subplots(1, 2, figsize=(14.6, 6.4))
+    for index, buffer in enumerate(buffers):
+        color = SERIES_COLORS[index % len(SERIES_COLORS)]
+        fill_rates = [lookup[(stake, buffer)]["fillRatePct"] for stake in stakes]
+        adverse = [lookup[(stake, buffer)]["p90VwapAdverseCents"] for stake in stakes]
+        axes[0].plot(stakes, fill_rates, marker="o", linewidth=2.2, color=color, label=f"+{buffer:g}c")
+        axes[1].plot(stakes, adverse, marker="o", linewidth=2.2, color=color, label=f"+{buffer:g}c")
+
+    for axis in axes:
+        axis.set_xscale("log")
+        axis.set_xticks(stakes, [money_label(stake) for stake in stakes], rotation=35, ha="right")
+        axis.grid(axis="y")
+        axis.spines[["top", "right", "left"]].set_visible(False)
+        axis.set_xlabel("Requested FOK stake")
+    axes[0].set_ylim(0, 103)
+    axes[0].set_ylabel("Full-fill rate across sampled books")
+    axes[0].set_title("Probability displayed depth is sufficient", loc="left")
+    axes[1].set_ylabel("90th percentile VWAP slippage (cents)")
+    axes[1].set_title("Price paid when the order does fill", loc="left")
+    axes[0].legend(title="Book-walk cap", ncols=2, loc="lower left")
+    axes[1].legend(title="Book-walk cap", ncols=2, loc="upper left")
+    fig.suptitle("Size creates rejection risk before it creates large measured slippage", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.015,
+        "VWAP percentiles condition on complete fills, so rejected books disappear from the right panel. The apparent slippage ceiling is therefore not evidence that a large order can trade everywhere.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.22, left=0.08, right=0.98, wspace=0.22)
+    return save_figure(fig, output_dir, "live_depth_survival")
+
+
+def historical_capacity_surface(edge: dict, output_dir: Path) -> list[str]:
+    rows = [
+        row for row in edge["historicalTapeCapacity"]["grid"]
+        if row["strategy"] == "breadthHeldOut" and row["bufferCents"] == 1
+    ]
+    stakes = sorted({row["stakeUsdc"] for row in rows})
+    windows = sorted({row["windowSeconds"] for row in rows})
+    panels = [
+        ("allPrints", 100, "All prints, 100% share"),
+        ("allPrints", 25, "All prints, 25% share"),
+        ("reportedAlignedBuys", 100, "Aligned BUYs, 100% share"),
+    ]
+
+    fig, axes = plt.subplots(1, 3, figsize=(15.4, 8.2), sharey=True)
+    image_handle = None
+    for axis, (proxy, participation, title) in zip(axes, panels):
+        lookup = {
+            (row["stakeUsdc"], row["windowSeconds"]): row["fillRatePct"]
+            for row in rows
+            if row["proxy"] == proxy and row["participationRatePct"] == participation
+        }
+        matrix = np.array([
+            [lookup.get((stake, window), np.nan) for window in windows]
+            for stake in stakes
+        ])
+        image_handle = axis.imshow(matrix, vmin=0, vmax=100, cmap="magma_r", aspect="auto")
+        for row_index in range(len(stakes)):
+            for column_index in range(len(windows)):
+                value = matrix[row_index, column_index]
+                if not np.isnan(value):
+                    axis.text(
+                        column_index, row_index, f"{value:.0f}%",
+                        ha="center", va="center", fontsize=8.2,
+                        color="white" if value <= 42 else INK,
+                    )
+        axis.set_title(title, fontsize=13)
+        axis.set_xticks(np.arange(len(windows)), [f"{window}s" for window in windows])
+        axis.set_xlabel("Turnover accumulation window")
+        axis.spines[:].set_visible(False)
+
+    axes[0].set_yticks(np.arange(len(stakes)), [money_label(stake) for stake in stakes])
+    axes[0].set_ylabel("Requested stake")
+    fig.suptitle("After a broad sweep, historical public turnover is scarce at copy-bot speed", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    if image_handle is not None:
+        colorbar_axis = fig.add_axes([0.938, 0.22, 0.014, 0.54])
+        colorbar = fig.colorbar(image_handle, cax=colorbar_axis)
+        colorbar.set_label("Held-out signals with enough observed turnover")
+    fig.text(
+        0.04, 0.015,
+        "Twenty-one held-out breadth signals, +1c price buffer. Public prints accumulate over each window; they are not a simultaneous ask book. All-prints is an optimistic direction-neutral ceiling, while aligned BUYs is narrower but noisy.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.16, left=0.08, right=0.91, wspace=0.12)
+    return save_figure(fig, output_dir, "historical_capacity_surface")
+
+
+def historical_size_projection(edge: dict, output_dir: Path) -> list[str]:
+    rows = [
+        row for row in edge["historicalTapeCapacity"]["grid"]
+        if row["strategy"] == "breadthHeldOut"
+        and row["proxy"] == "allPrints"
+        and row["bufferCents"] == 1
+        and row["participationRatePct"] == 25
+    ]
+    stakes = sorted({row["stakeUsdc"] for row in rows})
+    windows = sorted({row["windowSeconds"] for row in rows})
+    lookup = {(row["stakeUsdc"], row["windowSeconds"]): row for row in rows}
+
+    fig, axes = plt.subplots(1, 2, figsize=(14.6, 6.4))
+    for index, window in enumerate(windows):
+        color = SERIES_COLORS[index % len(SERIES_COLORS)]
+        fill_rates = [lookup[(stake, window)]["fillRatePct"] for stake in stakes]
+        requested_returns = [lookup[(stake, window)]["returnOnRequestedQuotePct"] for stake in stakes]
+        axes[0].plot(stakes, fill_rates, marker="o", linewidth=2.2, color=color, label=f"{window}s")
+        axes[1].plot(stakes, requested_returns, marker="o", linewidth=2.2, color=color, label=f"{window}s")
+
+    for axis in axes:
+        axis.set_xscale("log")
+        axis.set_xticks(stakes, [money_label(stake) for stake in stakes], rotation=35, ha="right")
+        axis.axhline(0, color=INK, linewidth=1)
+        axis.grid(axis="y")
+        axis.spines[["top", "right", "left"]].set_visible(False)
+        axis.set_xlabel("Requested stake per signal")
+    axes[0].set_ylim(0, 103)
+    axes[0].set_ylabel("Signals with enough observed turnover")
+    axes[0].set_title("Capacity coverage", loc="left")
+    axes[1].set_ylabel("Retrospective profit / requested stake (%)")
+    axes[1].set_title("Outcome-weighted projection", loc="left")
+    axes[0].legend(title="Accumulation window", ncols=2, loc="upper right")
+    axes[1].legend(title="Accumulation window", ncols=2, loc="upper right")
+    fig.suptitle("Bigger requested stakes turn a strategy into a sparse fill lottery", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        "Held-out breadth signals, optimistic all-print turnover, +1c, and only 25% participation. The right panel uses known outcomes after selecting capacity-covered events; it is descriptive and selection-biased, not an investable return forecast.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.22, left=0.08, right=0.98, wspace=0.22)
+    return save_figure(fig, output_dir, "historical_size_projection")
+
+
+def capacity_reality_gap(edge: dict, output_dir: Path) -> list[str]:
+    live_rows = [
+        row for row in edge["liveLiquidityCapacity"]["summary"]
+        if row["segment"] == "all" and row["bufferCents"] == 1
+    ]
+    historical_rows = [
+        row for row in edge["historicalTapeCapacity"]["grid"]
+        if row["strategy"] == "breadthHeldOut"
+        and row["proxy"] == "allPrints"
+        and row["bufferCents"] == 1
+        and row["participationRatePct"] == 100
+        and row["windowSeconds"] in (1, 60)
+    ]
+    stakes = sorted({row["stakeUsdc"] for row in live_rows})
+    live_lookup = {row["stakeUsdc"]: row["fillRatePct"] for row in live_rows}
+    historical_lookup = {
+        (row["stakeUsdc"], row["windowSeconds"]): row["fillRatePct"]
+        for row in historical_rows
+    }
+
+    fig, axis = plt.subplots(figsize=(12.8, 7.0))
+    axis.plot(stakes, [live_lookup[stake] for stake in stakes], color=POSITIVE, marker="o", linewidth=3, label="Current generic book: immediate FOK")
+    axis.plot(stakes, [historical_lookup[(stake, 1)] for stake in stakes], color=NEGATIVE, marker="o", linewidth=2.5, label="After target sweep: 1s turnover ceiling")
+    axis.plot(stakes, [historical_lookup[(stake, 60)] for stake in stakes], color=SECONDARY, marker="o", linewidth=2.5, label="After target sweep: 60s turnover ceiling")
+    axis.set_xscale("log")
+    axis.set_xticks(stakes, [money_label(stake) for stake in stakes], rotation=30, ha="right")
+    axis.set_ylim(0, 103)
+    axis.set_xlabel("Requested stake at +1c")
+    axis.set_ylabel("Books/signals with enough measured capacity")
+    axis.set_title("A liquid market before the whale trades is not liquid after the whale trades", loc="left", fontsize=18)
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="lower left")
+    fig.text(
+        0.04, 0.012,
+        "The green line is current displayed ask depth in a favorable top-volume sample. Historical lines are cumulative prints after 21 held-out broad sweeps and therefore optimistic ceilings, not FOK books. The comparison diagnoses the timing problem; it is not an apples-to-apples estimator.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(bottom=0.22, left=0.09, right=0.98, top=0.88)
+    return save_figure(fig, output_dir, "capacity_reality_gap")
+
+
+def closing_line_validation(edge: dict, output_dir: Path) -> list[str]:
+    audit = edge["closingLineAudit"]
+    events = audit["events"]
+    broad = [event for event in events if event["onchainUniqueMakers"] >= 18]
+    narrow = [event for event in events if event["onchainUniqueMakers"] < 18]
+
+    fig, axes = plt.subplots(1, 2, figsize=(14.6, 6.5), gridspec_kw={"width_ratios": [1.45, 1]})
+    ordered = sorted(events, key=lambda event: event["signalTimestamp"])
+    dates = [datetime.fromtimestamp(event["signalTimestamp"], tz=timezone.utc) for event in ordered]
+    colors = [POSITIVE if event["onchainUniqueMakers"] >= 18 else MUTED for event in ordered]
+    markers = ["o" if event["won"] else "X" for event in ordered]
+    for date, event, color, marker in zip(dates, ordered, colors, markers):
+        axes[0].scatter(date, event["closingLineValueCents"], color=color, marker=marker, s=58, alpha=0.92)
+    axes[0].axhline(0, color=INK, linewidth=1)
+    axes[0].xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
+    axes[0].tick_params(axis="x", rotation=35)
+    axes[0].set_ylabel("Closing line value (cents)")
+    axes[0].set_title("Every eligible pregame signal", loc="left")
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+
+    distributions = [
+        [event["closingLineValueCents"] for event in narrow],
+        [event["closingLineValueCents"] for event in broad],
+    ]
+    positions = [0, 1]
+    parts = axes[1].violinplot(distributions, positions=positions, showextrema=False, widths=0.72)
+    for body, color in zip(parts["bodies"], [MUTED, POSITIVE]):
+        body.set_facecolor(color)
+        body.set_alpha(0.22)
+        body.set_edgecolor(color)
+    for position, values, color in zip(positions, distributions, [MUTED, POSITIVE]):
+        jitter = np.linspace(-0.16, 0.16, len(values)) if values else []
+        axes[1].scatter(np.array(jitter) + position, values, color=color, s=42, alpha=0.86)
+        median = float(np.median(values))
+        axes[1].plot([position - 0.22, position + 0.22], [median, median], color=INK, linewidth=3)
+        axes[1].text(position, median + 0.65, f"median {median:+.2f}c", ha="center", fontsize=9, fontweight="bold")
+    axes[1].axhline(0, color=INK, linewidth=1)
+    axes[1].set_xticks(positions, [f"Narrow\nn={len(narrow)}", f"Broad >=18\nn={len(broad)}"])
+    axes[1].set_ylabel("Closing line value (cents)")
+    axes[1].set_title("Breadth does not improve CLV", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    fig.suptitle("The market did not validate the wallet's broad sweeps before play", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        "Green denotes broad sweeps; circles won and X marks lost. CLV is the final non-target public print before recorded start minus trigger price. Broad median was -0.67c; only 4/12 were positive (one-sided sign p=0.927).",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.19, left=0.08, right=0.98, wspace=0.24)
+    return save_figure(fig, output_dir, "closing_line_validation")
+
+
+def compact_fresh_mechanism(edge: dict, output_dir: Path) -> list[str]:
+    mechanism = edge["compactFreshMechanism"]
+    broad = edge["atomicBreadthEdge"]
+    labels = ["Development", "Held-out", "All history"]
+    compact_roi = [mechanism["development"]["roiPct"], mechanism["heldOut"]["roiPct"], mechanism["all"]["roiPct"]]
+    broad_roi = [
+        broad["chronology"]["development"]["roiPct"],
+        broad["chronology"]["heldOutAfterDevelopment"]["roiPct"],
+        broad["all"]["roiPct"],
+    ]
+    positions = np.arange(len(labels))
+    width = 0.36
+
+    fig, axes = plt.subplots(1, 2, figsize=(14.6, 6.6), gridspec_kw={"width_ratios": [1.35, 1]})
+    broad_bars = axes[0].bar(positions - width / 2, broad_roi, width, color=SECONDARY, label="Breadth >=18")
+    compact_bars = axes[0].bar(positions + width / 2, compact_roi, width, color=POSITIVE, label="+ compact and fresh")
+    for bars, values in ((broad_bars, broad_roi), (compact_bars, compact_roi)):
+        for bar, value in zip(bars, values):
+            axes[0].text(bar.get_x() + bar.get_width() / 2, value + 2.2, f"{value:+.1f}%", ha="center", fontsize=9, fontweight="bold")
+    axes[0].axhline(0, color=INK, linewidth=1)
+    axes[0].set_xticks(positions, labels)
+    axes[0].set_ylabel("Equal-stake ROI after 60s + 5c and fees")
+    axes[0].set_title("The exploratory geometry concentrates returns", loc="left")
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+    axes[0].legend(loc="upper center", ncols=2)
+
+    groups = [mechanism["all"], mechanism["otherBroadSweeps"]]
+    group_labels = ["Compact + fresh", "Other broad"]
+    wins = [group["wins"] for group in groups]
+    losses = [group["bets"] - group["wins"] for group in groups]
+    axes[1].bar(group_labels, wins, color=POSITIVE, label="Wins")
+    axes[1].bar(group_labels, losses, bottom=wins, color=NEGATIVE, label="Losses")
+    for index, group in enumerate(groups):
+        axes[1].text(index, group["bets"] + 0.6, f"{group['wins']}/{group['bets']}", ha="center", fontweight="bold")
+    axes[1].set_ylabel("Resolved signals")
+    axes[1].set_title("11/12 versus 12/18", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    axes[1].legend(loc="lower right")
+    fig.suptitle("The closest observed fingerprint: many fresh makers, few price levels", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        "Definition selected on development data: >=18 makers, <=3 price levels, median maker age <=300s. Held-out: 6/7 and +63.17%, but day-cluster 95% CI spans -8.69% to +110.42%; this post-hoc mechanism is a lead, not a cracked private signal.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.18, left=0.08, right=0.98, wspace=0.24)
+    return save_figure(fig, output_dir, "compact_fresh_mechanism")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--edge", default="research/djdjdjekekek/edge_analysis.json")
@@ -1206,6 +1549,13 @@ def main() -> None:
     files.extend(alpha_subgroup_robustness(edge, output_dir))
     files.extend(alpha_daily_pnl(edge, output_dir))
     files.extend(alpha_leave_one_discipline_out(edge, output_dir))
+    files.extend(live_fok_capacity_surface(edge, output_dir))
+    files.extend(live_depth_survival(edge, output_dir))
+    files.extend(historical_capacity_surface(edge, output_dir))
+    files.extend(historical_size_projection(edge, output_dir))
+    files.extend(capacity_reality_gap(edge, output_dir))
+    files.extend(closing_line_validation(edge, output_dir))
+    files.extend(compact_fresh_mechanism(edge, output_dir))
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": {

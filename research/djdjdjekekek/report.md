@@ -14,6 +14,9 @@ The account is a two-layer automated operation: 92.8% of fills are maker executi
 | Blind all-signal external-tape copy | 139 bets, -$855.28, -6.15% all / -6.68% later |
 | Atomic breadth at least 18 | 30 bets, 23 wins, +41.94% ROI |
 | Breadth after development selection | 21 bets, 15 wins, +27.32% ROI |
+| Compact-fresh breadth held out | 7 bets, 6 wins, +63.17% ROI; cluster interval -8.7% to +110.4% |
+| Current +1c FOK coverage | 94.7% at $100; 46.1% at $10,000 |
+| Broad pregame closing-line value | Median -0.67c; 4/12 positive |
 | Breadth composition control | +28.0 pp across 63 comparable bets; one-sided `p=0.0064` |
 | Original-classifier BO1 counterfactual | 84 bets, +5.27% all / +14.09% later |
 | Chronological final period | 24 bets, +26.36% ROI; day-cluster interval -15.9% to +55.8% |
@@ -35,7 +38,7 @@ The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEE
 
 ## Read In Order
 
-1. [Illustrated plain-English essay](./plain_english_essay.pdf): the literal alpha definition, 1,444-cell parameter atlas, 24 charts, risk diagnostics, and caveats without requiring code.
+1. [Illustrated plain-English essay](./plain_english_essay.pdf): literal alpha and mechanism definitions, 6,244 execution-and-capacity scenarios, 31 charts, closing-line falsification, risk diagnostics, and caveats without requiring code.
 2. [Breakthrough audit](./breakthrough_report.md): atomic-breadth signal, falsification tests, and promotion criteria.
 3. [Replication report](./replication_report.md): the earlier monitor and its exact execution assumptions.
 4. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.
@@ -43,4 +46,4 @@ The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEE
 
 ## Bottom Line
 
-The strongest observable edge is informed-looking liquidity demand: one target transaction taking from many maker accounts. It survives chronological, composition, day-cluster, and explicit threshold-search checks, while raw trigger size does not explain it. The source of information remains unknown, the held-out sample has only 21 bets, and public prints do not prove executable depth. The repository therefore freezes `atomic-breadth-18` for a new paper-only trial rather than claiming a live-money system.
+The strongest observable edge is informed-looking liquidity demand: one target transaction taking dense, fresh liquidity from many maker accounts without crossing many price levels. The frozen 18-maker rule survives chronology and controls; the sharper compact-fresh lead is only 6/7 held out, and broad pregame CLV is negative. Size also sharply reduces FOK coverage. The source of information remains unknown, so the repository runs a capacity-aware paper monitor and intentionally provides no live-money signing path.

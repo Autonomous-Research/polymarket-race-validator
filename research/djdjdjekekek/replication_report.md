@@ -1,6 +1,6 @@
 # Replication Prototype: External-Tape Backtest
 
-Generated 2026-08-25T16:10:47.000Z. This implementation is paper-only and contains no signing or order-submission path.
+Generated 2026-08-25T20:34:59.000Z. This implementation is paper-only and contains no signing or order-submission path.
 
 ## What Changed
 
@@ -15,8 +15,10 @@ The earlier prototype used the target's next future BUY as an execution proxy. T
 | Delay | 60 seconds after the signal |
 | Historical price | First direction-neutral public taker print in the next 60 seconds; trigger fallback if absent |
 | Cost stress | 5 cents adverse movement plus the account-observed 3% fee curve |
-| Live paper execution | Marketable limit at the current ask, FOK, rejected above trigger + 0.05 or when displayed ask depth is insufficient |
-| Sizing | Fixed bankroll fraction; no attempt to predict the target's final position |
+| Prospective trigger gate | Decode current mined calldata; target BUY taker; at least 18 distinct makers |
+| Prospective timing | First observation at least 1 second after the block; reject after 30 seconds |
+| Paper execution | Walk all asks through min(best ask + 1c, trigger + 5c, 0.90); full FOK or rejection |
+| Sizing | Risk cap reduced to 10.0% of displayed eligible ask notional; reject below $25.00 |
 | Model gate | Predicted win probability minus all-in price must exceed 5.0% |
 
 The BO1 exclusion is important. The corrected audit records a $1.78M loss across 9 BO1 markets rather than hiding them inside the profitable series bucket.
@@ -123,6 +125,26 @@ The public market usually did not reprice immediately: median target-direction m
 
 The lag rows reuse the same outcomes and are sensitivity checks, not five independent trials. The 300-second row must not be selected retrospectively as an "optimal" delay.
 
+## Size And FOK Capacity
+
+The price-only replay is not enough to establish fills. The added capacity audit contains 4,800 scenarios across five post-signal windows, four price buffers, four participation assumptions, ten stakes, two public-print proxies, and three strategy samples.
+
+| Requested stake at +1c | Current generic FOK | Historical 1s all-print ceiling | Historical 60s all-print ceiling | Historical 60s aligned-BUY ceiling |
+| --- | ---: | ---: | ---: | ---: |
+| $25.00 | 96.6% | 52.4% | 100.0% | 76.2% |
+| $100.00 | 94.7% | 38.1% | 85.7% | 61.9% |
+| $1.0K | 84.5% | 9.5% | 57.1% | 14.3% |
+| $10.0K | 46.1% | 4.8% | 23.8% | 4.8% |
+| $25.0K | 26.2% | 0.0% | 14.3% | 0.0% |
+
+Current depth is a timestamped, favorable top-volume cross-section of 206 token sides. Historical columns cover the 21 held-out breadth signals and accumulate prints after the target sweep; they are throughput ceilings, not simultaneous books. Unfilled opportunities stay cash and contribute zero P&L.
+
+![Immediate FOK capacity by stake and book-walk limit](./figures/live_fok_capacity_surface.png)
+
+![Historical post-sweep capacity surface](./figures/historical_capacity_surface.png)
+
+![Current-book versus post-sweep capacity](./figures/capacity_reality_gap.png)
+
 ## Leakage And Selection Audit
 
 Requiring a future same-direction print looked reasonable but was outcome-dependent. 8 signals had no aligned print and only 3 won; 3 had no print at all and none won. Excluding them mechanically inflated ROI. The primary test therefore uses direction-neutral prints and a forced fallback.
@@ -158,7 +180,7 @@ The model is not using unresolved labels, but 15 bets are too few for deployment
 
 ## Paper Monitor
 
-The monitor reconstructs target taker flow, enriches surviving candidates with the current book and the same one-hour market-wide tape window used in training, checks displayed ask depth, scores the frozen model, and emits a MARKETABLE_LIMIT_FOK paper intent only when price, depth, and edge guards pass. Current saved-data run: 0 intents from 0 pre-book candidates, with $0.00 proposed exposure. Zero is expected because the fixed snapshot contains no fresh signal.
+The monitor reconstructs target taker flow, fetches and decodes the current trigger transaction, verifies atomic breadth, enriches surviving candidates with the current book and one-hour public tape, walks the eligible ask ladder, caps depth participation, scores the frozen model, and emits a MARKETABLE_LIMIT_FOK paper intent only when every guard passes. Compact-fresh geometry is recorded as a shadow tag, not a hard gate. Current saved-data run: 0 intents from 0 pre-book candidates, with $0.00 proposed exposure. Zero is expected because the fixed snapshot contains no fresh signal.
 
 | Risk control | Default |
 | --- | ---: |
@@ -168,6 +190,8 @@ The monitor reconstructs target taker flow, enriches surviving candidates with t
 | Per-event cap | 1.0% of bankroll |
 | Portfolio cap | 5.0% of bankroll |
 | Maximum adverse move | 0.05 |
+| Maximum displayed-depth participation | 10.0% |
+| Minimum capacity-sized order | $25.00 |
 | Time in force | FOK; intent expires after 30 seconds |
 
 Before considering capital, the locked model needs a forward paper sample with stored order-book snapshots, observed FOK outcomes, depth slippage, and at least 200 eligible signals. The current code intentionally cannot trade.
@@ -176,6 +200,7 @@ Before considering capital, the locked model needs a forward paper sample with s
 
 - `npm run research:tape` collects [market_tape.json](./market_tape.json).
 - `npm run research:edge` builds [edge_analysis.json](./edge_analysis.json), [edge_features.csv](./edge_features.csv), and [edge_model.json](./edge_model.json).
+- `npm run research:capacity-data` rebuilds [closing_lines.json](./closing_lines.json) and [liquidity_capacity.json](./liquidity_capacity.json) from public APIs.
 - `npm run research:graphics` rebuilds every PNG/SVG in [figures](./figures/).
 - `npm run research:replicate` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json), and [replication_backtest.json](./replication_backtest.json).
 - Historical audit contains 80 forced simulations.
@@ -187,4 +212,5 @@ Before considering capital, the locked model needs a forward paper sample with s
 - The wallet was selected after exceptional performance; standard intervals do not correct that selection.
 - Outcomes and trading days remain dependent, and the sample covers roughly two months.
 - The broad calibration result weakens under the tightest discipline/price/time composition control.
+- Broad pregame signals had median closing-line value -0.67c; only 4/12 were positive.
 - This is research software, not financial advice.

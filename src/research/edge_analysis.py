@@ -19,7 +19,7 @@ from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from scipy.stats import fisher_exact
+from scipy.stats import binomtest, fisher_exact, mannwhitneyu
 from statsmodels.stats.contingency_tables import StratifiedTable
 
 
@@ -37,6 +37,12 @@ EXECUTION_SLIPPAGE_CENTS = (
     0, 0.5, 1, 1.5, 2, 3, 4, 5, 6, 7.5, 10, 12.5, 15, 17.5, 20, 25, 30
 )
 FEE_RATES = (0, 0.01, 0.02, 0.03, 0.04, 0.05)
+CAPACITY_WINDOWS_SECONDS = (1, 5, 15, 30, 60)
+CAPACITY_PRICE_BUFFERS_CENTS = (1, 2, 5, 10)
+CAPACITY_PARTICIPATION_RATES = (0.05, 0.10, 0.25, 1.0)
+CAPACITY_STAKES_USDC = (25, 50, 100, 250, 500, 1_000, 2_500, 5_000, 10_000, 25_000)
+COMPACT_LEVEL_CANDIDATES = tuple(range(1, 7))
+FRESH_AGE_CANDIDATES_SECONDS = (30, 60, 120, 300, 600, 1_800, 1_000_000_000)
 MODEL_NUMERIC = [
     "triggerPrice", "concentration", "triggerFillShare", "takerBurst60Share",
     "makerShareBeforeSignal", "signalAgeSeconds", "preMomentum300",
@@ -891,9 +897,14 @@ def fit_deployment_model(base: pd.DataFrame) -> dict:
         "decision": {
             "minimumPredictedEdge": 0.05,
             "minimumTakerBurst60Share": 0.80,
+            "minimumOnchainUniqueMakers": ONCHAIN_BREADTH_THRESHOLD,
+            "compactFreshShadowMaximumPriceLevels": 3,
+            "compactFreshShadowMaximumMedianMakerAgeSeconds": 300,
             "feeRate": TARGET_FEE_RATE,
             "modeledSlippageCents": 5,
             "copyLagSeconds": 60,
+            "prospectivePaperMinimumLagSeconds": 1,
+            "warning": "The 60-second lag belongs to the historical model fit. Prospective paper intents use current decoded calldata and live FOK depth; compact-fresh is recorded as a shadow tag, not a live-money gate.",
         },
         "training": {
             "bets": int(len(bets)),
@@ -1910,6 +1921,509 @@ def copy_parameter_atlas(features: pd.DataFrame, base: pd.DataFrame) -> dict:
     }
 
 
+def simulate_tape_capacity_fill(
+    rows: list[dict],
+    stake_usdc: float,
+    participation_rate: float,
+    won: int,
+) -> dict:
+    remaining_quote = float(stake_usdc)
+    shares = 0.0
+    for row in rows:
+        available_shares = float(row["shares"]) * participation_rate
+        available_quote = available_shares * float(row["price"])
+        take_quote = min(remaining_quote, available_quote)
+        if take_quote <= 0:
+            continue
+        shares += take_quote / float(row["price"])
+        remaining_quote -= take_quote
+        if remaining_quote <= 1e-8:
+            break
+    if remaining_quote > 1e-8 or shares <= 0:
+        return {"filled": False}
+    vwap = stake_usdc / shares
+    fee_usdc = shares * TARGET_FEE_RATE * vwap * (1 - vwap)
+    deployed_capital = stake_usdc + fee_usdc
+    profit = shares - deployed_capital if won else -deployed_capital
+    return {
+        "filled": True,
+        "vwap": vwap,
+        "feeUsdc": fee_usdc,
+        "deployedCapitalUsdc": deployed_capital,
+        "profitUsdc": profit,
+    }
+
+
+def historical_tape_capacity(
+    features: pd.DataFrame,
+    base: pd.DataFrame,
+    tape_data: dict,
+) -> dict:
+    target_wallet = str(tape_data["targetWallet"]).lower()
+    tape_by_condition = {row["conditionId"]: row for row in tape_data["tapes"]}
+    capacity_by_condition = {}
+    for row in features.itertuples(index=False):
+        tape = tape_by_condition.get(row.conditionId)
+        if not tape:
+            continue
+        normalized = normalized_tape_rows(tape, row.outcome, target_wallet)
+        start = int(row.signalTimestamp) + 1
+        anchor, anchor_wait = first_mark(normalized, start)
+        used_fallback = not np.isfinite(anchor)
+        if used_fallback:
+            anchor = float(row.triggerPrice)
+        cells = {}
+        for window in CAPACITY_WINDOWS_SECONDS:
+            for buffer_cents in CAPACITY_PRICE_BUFFERS_CENTS:
+                maximum_price = min(0.90, anchor + buffer_cents / 100)
+                all_prints = sorted([
+                    trade for trade in normalized
+                    if not trade["isTarget"]
+                    and start <= trade["timestamp"] <= start + window
+                    and trade["price"] <= maximum_price + 1e-12
+                ], key=lambda trade: trade["timestamp"])
+                cells[(window, buffer_cents, "allPrints")] = all_prints
+                cells[(window, buffer_cents, "reportedAlignedBuys")] = [
+                    trade for trade in all_prints if trade["direction"] == 1
+                ]
+        capacity_by_condition[row.conditionId] = {
+            "anchor": float(anchor),
+            "anchorWaitSeconds": finite(anchor_wait),
+            "usedFallback": used_fallback,
+            "cells": cells,
+        }
+
+    blind = features[features["concentration"] >= 0.70].sort_values(
+        "signalTimestamp"
+    ).drop_duplicates("eventKey", keep="first").reset_index(drop=True)
+    ordered_base = base.sort_values("signalTimestamp").reset_index(drop=True)
+    development_timestamp = int(ordered_base.iloc[int(len(ordered_base) * 0.50)]["signalTimestamp"])
+    breadth_all = ordered_base[
+        ordered_base["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    ]
+    strategies = {
+        "blindAll": blind,
+        "breadthAll": breadth_all,
+        "breadthHeldOut": breadth_all[
+            breadth_all["signalTimestamp"] >= development_timestamp
+        ],
+    }
+    grid = []
+    for strategy, strategy_frame in strategies.items():
+        for proxy in ("allPrints", "reportedAlignedBuys"):
+            for window in CAPACITY_WINDOWS_SECONDS:
+                for buffer_cents in CAPACITY_PRICE_BUFFERS_CENTS:
+                    event_rows = []
+                    for row in strategy_frame.itertuples(index=False):
+                        capacity = capacity_by_condition.get(row.conditionId)
+                        if not capacity:
+                            continue
+                        prints = capacity["cells"][(window, buffer_cents, proxy)]
+                        event_rows.append({
+                            "conditionId": row.conditionId,
+                            "won": int(row.won),
+                            "anchor": capacity["anchor"],
+                            "capacityUsdc": sum(
+                                trade["shares"] * trade["price"] for trade in prints
+                            ),
+                            "prints": prints,
+                        })
+                    for participation in CAPACITY_PARTICIPATION_RATES:
+                        for stake in CAPACITY_STAKES_USDC:
+                            fills = []
+                            for event in event_rows:
+                                fill = simulate_tape_capacity_fill(
+                                    event["prints"], stake, participation, event["won"]
+                                )
+                                if fill["filled"]:
+                                    fills.append({**event, **fill})
+                            deployed = sum(fill["deployedCapitalUsdc"] for fill in fills)
+                            profit = sum(fill["profitUsdc"] for fill in fills)
+                            grid.append({
+                                "strategy": strategy,
+                                "proxy": proxy,
+                                "windowSeconds": window,
+                                "bufferCents": buffer_cents,
+                                "participationRatePct": participation * 100,
+                                "stakeUsdc": stake,
+                                "opportunities": len(event_rows),
+                                "fills": len(fills),
+                                "fillRatePct": len(fills) / len(event_rows) * 100 if event_rows else None,
+                                "wins": sum(fill["won"] for fill in fills),
+                                "deployedCapitalUsdc": finite(deployed),
+                                "profitUsdc": finite(profit),
+                                "roiOnDeployedCapitalPct": finite(profit / deployed * 100) if deployed else None,
+                                "profitPerOpportunityUsdc": finite(profit / len(event_rows)) if event_rows else None,
+                                "returnOnRequestedQuotePct": finite(
+                                    profit / (len(event_rows) * stake) * 100
+                                ) if event_rows else None,
+                                "observedCapacityUsdc": quantiles([
+                                    event["capacityUsdc"] * participation
+                                    for event in event_rows
+                                ]),
+                                "vwapAdverseCents": quantiles([
+                                    (fill["vwap"] - fill["anchor"]) * 100
+                                    for fill in fills
+                                ]),
+                            })
+
+    held_out_events = []
+    for row in strategies["breadthHeldOut"].itertuples(index=False):
+        capacity = capacity_by_condition[row.conditionId]
+        held_out_events.append({
+            "conditionId": row.conditionId,
+            "title": row.title,
+            "signalTime": row.signalTime,
+            "won": int(row.won),
+            "anchorPrice": capacity["anchor"],
+            "usedFallback": bool(capacity["usedFallback"]),
+            "capacityAtOneCentUsdc": {
+                str(window): {
+                    proxy: finite(sum(
+                        trade["shares"] * trade["price"]
+                        for trade in capacity["cells"][(window, 1, proxy)]
+                    ))
+                    for proxy in ("allPrints", "reportedAlignedBuys")
+                }
+                for window in CAPACITY_WINDOWS_SECONDS
+            },
+        })
+    return {
+        "definition": "One-second-lag cumulative non-target public turnover at or below a price ceiling, converted into size scenarios. This is a throughput envelope, not reconstructed simultaneous order-book depth.",
+        "windowsSeconds": list(CAPACITY_WINDOWS_SECONDS),
+        "priceBuffersCents": list(CAPACITY_PRICE_BUFFERS_CENTS),
+        "participationRatesPct": [rate * 100 for rate in CAPACITY_PARTICIPATION_RATES],
+        "stakeSizesUsdc": list(CAPACITY_STAKES_USDC),
+        "scenarioCount": len(grid),
+        "proxies": {
+            "allPrints": "Optimistic direction-neutral turnover ceiling; assumes the follower could replace a fraction of every observed public print.",
+            "reportedAlignedBuys": "Narrower reported-side turnover proxy; public aggressor labels are known to be noisy.",
+        },
+        "grid": grid,
+        "breadthHeldOutEvents": held_out_events,
+        "warning": "Neither proxy proves FOK capacity at one instant. Unfilled opportunities remain cash and contribute zero P&L; ROI on deployed capital can therefore be selected by liquidity.",
+    }
+
+
+def closing_group_summary(rows: pd.DataFrame) -> dict:
+    if rows.empty:
+        return {"events": 0}
+    values = rows["closingLineValueCents"].to_numpy(dtype=float)
+    return {
+        "events": int(len(rows)),
+        "wins": int(rows["won"].sum()),
+        "winRatePct": finite(rows["won"].mean() * 100),
+        "meanClosingLineValueCents": finite(values.mean()),
+        "medianClosingLineValueCents": finite(np.median(values)),
+        "positiveClosingLineEvents": int((values > 0).sum()),
+        "positiveClosingLinePct": finite((values > 0).mean() * 100),
+        "meanTriggerProbabilityPct": finite(rows["triggerPrice"].mean() * 100),
+        "meanClosingProbabilityPct": finite(rows["closingPrice"].mean() * 100),
+        "closingCalibrationGapPctPoints": finite(
+            (rows["won"].mean() - rows["closingPrice"].mean()) * 100
+        ),
+        "closingPrintStalenessSeconds": quantiles(
+            rows["closingPrintStalenessSeconds"].tolist()
+        ),
+    }
+
+
+def closing_line_audit(base: pd.DataFrame, closing_data: dict) -> dict:
+    closing = pd.DataFrame(closing_data.get("events", []))
+    if closing.empty:
+        return {"events": 0, "warning": "No closing-line artifact was available."}
+    columns = [
+        "conditionId", "onchainPriceLevels", "onchainRestingAgeMedianSeconds",
+    ]
+    merged = closing.merge(base[columns], on="conditionId", how="inner")
+    merged = merged[np.isfinite(merged["closingPrice"])].copy()
+    broad_mask = merged["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    compact_fresh = (
+        broad_mask
+        & (merged["onchainPriceLevels"] <= 3)
+        & (merged["onchainRestingAgeMedianSeconds"] <= 300)
+    )
+    broad = merged[broad_mask]
+    narrow = merged[~broad_mask]
+    positive = int((broad["closingLineValueCents"] > 0).sum())
+    broad_n = len(broad)
+    comparison = mannwhitneyu(
+        broad["closingLineValueCents"],
+        narrow["closingLineValueCents"],
+        alternative="two-sided",
+    ) if len(broad) and len(narrow) else None
+    return {
+        "definition": closing_data.get("definition"),
+        "sourceGeneratedAt": closing_data.get("generatedAt"),
+        "allEligiblePregame": closing_group_summary(merged),
+        "breadthPregame": closing_group_summary(broad),
+        "belowThresholdPregame": closing_group_summary(narrow),
+        "compactFreshBreadthPregame": closing_group_summary(merged[compact_fresh]),
+        "tests": {
+            "breadthPositiveClvSignTest": {
+                "positive": positive,
+                "events": broad_n,
+                "oneSidedPValueForPositiveClv": finite(
+                    binomtest(positive, broad_n, 0.5, alternative="greater").pvalue
+                ) if broad_n else None,
+            },
+            "breadthVsNarrowMannWhitney": {
+                "statistic": finite(comparison.statistic) if comparison else None,
+                "twoSidedPValue": finite(comparison.pvalue) if comparison else None,
+            },
+        },
+        "events": merged.sort_values("signalTimestamp").to_dict("records"),
+        "interpretation": "The breadth sample won often, but its pregame prices did not generally move toward the target before play. Settlement alpha is therefore not independently confirmed by closing-line value.",
+        "warning": "Closing prints are a validation benchmark, not executable quotes. The sample is small and excludes in-play signals.",
+    }
+
+
+def mechanism_alternative_audit(base: pd.DataFrame, trigger_data: dict) -> dict:
+    eligible = base.sort_values("signalTimestamp").copy()
+    broad = eligible[eligible["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD].copy()
+    narrow = eligible[eligible["onchainUniqueMakers"] < ONCHAIN_BREADTH_THRESHOLD].copy()
+
+    def age_median(rows: pd.DataFrame) -> float | None:
+        values = pd.to_numeric(rows["onchainRestingAgeMedianSeconds"], errors="coerce").dropna()
+        return finite(values.median()) if len(values) else None
+
+    transactions = {
+        row.get("conditionId"): row
+        for row in trigger_data.get("transactions", [])
+        if row.get("conditionId") and not row.get("error")
+    }
+    maker_history = defaultdict(list)
+    maker_event_counts = defaultdict(int)
+    identity_rows = []
+    all_makers = set()
+    for _, event in broad.iterrows():
+        transaction = transactions.get(event["conditionId"], {})
+        makers = {
+            fill.get("maker")
+            for fill in transaction.get("sweep", {}).get("fills", [])
+            if fill.get("maker")
+        }
+        all_makers.update(makers)
+        for maker in makers:
+            maker_event_counts[maker] += 1
+        prior_makers = [maker for maker in makers if maker_history[maker]]
+        prior_outcomes = [
+            outcome
+            for maker in prior_makers
+            for outcome in maker_history[maker]
+        ]
+        identity_rows.append({
+            "conditionId": event["conditionId"],
+            "won": int(event["won"]),
+            "makers": len(makers),
+            "priorSeenMakers": len(prior_makers),
+            "priorSeenMakerSharePct": safe_div(len(prior_makers), len(makers), 0) * 100,
+            "priorTargetWinRateAcrossMakerHistoryPct": (
+                safe_div(sum(prior_outcomes), len(prior_outcomes), 0) * 100
+                if prior_outcomes else None
+            ),
+        })
+        for maker in makers:
+            maker_history[maker].append(int(event["won"]))
+
+    identity = pd.DataFrame(identity_rows)
+
+    def median_by_outcome(column: str, won: int) -> float | None:
+        if identity.empty:
+            return None
+        values = pd.to_numeric(
+            identity.loc[identity["won"] == won, column], errors="coerce"
+        ).dropna()
+        return finite(values.median()) if len(values) else None
+
+    return {
+        "staleLiquidity": {
+            "broadMedianMakerAgeSeconds": age_median(broad),
+            "narrowMedianMakerAgeSeconds": age_median(narrow),
+            "broadWinnerMedianMakerAgeSeconds": age_median(broad[broad["won"] == 1]),
+            "broadLossMedianMakerAgeSeconds": age_median(broad[broad["won"] == 0]),
+            "interpretation": "Broad winners consumed fresher, not older, maker orders than broad losses. A stale-quote harvesting story is not supported by this sample.",
+        },
+        "recurringMakerIdentity": {
+            "broadSignals": int(len(broad)),
+            "uniqueMakersAcrossBroadSignals": len(all_makers),
+            "makersSeenInMultipleBroadSignals": sum(
+                count >= 2 for count in maker_event_counts.values()
+            ),
+            "signalsWithAnyPriorMakerHistory": int(sum(
+                row["priorSeenMakers"] > 0 for row in identity_rows
+            )),
+            "winnerMedianPriorSeenMakerSharePct": median_by_outcome(
+                "priorSeenMakerSharePct", 1
+            ),
+            "lossMedianPriorSeenMakerSharePct": median_by_outcome(
+                "priorSeenMakerSharePct", 0
+            ),
+            "winnerMedianPriorTargetWinRateAcrossMakerHistoryPct": median_by_outcome(
+                "priorTargetWinRateAcrossMakerHistoryPct", 1
+            ),
+            "lossMedianPriorTargetWinRateAcrossMakerHistoryPct": median_by_outcome(
+                "priorTargetWinRateAcrossMakerHistoryPct", 0
+            ),
+            "interpretation": "Recurring counterparties and their prior target-side outcomes do not cleanly separate broad wins from losses. Maker identity is not a usable replacement for transaction geometry.",
+        },
+    }
+
+
+def compact_fresh_null(
+    broad: pd.DataFrame,
+    development_mask: np.ndarray,
+    candidates: list[dict],
+    observed_held_out_gap: float,
+    draws: int = BOOTSTRAP_DRAWS,
+) -> dict:
+    probabilities = broad["observedExecutionPrice"].to_numpy(dtype=float)
+    held_out = ~development_mask
+    rng = np.random.default_rng(SEED + 733)
+    null_effects = []
+    for _ in range(draws):
+        outcomes = rng.binomial(1, probabilities)
+        best = None
+        for candidate in candidates:
+            mask = candidate["mask"]
+            selected_development = mask & development_mask
+            gap = float(np.mean(
+                outcomes[selected_development] - probabilities[selected_development]
+            ))
+            key = (
+                gap,
+                int(selected_development.sum()),
+                -candidate["maximumPriceLevels"],
+                -candidate["maximumMedianMakerAgeSeconds"],
+            )
+            if best is None or key > best[0]:
+                best = (key, mask)
+        selected_held_out = best[1] & held_out
+        null_effects.append(float(np.mean(
+            outcomes[selected_held_out] - probabilities[selected_held_out]
+        )))
+    return {
+        "draws": draws,
+        "oneSidedPValue": finite(
+            (1 + sum(effect >= observed_held_out_gap for effect in null_effects))
+            / (draws + 1)
+        ),
+        "nullHeldOutGapPctPoints": {
+            "median": finite(np.median(null_effects) * 100),
+            "p95": finite(np.quantile(null_effects, 0.95) * 100),
+            "p99": finite(np.quantile(null_effects, 0.99) * 100),
+        },
+    }
+
+
+def compact_fresh_mechanism(base: pd.DataFrame, trigger_data: dict) -> dict:
+    fixed = prepare_bets(base, 60, 5).sort_values("signalTimestamp").reset_index(drop=True)
+    development_index = int(len(fixed) * 0.50)
+    development_timestamp = int(fixed.iloc[development_index]["signalTimestamp"])
+    broad = fixed[
+        fixed["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    ].reset_index(drop=True)
+    development_mask = (
+        broad["signalTimestamp"] < development_timestamp
+    ).to_numpy()
+    candidates = []
+    for maximum_levels in COMPACT_LEVEL_CANDIDATES:
+        for maximum_age in FRESH_AGE_CANDIDATES_SECONDS:
+            mask = (
+                (broad["onchainPriceLevels"] <= maximum_levels)
+                & (broad["onchainRestingAgeMedianSeconds"] <= maximum_age)
+            ).to_numpy()
+            selected_development = mask & development_mask
+            if selected_development.sum() < 4:
+                continue
+            calibration = calibration_summary(broad[selected_development])
+            candidates.append({
+                "maximumPriceLevels": maximum_levels,
+                "maximumMedianMakerAgeSeconds": maximum_age,
+                "developmentBets": int(selected_development.sum()),
+                "developmentCalibrationGapPctPoints": calibration["calibrationGapPctPoints"],
+                "mask": mask,
+            })
+    selected = max(candidates, key=lambda row: (
+        row["developmentCalibrationGapPctPoints"],
+        row["developmentBets"],
+        -row["maximumPriceLevels"],
+        -row["maximumMedianMakerAgeSeconds"],
+    ))
+    selected_mask = selected["mask"]
+    held_out_mask = ~development_mask
+    development = broad[selected_mask & development_mask]
+    held_out = broad[selected_mask & held_out_mask]
+    all_selected = broad[selected_mask]
+    remainder = broad[~selected_mask]
+    held_out_calibration = calibration_summary(held_out)
+    observed_gap = held_out_calibration["calibrationGapPctPoints"] / 100
+    table = np.asarray([
+        [int(all_selected["won"].sum()), int(len(all_selected) - all_selected["won"].sum())],
+        [int(remainder["won"].sum()), int(len(remainder) - remainder["won"].sum())],
+    ])
+    odds_ratio, fisher_p = fisher_exact(table, alternative="greater")
+    model_frame = broad.copy()
+    model_frame["compactFresh"] = selected_mask.astype(int)
+    design = sm.add_constant(model_frame[["compactFresh"]].astype(float))
+    fitted = sm.GLM(
+        model_frame["won"],
+        design,
+        family=sm.families.Binomial(),
+        offset=np.log(
+            model_frame["observedExecutionPrice"]
+            / (1 - model_frame["observedExecutionPrice"])
+        ),
+    ).fit(cov_type="HC1")
+    candidate_rows = [{key: value for key, value in row.items() if key != "mask"}
+                      for row in candidates]
+    return {
+        "name": "compact-fresh-breadth",
+        "definition": (
+            f"At least {ONCHAIN_BREADTH_THRESHOLD} maker accounts, no more than "
+            f"{selected['maximumPriceLevels']} execution price levels, and median maker-order "
+            f"age no more than {selected['maximumMedianMakerAgeSeconds']} seconds."
+        ),
+        "selection": {
+            "developmentEnd": datetime.fromtimestamp(
+                development_timestamp, timezone.utc
+            ).isoformat(),
+            "minimumDevelopmentBets": 4,
+            "priceLevelCandidates": list(COMPACT_LEVEL_CANDIDATES),
+            "makerAgeCandidatesSeconds": list(FRESH_AGE_CANDIDATES_SECONDS),
+            "selectedMaximumPriceLevels": selected["maximumPriceLevels"],
+            "selectedMaximumMedianMakerAgeSeconds": selected["maximumMedianMakerAgeSeconds"],
+            "candidates": candidate_rows,
+        },
+        "development": summarize_bets(development),
+        "developmentCalibration": calibration_summary(development),
+        "heldOut": summarize_bets(held_out),
+        "heldOutCalibration": held_out_calibration,
+        "heldOutDayClusterBootstrap": day_cluster_bootstrap(held_out),
+        "all": summarize_bets(all_selected),
+        "allCalibration": calibration_summary(all_selected),
+        "otherBroadSweeps": summarize_bets(remainder),
+        "otherBroadCalibration": calibration_summary(remainder),
+        "comparisons": {
+            "fisherExactVsOtherBroad": {
+                "tableWinsLosses": table.tolist(),
+                "oddsRatio": finite(odds_ratio),
+                "oneSidedPValue": finite(fisher_p),
+            },
+            "probabilityOffset": {
+                "oddsRatio": finite(np.exp(fitted.params["compactFresh"])),
+                "robustPValue": finite(fitted.pvalues["compactFresh"]),
+            },
+            "selectionCorrectedMarketNull": compact_fresh_null(
+                broad, development_mask, candidates, observed_gap
+            ),
+        },
+        "mechanismInterpretation": "The strongest broad sweeps consume many recently posted maker orders while staying inside a compact price ladder. They look like decisive acceptance of dense fresh liquidity, not indiscriminate chasing through the book.",
+        "alternativeMechanisms": mechanism_alternative_audit(base, trigger_data),
+        "warning": "This mechanism family was proposed after inspecting the wallet. The grid null repeats the stated second-stage search, but it does not correct for every hypothesis considered; the held-out sample has only seven bets.",
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--snapshot", default="research/djdjdjekekek/snapshot.json")
@@ -1917,6 +2431,8 @@ def main() -> None:
     parser.add_argument("--analysis", default="research/djdjdjekekek/deep_analysis.json")
     parser.add_argument("--tape", default="research/djdjdjekekek/market_tape.json")
     parser.add_argument("--triggers", default="research/djdjdjekekek/trigger_transactions.json")
+    parser.add_argument("--closing-lines", default="research/djdjdjekekek/closing_lines.json")
+    parser.add_argument("--liquidity-capacity", default="research/djdjdjekekek/liquidity_capacity.json")
     parser.add_argument("--output", default="research/djdjdjekekek/edge_analysis.json")
     parser.add_argument("--features", default="research/djdjdjekekek/edge_features.csv")
     parser.add_argument("--model", default="research/djdjdjekekek/edge_model.json")
@@ -1927,6 +2443,10 @@ def main() -> None:
     analysis = load_json(Path(args.analysis))
     tape_data = load_json(Path(args.tape))
     trigger_data = load_json(Path(args.triggers))
+    closing_path = Path(args.closing_lines)
+    liquidity_path = Path(args.liquidity_capacity)
+    closing_data = load_json(closing_path) if closing_path.exists() else {"events": []}
+    liquidity_data = load_json(liquidity_path) if liquidity_path.exists() else {}
     features, leader_events = build_features(
         snapshot, enrichment, analysis, tape_data, trigger_data
     )
@@ -1942,6 +2462,8 @@ def main() -> None:
             "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
             "atomicBreadth": "Decode the mined CTF Exchange V2 matchOrders calldata at the trigger and count distinct maker addresses in the transaction's makerOrders array.",
             "externalExecution": "First direction-neutral public taker print beginning at the configured lag, with a 60-second observation window, an explicit zero-to-30-cent adverse-price grid, and fee-curve stress from 0% through 5%. A trigger-price fallback forces every eligible signal into the test when no print exists. The original registered comparison remains 60 seconds plus five cents; the prospective paper convention is immediate observation with a one-cent marketable-limit buffer and actual depth recorded.",
+            "capacity": "Historical post-trigger public turnover is reported as a non-simultaneous capacity envelope across stake, time, price, and participation assumptions. A separately timestamped active-moneyline snapshot walks actual displayed asks for immediate FOK capacity.",
+            "closingLine": "For pregame signals only, use the final non-target public print before the recorded game start as an independent directional validation mark.",
             "eventLeakage": "Eligible conditions are sorted by signal time and only the first condition per canonical event is retained.",
             "labelTiming": "Walk-forward labels become available at Gamma market closedTime, not the ambiguous closed-positions timestamp.",
             "selection": (
@@ -1957,6 +2479,7 @@ def main() -> None:
                 "The urgency calibration and stratified mechanism audits were designed after observing this sample; their p-values diagnose compatibility with narrow nulls but do not correct for discovery search.",
                 "The atomic-breadth family was discovered retrospectively. Its integer threshold is selected only on the first half, and a separate simulation repeats that search, but wallet and feature-family selection remain uncorrected.",
                 "The sample spans only about two months and event returns are highly concentrated.",
+                "Current displayed sports-book depth is a favorable cross-sectional reference and cannot be substituted for the unknown depth remaining immediately after the target's sweep.",
             ],
         },
         "coverage": {
@@ -2019,6 +2542,18 @@ def main() -> None:
         "mechanismAudit": mechanism_audit(base, fixed["splitTimestamp"]),
         "atomicBreadthEdge": breadth_edge_audit(base, fixed["splitTimestamp"]),
         "copyParameterAtlas": copy_parameter_atlas(features, base),
+        "historicalTapeCapacity": historical_tape_capacity(features, base, tape_data),
+        "liveLiquidityCapacity": {
+            "sourceGeneratedAt": liquidity_data.get("generatedAt"),
+            "source": liquidity_data.get("source"),
+            "definition": liquidity_data.get("definition"),
+            "parameters": liquidity_data.get("parameters"),
+            "coverage": liquidity_data.get("coverage"),
+            "summary": liquidity_data.get("summary"),
+            "warnings": liquidity_data.get("warnings"),
+        },
+        "closingLineAudit": closing_line_audit(base, closing_data),
+        "compactFreshMechanism": compact_fresh_mechanism(base, trigger_data),
     }
 
     output_path = Path(args.output)
