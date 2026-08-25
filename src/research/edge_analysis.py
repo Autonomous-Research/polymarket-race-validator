@@ -19,6 +19,7 @@ from sklearn.metrics import mean_absolute_error, r2_score, roc_auc_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from scipy.stats import fisher_exact
+from statsmodels.stats.contingency_tables import StratifiedTable
 
 
 SEED = 20260825
@@ -971,6 +972,278 @@ def subgroup_chronology(base: pd.DataFrame) -> dict:
     }
 
 
+def calibration_summary(bets: pd.DataFrame) -> dict:
+    if bets.empty:
+        return {"bets": 0}
+    probabilities = bets["observedExecutionPrice"].clip(0.01, 0.99).to_numpy(dtype=float)
+    outcomes = bets["won"].to_numpy(dtype=int)
+    distribution = np.array([1.0])
+    for probability in probabilities:
+        distribution = np.convolve(distribution, [1 - probability, probability])
+    wins = int(outcomes.sum())
+    return {
+        "bets": int(len(bets)),
+        "wins": wins,
+        "expectedWinsFromExecutionProxy": finite(probabilities.sum()),
+        "excessWins": finite(wins - probabilities.sum()),
+        "actualWinRatePct": finite(outcomes.mean() * 100),
+        "meanImpliedProbabilityPct": finite(probabilities.mean() * 100),
+        "calibrationGapPctPoints": finite((outcomes - probabilities).mean() * 100),
+        "brierScore": finite(np.mean((outcomes - probabilities) ** 2)),
+        "poissonBinomialUpperTailPValue": finite(distribution[wins:].sum()),
+        "fallbackPrices": int(bets["usedFallbackPrice"].sum()),
+    }
+
+
+def day_cluster_calibration(bets: pd.DataFrame) -> dict:
+    rows = bets.copy()
+    rows["burst60"] = rows["takerBurst60Share"] >= 0.80
+    rows["calibrationResidual"] = rows["won"] - rows["observedExecutionPrice"]
+    rows["day"] = pd.to_datetime(rows["signalTime"], utc=True).dt.date
+    days = list(rows["day"].drop_duplicates())
+    clusters = []
+    for day in days:
+        group = rows[rows["day"] == day]
+        burst = group[group["burst60"]]["calibrationResidual"]
+        slower = group[~group["burst60"]]["calibrationResidual"]
+        clusters.append([
+            burst.sum(), len(burst), slower.sum(), len(slower)
+        ])
+    clusters = np.asarray(clusters, dtype=float)
+    rng = np.random.default_rng(SEED + 307)
+    indexes = rng.integers(0, len(clusters), size=(BOOTSTRAP_DRAWS, len(clusters)))
+    sampled = clusters[indexes].sum(axis=1)
+    valid = (sampled[:, 1] > 0) & (sampled[:, 3] > 0)
+    burst_values = sampled[valid, 0] / sampled[valid, 1]
+    slower_values = sampled[valid, 2] / sampled[valid, 3]
+    difference_values = burst_values - slower_values
+    burst_actual = rows.loc[rows["burst60"], "calibrationResidual"].mean()
+    slower_actual = rows.loc[~rows["burst60"], "calibrationResidual"].mean()
+
+    def interval(values: np.ndarray, actual: float) -> dict:
+        return {
+            "estimatePctPoints": finite(actual * 100),
+            "ci95LowPctPoints": finite(np.quantile(values, 0.025) * 100),
+            "ci95HighPctPoints": finite(np.quantile(values, 0.975) * 100),
+            "probabilityPositivePct": finite(np.mean(values > 0) * 100),
+        }
+
+    return {
+        "dayClusters": len(days),
+        "burst60": interval(burst_values, burst_actual),
+        "slower": interval(slower_values, slower_actual),
+        "burstMinusSlower": interval(
+            difference_values, burst_actual - slower_actual
+        ),
+    }
+
+
+def composition_controlled_burst_test(bets: pd.DataFrame) -> dict:
+    rows = bets.copy()
+    rows["burst60"] = rows["takerBurst60Share"] >= 0.80
+    rows["broadPriceBand"] = np.where(
+        rows["observedExecutionPrice"] <= 0.60, "<=0.60", ">0.60"
+    )
+    tables = []
+    comparable_bets = 0
+    strata = []
+    for key, group in rows.groupby(["discipline", "broadPriceBand"]):
+        if group["burst60"].nunique() < 2:
+            continue
+        table = np.array([
+            [
+                int((group["burst60"] & (group["won"] == 1)).sum()),
+                int((group["burst60"] & (group["won"] == 0)).sum()),
+            ],
+            [
+                int((~group["burst60"] & (group["won"] == 1)).sum()),
+                int((~group["burst60"] & (group["won"] == 0)).sum()),
+            ],
+        ], dtype=float)
+        tables.append(table)
+        comparable_bets += len(group)
+        strata.append({
+            "discipline": key[0],
+            "priceBand": key[1],
+            "bets": int(len(group)),
+            "table": table.astype(int).tolist(),
+        })
+    stratified = StratifiedTable(np.stack(tables, axis=2), shift_zeros=True)
+    confidence_low, confidence_high = stratified.oddsratio_pooled_confint()
+    return {
+        "method": "Cochran-Mantel-Haenszel burst-versus-slow win odds, stratified by discipline and public execution-proxy price <=0.60 or >0.60; zero cells receive the library's 0.5 correction.",
+        "strata": len(tables),
+        "comparableBets": comparable_bets,
+        "commonOddsRatio": finite(stratified.oddsratio_pooled),
+        "ci95Low": finite(confidence_low),
+        "ci95High": finite(confidence_high),
+        "twoSidedPValue": finite(stratified.test_null_odds().pvalue),
+        "details": strata,
+        "warning": "Descriptive post-discovery control with sparse cells; the price boundary and burst threshold were not prospectively locked.",
+    }
+
+
+def fine_stratified_permutation(bets: pd.DataFrame, split_timestamp: int) -> dict:
+    rows = bets.copy()
+    rows["burst60"] = rows["takerBurst60Share"] >= 0.80
+    rows["calibrationResidual"] = rows["won"] - rows["observedExecutionPrice"]
+    rows["priceBand"] = pd.cut(
+        rows["observedExecutionPrice"], [0, 0.45, 0.60, 1.0],
+        labels=["low", "middle", "high"], include_lowest=True
+    ).astype(str)
+    rows["period"] = np.where(
+        rows["signalTimestamp"] < split_timestamp, "earlier", "later"
+    )
+    groups = [
+        group for _, group in rows.groupby(["discipline", "priceBand", "period"])
+        if group["burst60"].nunique() == 2
+    ]
+    rng = np.random.default_rng(SEED + 401)
+    simulated_numerator = np.zeros(BOOTSTRAP_DRAWS)
+    actual_numerator = 0.0
+    total_weight = 0.0
+    comparable_bets = 0
+    for group in groups:
+        residuals = group["calibrationResidual"].to_numpy(dtype=float)
+        labels = group["burst60"].to_numpy(dtype=bool)
+        burst_count = int(labels.sum())
+        slower_count = len(labels) - burst_count
+        weight = burst_count * slower_count / len(labels)
+        actual_difference = residuals[labels].mean() - residuals[~labels].mean()
+        random_order = np.argpartition(
+            rng.random((BOOTSTRAP_DRAWS, len(labels))), burst_count - 1, axis=1
+        )[:, :burst_count]
+        burst_sum = residuals[random_order].sum(axis=1)
+        simulated_difference = (
+            burst_sum / burst_count
+            - (residuals.sum() - burst_sum) / slower_count
+        )
+        actual_numerator += weight * actual_difference
+        simulated_numerator += weight * simulated_difference
+        total_weight += weight
+        comparable_bets += len(group)
+    actual = actual_numerator / total_weight
+    simulated = simulated_numerator / total_weight
+    return {
+        "method": "Shuffle burst labels within discipline x three public-price bands x fixed chronological period, preserving each stratum's burst count; statistic is the overlap-weighted calibration-gap difference.",
+        "strata": len(groups),
+        "comparableBets": comparable_bets,
+        "effectPctPoints": finite(actual * 100),
+        "oneSidedPValue": finite(
+            (np.sum(simulated >= actual) + 1) / (BOOTSTRAP_DRAWS + 1)
+        ),
+        "nullCi95LowPctPoints": finite(np.quantile(simulated, 0.025) * 100),
+        "nullCi95HighPctPoints": finite(np.quantile(simulated, 0.975) * 100),
+        "warning": "Only strata containing both burst and slow bets contribute. This tighter control is low-powered but materially weakens the raw difference.",
+    }
+
+
+def mechanism_audit(base: pd.DataFrame, split_timestamp: int) -> dict:
+    bets = prepare_bets(base, 60, 5).sort_values("signalTimestamp").reset_index(drop=True)
+    bets["burst60"] = bets["takerBurst60Share"] >= 0.80
+    bets["oneShot"] = bets["triggerFillShare"] >= 0.80
+
+    def grouped(column: str, labels: dict | None = None) -> list[dict]:
+        output = []
+        for key, group in bets.groupby(column, sort=True):
+            label = labels.get(key, str(key)) if labels else str(key)
+            output.append({
+                "key": label,
+                **summarize_bets(group),
+                "calibration": calibration_summary(group),
+            })
+        return output
+
+    def crossed(column: str, labels: dict | None = None) -> list[dict]:
+        output = []
+        for (key, is_burst), group in bets.groupby([column, "burst60"], sort=True):
+            label = labels.get(key, str(key)) if labels else str(key)
+            output.append({
+                "key": label,
+                "urgency": "rapid" if is_burst else "slower",
+                **summarize_bets(group),
+                "calibration": calibration_summary(group),
+            })
+        return output
+
+    thresholds = []
+    for threshold in (0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99):
+        selected = bets[bets["takerBurst60Share"] >= threshold]
+        thresholds.append({
+            "minimumBurstShare": threshold,
+            **summarize_bets(selected),
+            "calibration": calibration_summary(selected),
+        })
+
+    earlier = bets[bets["signalTimestamp"] < split_timestamp]
+    later = bets[bets["signalTimestamp"] >= split_timestamp]
+    burst = bets[bets["burst60"]]
+    slower = bets[~bets["burst60"]]
+    return {
+        "candidateMechanism": "Conviction compression: most aggressive target buying arrives in one minute, while the public execution proxy has not yet incorporated the target side's later realized win frequency.",
+        "calibration": {
+            "all": calibration_summary(bets),
+            "burst60": calibration_summary(burst),
+            "slower": calibration_summary(slower),
+            "earlier": {
+                "burst60": calibration_summary(earlier[earlier["burst60"]]),
+                "slower": calibration_summary(earlier[~earlier["burst60"]]),
+            },
+            "later": {
+                "burst60": calibration_summary(later[later["burst60"]]),
+                "slower": calibration_summary(later[~later["burst60"]]),
+            },
+            "dayClusterBootstrap": day_cluster_calibration(bets),
+        },
+        "compositionControls": {
+            "broadCmh": composition_controlled_burst_test(bets),
+            "finePermutation": fine_stratified_permutation(bets, split_timestamp),
+        },
+        "thresholdSensitivity": thresholds,
+        "transactionShape": {
+            "oneShotSignals": int(bets["oneShot"].sum()),
+            "oneShotSignalsAlsoBurst": int((bets["oneShot"] & bets["burst60"]).sum()),
+            "multiFillBurstSignals": int((~bets["oneShot"] & bets["burst60"]).sum()),
+            "groups": [
+                {
+                    "key": "slower multi-fill",
+                    **summarize_bets(bets[~bets["burst60"] & ~bets["oneShot"]]),
+                },
+                {
+                    "key": "rapid multi-fill",
+                    **summarize_bets(bets[bets["burst60"] & ~bets["oneShot"]]),
+                },
+                {
+                    "key": "rapid one-shot",
+                    **summarize_bets(bets[bets["burst60"] & bets["oneShot"]]),
+                },
+            ],
+            "warning": "At the threshold-crossing timestamp every one-shot signal is mechanically a burst signal, so the two features cannot be interpreted as independent treatments.",
+        },
+        "byTiming": grouped("pregame", {0: "in-play", 1: "pregame"}),
+        "byTimingAndUrgency": crossed("pregame", {0: "in-play", 1: "pregame"}),
+        "byDiscipline": grouped("discipline"),
+        "byDisciplineAndUrgency": crossed("discipline"),
+        "byMarketType": grouped("marketType"),
+        "byMarketTypeAndUrgency": crossed("marketType"),
+    }
+
+
+def blind_copy_audit(features: pd.DataFrame, split_timestamp: int) -> dict:
+    universe = features[features["concentration"] >= 0.70].sort_values(
+        "signalTimestamp"
+    ).drop_duplicates("eventKey", keep="first").reset_index(drop=True)
+    bets = prepare_bets(universe, 60, 5)
+    return {
+        "definition": "Copy every first canonical-event signal after the target crosses $25,000 at >=70% concentration; no discipline, format, price, or burst filter.",
+        "all": summarize_bets(bets),
+        "earlier": summarize_bets(bets[bets["signalTimestamp"] < split_timestamp]),
+        "later": summarize_bets(bets[bets["signalTimestamp"] >= split_timestamp]),
+        "calibration": calibration_summary(bets),
+        "decision": "Rejected: blind copying is negative both overall and after the fixed chronological split.",
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--snapshot", default="research/djdjdjekekek/snapshot.json")
@@ -1009,6 +1282,7 @@ def main() -> None:
                 "A public trade print proves market activity, not the exact historical ask depth available to a follower; the five-cent stress is a conservative proxy.",
                 "The account was selected after exceptional performance, so trader-selection bias remains.",
                 "The model family and feature set were chosen during this investigation; expanding-window predictions are pseudo-out-of-sample, not a locked prospective trial.",
+                "The urgency calibration and stratified mechanism audits were designed after observing this sample; their p-values diagnose compatibility with narrow nulls but do not correct for discovery search.",
                 "The sample spans only about two months and event returns are highly concentrated.",
             ],
         },
@@ -1030,6 +1304,9 @@ def main() -> None:
         "leaders": leader_analysis(leader_events, base),
         "sizing": sizing_analysis(base),
         "fixedExternalTapeBacktest": fixed,
+        "blindCopyCounterfactual": blind_copy_audit(
+            features, fixed["splitTimestamp"]
+        ),
         "universeSensitivity": universe_sensitivity(features, fixed["splitTimestamp"]),
         "bo1ClassificationSensitivity": bo1_classification_sensitivity(
             features, fixed["splitTimestamp"]
@@ -1058,6 +1335,7 @@ def main() -> None:
         "executionSensitivity": scenarios,
         "lockedRefinement": locked_gate_test(base),
         "walkForwardModel": walk_forward_model(base),
+        "mechanismAudit": mechanism_audit(base, fixed["splitTimestamp"]),
     }
 
     output_path = Path(args.output)

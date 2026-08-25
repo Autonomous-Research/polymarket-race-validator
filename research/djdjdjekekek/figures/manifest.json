@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-08-25T16:13:43.897154+00:00",
+  "source": {
+    "edge": "research/djdjdjekekek/edge_analysis.json",
+    "features": "research/djdjdjekekek/edge_features.csv"
+  },
+  "files": [
+    "figures/blind_copy_funnel.png",
+    "figures/blind_copy_funnel.svg",
+    "figures/urgency_calibration.png",
+    "figures/urgency_calibration.svg",
+    "figures/strategy_equity.png",
+    "figures/strategy_equity.svg",
+    "figures/execution_sensitivity.png",
+    "figures/execution_sensitivity.svg",
+    "figures/burst_threshold_sensitivity.png",
+    "figures/burst_threshold_sensitivity.svg"
+  ],
+  "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content."
+}

@@ -11,10 +11,14 @@ The account is a two-layer automated operation: 92.8% of fills are maker executi
 | True multi-map series | 114 markets, +$7.57M, +31.20% ROI |
 | Single game/map including BO1 | 81 markets, -$4.89M, -57.55% ROI |
 | Forced external-tape backtest | 80 bets, +8.50% all-period ROI |
-| Blind all-signal external-tape copy | -6.15% all / -6.68% after fixed split |
+| Blind all-signal external-tape copy | 139 bets, -$855.28, -6.15% all / -6.68% later |
+| Rapid-signal calibration | 41 wins vs 31.24 implied; +18.1 pp |
+| Tight composition control | +9.6 pp across 52 comparable bets; one-sided `p=0.239` |
 | Original-classifier BO1 counterfactual | 84 bets, +5.27% all / +14.09% later |
 | Chronological final period | 24 bets, +26.36% ROI; day-cluster interval -15.9% to +55.8% |
 | Expanding-window model | 15 selected bets, +27.54% ROI; ROC-AUC 0.635 |
+
+![Blind-copy and filtered-rule equity](./figures/strategy_equity.png)
 
 ## Corrections And Rejections
 
@@ -37,4 +41,4 @@ The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEE
 
 ## Bottom Line
 
-This is a credible paper-trading discovery, not a cracked money machine. Direction beats randomized and opposite sides, the final chronological slice is positive, and the walk-forward filter improves its baseline. Yet both clustered confidence intervals still touch or cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.
+This is a credible paper-trading candidate, not a cracked money machine. Direction beats randomized and opposite sides, urgency separates realized wins from public implied probabilities, and the walk-forward filter improves its baseline. Yet the tightest composition control is not significant, both ROI confidence intervals still cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.

@@ -4,7 +4,7 @@ Generated 2026-08-25T15:29:24.006Z. Coverage: 2026-06-19T18:37:08Z through 2026-
 
 ## Executive Finding
 
-The edge is **selective directional information expressed through aggressive taker size**, surrounded by an automated maker/inventory layer. Counting fills hid this: makers are 92.8% of fills but only 27.9% of dollars. Taker fills are just 7.2% of count yet carry 72.1% of quote notional.
+The candidate edge is **selective directional information expressed through compressed aggressive taker flow**, surrounded by an automated maker/inventory layer. Counting fills hid this: makers are 92.8% of fills but only 27.9% of dollars. Taker fills are just 7.2% of count yet carry 72.1% of quote notional.
 
 The strongest split is not sport versus esports. It is **aggressive versus passive capital**:
 
@@ -29,6 +29,16 @@ This is a domain correction consistent with the pre-existing map exclusion, but 
 
 The sign does not depend on that correction. A counterfactual that leaves BO1 eligible as the original classifier did returns +5.27% over 84 events and +14.09% over 28 events after the same fixed split. The corrected rule is economically better; the counterfactual checks that the positive sign was not manufactured by relabeling BO1.
 
+## What Blind Copying Would Have Done
+
+A follower who copied every first canonical-event signal after the target crossed $25,000 would have placed 139 equal $100 bets, staked $13.9K, and lost $855.28. That is -6.15% ROI with a $2.1K maximum drawdown. The result did not repair itself later: the 45 signals after the fixed split lost $300.49 at -6.68% ROI.
+
+Blind copying also produced only 80 wins versus 77.15 implied by the execution proxy. Its +2.0 pp calibration gap is ordinary (Poisson-binomial upper-tail `p=0.333`). That diagnostic assumes independent outcomes and calibrated proxy probabilities; it is not a causal p-value. The large-wager observation alone therefore contains no demonstrated follower edge.
+
+![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.png)
+
+![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.png)
+
 The deeper test replaces the target's later fills with 143,507 unrelated public taker prints from 149 signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
 
 | External-tape test | Bets | Wins | ROI |
@@ -42,6 +52,29 @@ The final-period result beats an opposite-side return of -46.03% and a random-si
 The mechanism is a **rapid taker sweep**, not eventual wallet size. Signals with most taker notional arriving in the final 60 seconds returned +24.37% versus -24.46% without that burst. Meanwhile, initial trigger size predicts eventual cost poorly: chronological log-cost `R^2=-0.108`, with $577.5K mean absolute error. A follower can observe urgency; it cannot reliably infer the target's final stake.
 
 That burst split has the same sign on both sides of the chronological boundary: +14.9% versus -22.6% earlier, and +41.8% versus -32.4% in the final period. The full-sample win-rate Fisher test gives `p=0.0054`, but that is a descriptive post-discovery test without feature-search correction.
+
+## Sharpened Mechanism: Conviction Compression
+
+The strongest new diagnostic compares realized wins with the probability visible at the forced execution proxy. Rapid signals won 41 times; their prices implied only 31.24 wins. That is 9.76 excess wins and a +18.1 pp calibration gap. Slower signals produced 11 wins versus 14.09 implied, a -11.9 pp gap in the opposite direction.
+
+| Period and urgency | Bets | Actual wins | Proxy-implied wins | Calibration gap | ROI |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| All rapid | 54 | 41 | 31.24 | +18.1 pp | +24.37% |
+| All slower | 26 | 11 | 14.09 | -11.9 pp | -24.46% |
+| Earlier rapid | 35 | 26 | 21.41 | +13.1 pp | +14.90% |
+| Earlier slower | 21 | 9 | 11.52 | -12.0 pp | -22.56% |
+| Later rapid | 19 | 15 | 9.83 | +27.2 pp | +41.82% |
+| Later slower | 5 | 2 | 2.57 | -11.5 pp | -32.40% |
+
+![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.png)
+
+The raw gap is not only an in-play artifact. Rapid signals returned +24.65% over 23 pregame bets and +24.17% over 31 in-play bets. It is also not exactly one giant transaction: all 47 one-shot signals are mechanically rapid at the threshold timestamp, but 7 rapid multi-fill signals also exist. Those seven all won, which is suggestive but far too small to estimate separately.
+
+Uncertainty cuts both ways. A day-cluster bootstrap estimates the rapid-minus-slow calibration gap at +30.0 pp, with a +10.1 pp to +51.4 pp interval. A broad Cochran-Mantel-Haenszel control by discipline and price band gives 3.36x common win odds (95% CI 1.20-9.45, `p=0.023`). But a tighter permutation within discipline, three price bands, and chronological period retains only 52 comparable bets; its effect shrinks to +9.6 pp and is not significant (one-sided `p=0.239`). The candidate mechanism survives broad controls, not the strongest composition control.
+
+The threshold sweep is smooth rather than isolated at exactly 80%: thresholds from 50% through 99% retain positive ROI, but these overlapping samples are correlated and were analyzed after discovery.
+
+![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.png)
 
 An expanding-window model trained only on markets whose Gamma `closedTime` preceded each prediction selected 15 of 40 later signals and returned +27.54%, versus +5.40% for always copying and +20.05% for the transparent burst gate in the same period. Gamma close-time coverage is 100.0%. Its ROC-AUC is 0.635, but the day-cluster interval still reaches -13.3% and removing its top five winners makes ROI -22.1%. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
 
@@ -190,11 +223,15 @@ Even the high-taker subset falls from +23.8% to +5.6% after its top five winners
 
 1. Maker-rebate farming as the main edge. Net observed fee drag is far larger than maker rebates.
 2. A universal in-play latency edge. In-play-started markets are roughly flat to negative.
-3. Unfiltered copy trading as a stable edge. The external-tape baseline is positive in aggregate, but its clustered interval crosses zero and top-five removal turns it negative.
+3. Unfiltered copy trading as a stable edge. Blind copying loses $855.28 over 139 equal-stake signals at -6.15% ROI.
 4. Stable, diversified alpha. Five winners are required to keep aggregate PnL positive.
 5. Map/game duplication. It is the largest identifiable strategy leak.
 
 The closest economic analogy is informed liquidity demand inside a broader liquidity-provision operation. Polymarket pays for resting liquidity, but the empirical prediction-market literature warns that limit orders filled during informative periods can be adversely selected. That framework fits the observed split between many weak maker fills and a small aggressive core; it does not prove the trader possesses private information.
+
+The emphasis on **arrival intensity rather than raw size** has external precedent. [Engle and Lange](https://www.nber.org/papers/w6129) find that market depth falls with transaction count and that asymmetric flow completed faster than expected carries greater trading cost. A 2026 [Polymarket PIN working paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527) reports that estimated informed-order-flow intensity is associated with order imbalance, while raw volume effects are not robust. Those studies make conviction compression economically plausible; they do not validate this wallet-level rule.
+
+Measurement work also supports the conservative tape design. A preregistered 2026 [Polymarket microstructure preprint](https://arxiv.org/abs/2604.24366) finds that aggressor direction inferred from the public order-book feed agrees with on-chain ground truth only about 59% of the time. This audit therefore classifies the target from user-specific **takerOnly=true** transaction hashes and uses unrelated public prints only as direction-neutral price marks, never as evidence that another trader chose the same side.
 
 ## Statistical Limits
 
@@ -209,6 +246,9 @@ Selection bias remains: this wallet was investigated because it was exceptional.
 - [Polymarket Data API trades](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
 - [Polymarket liquidity rewards](https://docs.polymarket.com/programs/liquidity-rewards)
 - [Tetlock, Liquidity and Prediction Market Efficiency](https://business.columbia.edu/faculty/research/liquidity-and-prediction-market-efficiency)
+- [Engle and Lange, Measuring, Forecasting and Explaining Time Varying Liquidity](https://www.nber.org/papers/w6129)
+- [Le, Beyond Liquidity: Informed Trading in Decentralized Prediction Markets](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527)
+- [Dubach, The Anatomy of a Decentralized Prediction Market](https://arxiv.org/abs/2604.24366)
 - [Bailey et al., The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
 - [BLAST official TI 2026 series results](https://blast.tv/dota/tournaments/the-international-2026/series)
 - Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [edge_analysis.json](./edge_analysis.json), [peer_evidence.json](./peer_evidence.json), and [edge_features.csv](./edge_features.csv)

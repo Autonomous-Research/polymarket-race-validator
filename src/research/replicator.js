@@ -447,6 +447,7 @@ function buildHistoricalAudit(analysis, edgeAnalysis = null, edgeModel = null) {
                 } : null
             },
             fixedExternalTapeBacktest: edgeAnalysis.fixedExternalTapeBacktest,
+            blindCopyCounterfactual: edgeAnalysis.blindCopyCounterfactual,
             universeSensitivity: edgeAnalysis.universeSensitivity,
             bo1ClassificationSensitivity: edgeAnalysis.bo1ClassificationSensitivity,
             subgroupChronology: edgeAnalysis.subgroupChronology,
@@ -454,6 +455,7 @@ function buildHistoricalAudit(analysis, edgeAnalysis = null, edgeModel = null) {
             fixedTestDayClusterBootstrap: edgeAnalysis.fixedTestDayClusterBootstrap,
             executionSelectionAudit: edgeAnalysis.executionSelectionAudit,
             walkForwardModel: edgeAnalysis.walkForwardModel,
+            mechanismAudit: edgeAnalysis.mechanismAudit,
             status: 'HISTORICAL_SIMULATION'
         };
     }

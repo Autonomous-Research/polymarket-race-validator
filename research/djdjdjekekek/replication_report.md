@@ -1,6 +1,6 @@
 # Replication Prototype: External-Tape Backtest
 
-Generated 2026-08-25T15:44:22.000Z. This implementation is paper-only and contains no signing or order-submission path.
+Generated 2026-08-25T16:10:47.000Z. This implementation is paper-only and contains no signing or order-submission path.
 
 ## What Changed
 
@@ -14,7 +14,7 @@ The earlier prototype used the target's next future BUY as an execution proxy. T
 | Event control | First eligible condition per canonical event |
 | Delay | 60 seconds after the signal |
 | Historical price | First direction-neutral public taker print in the next 60 seconds; trigger fallback if absent |
-| Cost stress | 5 cents adverse movement plus Polymarket's 3% fee curve |
+| Cost stress | 5 cents adverse movement plus the account-observed 3% fee curve |
 | Live paper execution | Marketable limit at the current ask, FOK, rejected above trigger + 0.05 or when displayed ask depth is insufficient |
 | Sizing | Fixed bankroll fraction; no attempt to predict the target's final position |
 | Model gate | Predicted win probability minus all-in price must exceed 5.0% |
@@ -22,6 +22,14 @@ The earlier prototype used the target's next future BUY as an execution proxy. T
 The BO1 exclusion is important. The corrected audit records a $1.78M loss across 9 BO1 markets rather than hiding them inside the profitable series bucket.
 
 Because that correction was found after inspecting final losses, the audit also preserves the original-classifier counterfactual. Keeping BO1 eligible returns +5.27% over 84 events and +14.09% over 28 events after the same fixed boundary. Its later ROI after removing the top three winners is -2.01%.
+
+## Blind-Copy Baseline
+
+The literal copy strategy is rejected before model selection. Copying every first canonical-event signal produces 139 bets, -$855.28 P&L, -6.15% ROI, and a $2.1K maximum drawdown at $100 per signal. It remains negative after the fixed split: 45 bets, -$300.49, -6.68% ROI. Removing its best five winners worsens all-period ROI to -13.52%.
+
+This matters because the 80-event primary test below is already a restricted universe. Its positive result must not be described as the return from blindly following the account.
+
+![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.png)
 
 ## Primary Historical Test
 
@@ -51,6 +59,20 @@ Blindly copying every canonical seed signal loses money. The nested ladder shows
 
 Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
 
+![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.png)
+
+## Mechanism Audit
+
+The candidate mechanism is **conviction compression**: most target taker buying arrives in one minute, but the next unrelated execution proxy still understates how often that side wins. Rapid signals record 41 wins against 31.24 implied (+18.1 pp); slower signals record 11 against 14.09 implied (-11.9 pp).
+
+![Urgency-conditioned probability calibration](./figures/urgency_calibration.png)
+
+The day-clustered rapid-minus-slow calibration interval is +10.1 pp to +51.4 pp around a +30.0 pp estimate. Broad discipline/price stratification leaves 3.36x common win odds (`p=0.023`). The stronger falsification is less favorable: permuting urgency labels within discipline, three price bands, and chronological period reduces the effect to +9.6 pp across 52 comparable bets, with one-sided `p=0.239`. That non-result is why the mechanism remains provisional.
+
+Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cut. They reuse overlapping bets, however, and do not count as independent confirmations.
+
+![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+
 ## Execution Stress
 
 ### Slippage at a 60-second delay
@@ -61,6 +83,8 @@ Urgency is the first rule that flips the sign; market format adds the largest st
 | 5c | +0.85% | +26.36% | +8.50% |
 | 7c | -2.53% | +21.75% | +4.75% |
 | 10c | -7.16% | +15.47% | -0.37% |
+
+![ROI under adverse execution stress](./figures/execution_sensitivity.png)
 
 ### Delay at five-cent stress
 
@@ -129,6 +153,7 @@ Before considering capital, the locked model needs a forward paper sample with s
 
 - `npm run research:tape` collects [market_tape.json](./market_tape.json).
 - `npm run research:edge` builds [edge_analysis.json](./edge_analysis.json), [edge_features.csv](./edge_features.csv), and [edge_model.json](./edge_model.json).
+- `npm run research:graphics` rebuilds every PNG/SVG in [figures](./figures/).
 - `npm run research:replicate` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json), and [replication_backtest.json](./replication_backtest.json).
 - Historical audit contains 80 forced simulations.
 
@@ -138,4 +163,5 @@ Before considering capital, the locked model needs a forward paper sample with s
 - Five cents is a stress assumption, not a guaranteed executable price.
 - The wallet was selected after exceptional performance; standard intervals do not correct that selection.
 - Outcomes and trading days remain dependent, and the sample covers roughly two months.
+- The broad calibration result weakens under the tightest discipline/price/time composition control.
 - This is research software, not financial advice.

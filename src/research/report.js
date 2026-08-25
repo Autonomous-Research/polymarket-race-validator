@@ -28,6 +28,11 @@ function signedPercent(value, digits = 1) {
     return `${numeric >= 0 ? '+' : ''}${numeric.toFixed(digits)}%`;
 }
 
+function signedPoints(value, digits = 1) {
+    const numeric = Number(value || 0);
+    return `${numeric >= 0 ? '+' : ''}${numeric.toFixed(digits)} pp`;
+}
+
 function signedMoney(value) {
     const numeric = Number(value || 0);
     return `${numeric >= 0 ? '+' : ''}${money(numeric)}`;
@@ -225,6 +230,16 @@ function traderReport(analysis, stats, edge, peers) {
     const fixed = edge.fixedExternalTapeBacktest;
     const model = edge.walkForwardModel;
     const peerAudit = peers.basket.chronologicalAudit;
+    const blind = edge.blindCopyCounterfactual;
+    const mechanism = edge.mechanismAudit;
+    const calibration = mechanism.calibration;
+    const clusteredCalibration = calibration.dayClusterBootstrap;
+    const broadControl = mechanism.compositionControls.broadCmh;
+    const fineControl = mechanism.compositionControls.finePermutation;
+    const rapidPregame = mechanism.byTimingAndUrgency.find((row) =>
+        row.key === 'pregame' && row.urgency === 'rapid');
+    const rapidInPlay = mechanism.byTimingAndUrgency.find((row) =>
+        row.key === 'in-play' && row.urgency === 'rapid');
 
     return `# Deep Trader Report: @djdjdjekekek
 
@@ -232,7 +247,7 @@ Generated ${analysis.generatedAt}. Coverage: ${isoShort(analysis.coverage.firstT
 
 ## Executive Finding
 
-The edge is **selective directional information expressed through aggressive taker size**, surrounded by an automated maker/inventory layer. Counting fills hid this: makers are ${percent(execution.makerFillPct)} of fills but only ${percent(execution.makerNotionalPct)} of dollars. Taker fills are just ${percent(100 - execution.makerFillPct)} of count yet carry ${percent(100 - execution.makerNotionalPct)} of quote notional.
+The candidate edge is **selective directional information expressed through compressed aggressive taker flow**, surrounded by an automated maker/inventory layer. Counting fills hid this: makers are ${percent(execution.makerFillPct)} of fills but only ${percent(execution.makerNotionalPct)} of dollars. Taker fills are just ${percent(100 - execution.makerFillPct)} of count yet carry ${percent(100 - execution.makerNotionalPct)} of quote notional.
 
 The strongest split is not sport versus esports. It is **aggressive versus passive capital**:
 
@@ -257,6 +272,16 @@ This is a domain correction consistent with the pre-existing map exclusion, but 
 
 The sign does not depend on that correction. A counterfactual that leaves BO1 eligible as the original classifier did returns ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.all.bets)} events and ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.afterFixedSplit.bets)} events after the same fixed split. The corrected rule is economically better; the counterfactual checks that the positive sign was not manufactured by relabeling BO1.
 
+## What Blind Copying Would Have Done
+
+A follower who copied every first canonical-event signal after the target crossed $25,000 would have placed ${number(blind.all.bets)} equal $100 bets, staked ${money(blind.all.stakeUsdc)}, and lost ${money(Math.abs(blind.all.profitUsdc))}. That is ${signedPercent(blind.all.roiPct, 2)} ROI with a ${money(blind.all.maxDrawdownUsdc)} maximum drawdown. The result did not repair itself later: the ${number(blind.later.bets)} signals after the fixed split lost ${money(Math.abs(blind.later.profitUsdc))} at ${signedPercent(blind.later.roiPct, 2)} ROI.
+
+Blind copying also produced only ${number(blind.all.wins)} wins versus ${number(blind.calibration.expectedWinsFromExecutionProxy, 2)} implied by the execution proxy. Its ${signedPoints(blind.calibration.calibrationGapPctPoints, 1)} calibration gap is ordinary (Poisson-binomial upper-tail \`p=${blind.calibration.poissonBinomialUpperTailPValue.toFixed(3)}\`). That diagnostic assumes independent outcomes and calibrated proxy probabilities; it is not a causal p-value. The large-wager observation alone therefore contains no demonstrated follower edge.
+
+![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.png)
+
+![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.png)
+
 The deeper test replaces the target's later fills with ${number(edge.coverage.publicTakerPrints)} unrelated public taker prints from ${number(edge.coverage.tapeMarkets)} signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
 
 | External-tape test | Bets | Wins | ROI |
@@ -270,6 +295,29 @@ The final-period result beats an opposite-side return of ${signedPercent(edge.ra
 The mechanism is a **rapid taker sweep**, not eventual wallet size. Signals with most taker notional arriving in the final 60 seconds returned ${signedPercent(edge.subgroups.burst60.roiPct, 2)} versus ${signedPercent(edge.subgroups.notBurst60.roiPct, 2)} without that burst. Meanwhile, initial trigger size predicts eventual cost poorly: chronological log-cost \`R^2=${Number(edge.sizing.chronologicalTest.r2LogCost).toFixed(3)}\`, with ${money(edge.sizing.chronologicalTest.meanAbsoluteErrorUsdc)} mean absolute error. A follower can observe urgency; it cannot reliably infer the target's final stake.
 
 That burst split has the same sign on both sides of the chronological boundary: ${signedPercent(edge.subgroupChronology.earlier70Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.earlier70Pct.slower.roiPct, 1)} earlier, and ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 1)} in the final period. The full-sample win-rate Fisher test gives \`p=${edge.subgroupChronology.winRateFisherExact.twoSidedPValue.toFixed(4)}\`, but that is a descriptive post-discovery test without feature-search correction.
+
+## Sharpened Mechanism: Conviction Compression
+
+The strongest new diagnostic compares realized wins with the probability visible at the forced execution proxy. Rapid signals won ${number(calibration.burst60.wins)} times; their prices implied only ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} wins. That is ${number(calibration.burst60.excessWins, 2)} excess wins and a ${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)} calibration gap. Slower signals produced ${number(calibration.slower.wins)} wins versus ${number(calibration.slower.expectedWinsFromExecutionProxy, 2)} implied, a ${signedPoints(calibration.slower.calibrationGapPctPoints, 1)} gap in the opposite direction.
+
+| Period and urgency | Bets | Actual wins | Proxy-implied wins | Calibration gap | ROI |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| All rapid | ${number(calibration.burst60.bets)} | ${number(calibration.burst60.wins)} | ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroups.burst60.roiPct, 2)} |
+| All slower | ${number(calibration.slower.bets)} | ${number(calibration.slower.wins)} | ${number(calibration.slower.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.slower.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroups.notBurst60.roiPct, 2)} |
+| Earlier rapid | ${number(calibration.earlier.burst60.bets)} | ${number(calibration.earlier.burst60.wins)} | ${number(calibration.earlier.burst60.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.earlier.burst60.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.earlier70Pct.burst60.roiPct, 2)} |
+| Earlier slower | ${number(calibration.earlier.slower.bets)} | ${number(calibration.earlier.slower.wins)} | ${number(calibration.earlier.slower.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.earlier.slower.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.earlier70Pct.slower.roiPct, 2)} |
+| Later rapid | ${number(calibration.later.burst60.bets)} | ${number(calibration.later.burst60.wins)} | ${number(calibration.later.burst60.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.later.burst60.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 2)} |
+| Later slower | ${number(calibration.later.slower.bets)} | ${number(calibration.later.slower.wins)} | ${number(calibration.later.slower.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.later.slower.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 2)} |
+
+![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.png)
+
+The raw gap is not only an in-play artifact. Rapid signals returned ${signedPercent(rapidPregame.roiPct, 2)} over ${number(rapidPregame.bets)} pregame bets and ${signedPercent(rapidInPlay.roiPct, 2)} over ${number(rapidInPlay.bets)} in-play bets. It is also not exactly one giant transaction: all ${number(mechanism.transactionShape.oneShotSignals)} one-shot signals are mechanically rapid at the threshold timestamp, but ${number(mechanism.transactionShape.multiFillBurstSignals)} rapid multi-fill signals also exist. Those seven all won, which is suggestive but far too small to estimate separately.
+
+Uncertainty cuts both ways. A day-cluster bootstrap estimates the rapid-minus-slow calibration gap at ${signedPoints(clusteredCalibration.burstMinusSlower.estimatePctPoints, 1)}, with a ${signedPoints(clusteredCalibration.burstMinusSlower.ci95LowPctPoints, 1)} to ${signedPoints(clusteredCalibration.burstMinusSlower.ci95HighPctPoints, 1)} interval. A broad Cochran-Mantel-Haenszel control by discipline and price band gives ${broadControl.commonOddsRatio.toFixed(2)}x common win odds (95% CI ${broadControl.ci95Low.toFixed(2)}-${broadControl.ci95High.toFixed(2)}, \`p=${broadControl.twoSidedPValue.toFixed(3)}\`). But a tighter permutation within discipline, three price bands, and chronological period retains only ${number(fineControl.comparableBets)} comparable bets; its effect shrinks to ${signedPoints(fineControl.effectPctPoints, 1)} and is not significant (one-sided \`p=${fineControl.oneSidedPValue.toFixed(3)}\`). The candidate mechanism survives broad controls, not the strongest composition control.
+
+The threshold sweep is smooth rather than isolated at exactly 80%: thresholds from 50% through 99% retain positive ROI, but these overlapping samples are correlated and were analyzed after discovery.
+
+![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.png)
 
 An expanding-window model trained only on markets whose Gamma \`closedTime\` preceded each prediction selected ${number(model.selected.bets)} of ${number(model.predictions)} later signals and returned ${signedPercent(model.selected.roiPct, 2)}, versus ${signedPercent(model.samePeriodAlwaysCopy.roiPct, 2)} for always copying and ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} for the transparent burst gate in the same period. Gamma close-time coverage is ${percent(edge.coverage.gammaClosedTimeCoveragePct, 1)}. Its ROC-AUC is ${Number(model.rocAuc).toFixed(3)}, but the day-cluster interval still reaches ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} and removing its top five winners makes ROI ${signedPercent(model.selected.roiWithoutTopWinnersPct['5'], 1)}. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
 
@@ -402,11 +450,15 @@ Even the high-taker subset falls from ${signedPercent(stats.pnlConcentration.tak
 
 1. Maker-rebate farming as the main edge. Net observed fee drag is far larger than maker rebates.
 2. A universal in-play latency edge. In-play-started markets are roughly flat to negative.
-3. Unfiltered copy trading as a stable edge. The external-tape baseline is positive in aggregate, but its clustered interval crosses zero and top-five removal turns it negative.
+3. Unfiltered copy trading as a stable edge. Blind copying loses ${money(Math.abs(blind.all.profitUsdc))} over ${number(blind.all.bets)} equal-stake signals at ${signedPercent(blind.all.roiPct, 2)} ROI.
 4. Stable, diversified alpha. Five winners are required to keep aggregate PnL positive.
 5. Map/game duplication. It is the largest identifiable strategy leak.
 
 The closest economic analogy is informed liquidity demand inside a broader liquidity-provision operation. Polymarket pays for resting liquidity, but the empirical prediction-market literature warns that limit orders filled during informative periods can be adversely selected. That framework fits the observed split between many weak maker fills and a small aggressive core; it does not prove the trader possesses private information.
+
+The emphasis on **arrival intensity rather than raw size** has external precedent. [Engle and Lange](https://www.nber.org/papers/w6129) find that market depth falls with transaction count and that asymmetric flow completed faster than expected carries greater trading cost. A 2026 [Polymarket PIN working paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527) reports that estimated informed-order-flow intensity is associated with order imbalance, while raw volume effects are not robust. Those studies make conviction compression economically plausible; they do not validate this wallet-level rule.
+
+Measurement work also supports the conservative tape design. A preregistered 2026 [Polymarket microstructure preprint](https://arxiv.org/abs/2604.24366) finds that aggressor direction inferred from the public order-book feed agrees with on-chain ground truth only about 59% of the time. This audit therefore classifies the target from user-specific **takerOnly=true** transaction hashes and uses unrelated public prints only as direction-neutral price marks, never as evidence that another trader chose the same side.
 
 ## Statistical Limits
 
@@ -421,6 +473,9 @@ Selection bias remains: this wallet was investigated because it was exceptional.
 - [Polymarket Data API trades](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
 - [Polymarket liquidity rewards](https://docs.polymarket.com/programs/liquidity-rewards)
 - [Tetlock, Liquidity and Prediction Market Efficiency](https://business.columbia.edu/faculty/research/liquidity-and-prediction-market-efficiency)
+- [Engle and Lange, Measuring, Forecasting and Explaining Time Varying Liquidity](https://www.nber.org/papers/w6129)
+- [Le, Beyond Liquidity: Informed Trading in Decentralized Prediction Markets](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527)
+- [Dubach, The Anatomy of a Decentralized Prediction Market](https://arxiv.org/abs/2604.24366)
 - [Bailey et al., The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
 - [BLAST official TI 2026 series results](https://blast.tv/dota/tournaments/the-international-2026/series)
 - Structured evidence: [deep_analysis.json](./deep_analysis.json), [statistical_analysis.json](./statistical_analysis.json), [edge_analysis.json](./edge_analysis.json), [peer_evidence.json](./peer_evidence.json), and [edge_features.csv](./edge_features.csv)
@@ -431,6 +486,11 @@ function replicationReport(analysis, paper, audit, edge) {
     const fixed = edge.fixedExternalTapeBacktest;
     const model = edge.walkForwardModel;
     const config = paper.config;
+    const blind = edge.blindCopyCounterfactual;
+    const mechanism = edge.mechanismAudit;
+    const calibration = mechanism.calibration;
+    const broadControl = mechanism.compositionControls.broadCmh;
+    const fineControl = mechanism.compositionControls.finePermutation;
     const formatAudit = analysis.performance.formatAudit || {};
     const slips = edge.executionSensitivity
         .filter((row) => row.lagSeconds === fixed.lagSeconds)
@@ -472,7 +532,7 @@ The earlier prototype used the target's next future BUY as an execution proxy. T
 | Event control | First eligible condition per canonical event |
 | Delay | ${number(fixed.lagSeconds)} seconds after the signal |
 | Historical price | First direction-neutral public taker print in the next 60 seconds; trigger fallback if absent |
-| Cost stress | ${fixed.slippageCents} cents adverse movement plus Polymarket's 3% fee curve |
+| Cost stress | ${fixed.slippageCents} cents adverse movement plus the account-observed 3% fee curve |
 | Live paper execution | Marketable limit at the current ask, FOK, rejected above trigger + ${config.maxAdverseMove.toFixed(2)} or when displayed ask depth is insufficient |
 | Sizing | Fixed bankroll fraction; no attempt to predict the target's final position |
 | Model gate | Predicted win probability minus all-in price must exceed ${percent(config.edgeModel.minimumPredictedEdge * 100)} |
@@ -480,6 +540,14 @@ The earlier prototype used the target's next future BUY as an execution proxy. T
 The BO1 exclusion is important. The corrected audit records a ${money(Math.abs(formatAudit.bo1?.realizedPnlUsdc))} loss across ${number(formatAudit.bo1?.markets)} BO1 markets rather than hiding them inside the profitable series bucket.
 
 Because that correction was found after inspecting final losses, the audit also preserves the original-classifier counterfactual. Keeping BO1 eligible returns ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.all.bets)} events and ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} over ${number(edge.bo1ClassificationSensitivity.afterFixedSplit.bets)} events after the same fixed boundary. Its later ROI after removing the top three winners is ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiWithoutTopWinnersPct['3'], 2)}.
+
+## Blind-Copy Baseline
+
+The literal copy strategy is rejected before model selection. Copying every first canonical-event signal produces ${number(blind.all.bets)} bets, ${signedMoney(blind.all.profitUsdc)} P&L, ${signedPercent(blind.all.roiPct, 2)} ROI, and a ${money(blind.all.maxDrawdownUsdc)} maximum drawdown at $100 per signal. It remains negative after the fixed split: ${number(blind.later.bets)} bets, ${signedMoney(blind.later.profitUsdc)}, ${signedPercent(blind.later.roiPct, 2)} ROI. Removing its best five winners worsens all-period ROI to ${signedPercent(blind.all.roiWithoutTopWinnersPct['5'], 2)}.
+
+This matters because the ${number(fixed.all.bets)}-event primary test below is already a restricted universe. Its positive result must not be described as the return from blindly following the account.
+
+![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.png)
 
 ## Primary Historical Test
 
@@ -505,6 +573,20 @@ ${universeRows}
 
 Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
 
+![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.png)
+
+## Mechanism Audit
+
+The candidate mechanism is **conviction compression**: most target taker buying arrives in one minute, but the next unrelated execution proxy still understates how often that side wins. Rapid signals record ${number(calibration.burst60.wins)} wins against ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} implied (${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)}); slower signals record ${number(calibration.slower.wins)} against ${number(calibration.slower.expectedWinsFromExecutionProxy, 2)} implied (${signedPoints(calibration.slower.calibrationGapPctPoints, 1)}).
+
+![Urgency-conditioned probability calibration](./figures/urgency_calibration.png)
+
+The day-clustered rapid-minus-slow calibration interval is ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95LowPctPoints, 1)} to ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95HighPctPoints, 1)} around a ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.estimatePctPoints, 1)} estimate. Broad discipline/price stratification leaves ${broadControl.commonOddsRatio.toFixed(2)}x common win odds (\`p=${broadControl.twoSidedPValue.toFixed(3)}\`). The stronger falsification is less favorable: permuting urgency labels within discipline, three price bands, and chronological period reduces the effect to ${signedPoints(fineControl.effectPctPoints, 1)} across ${number(fineControl.comparableBets)} comparable bets, with one-sided \`p=${fineControl.oneSidedPValue.toFixed(3)}\`. That non-result is why the mechanism remains provisional.
+
+Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cut. They reuse overlapping bets, however, and do not count as independent confirmations.
+
+![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+
 ## Execution Stress
 
 ### Slippage at a 60-second delay
@@ -512,6 +594,8 @@ Urgency is the first rule that flips the sign; market format adds the largest st
 | Adverse stress | Earlier 70% | Final 30% | All |
 | --- | ---: | ---: | ---: |
 ${slipRows}
+
+![ROI under adverse execution stress](./figures/execution_sensitivity.png)
 
 ### Delay at five-cent stress
 
@@ -576,6 +660,7 @@ Before considering capital, the locked model needs a forward paper sample with s
 
 - \`npm run research:tape\` collects [market_tape.json](./market_tape.json).
 - \`npm run research:edge\` builds [edge_analysis.json](./edge_analysis.json), [edge_features.csv](./edge_features.csv), and [edge_model.json](./edge_model.json).
+- \`npm run research:graphics\` rebuilds every PNG/SVG in [figures](./figures/).
 - \`npm run research:replicate\` rebuilds [replication_intents.json](./replication_intents.json), [replicator_config.json](./replicator_config.json), and [replication_backtest.json](./replication_backtest.json).
 - Historical audit contains ${number(audit.fixedExternalTapeBacktest?.all?.bets || fixed.all.bets)} forced simulations.
 
@@ -585,6 +670,7 @@ Before considering capital, the locked model needs a forward paper sample with s
 - Five cents is a stress assumption, not a guaranteed executable price.
 - The wallet was selected after exceptional performance; standard intervals do not correct that selection.
 - Outcomes and trading days remain dependent, and the sample covers roughly two months.
+- The broad calibration result weakens under the tightest discipline/price/time composition control.
 - This is research software, not financial advice.
 `;
 }
@@ -597,6 +683,11 @@ function breakthroughReport(analysis, edge, peers) {
     const noBurst = edge.subgroups.notBurst60;
     const peerAudit = peers.basket.chronologicalAudit;
     const spcex = peers.peers.find((peer) => peer.name === 'SPCEXBUYER') || {};
+    const blind = edge.blindCopyCounterfactual;
+    const mechanism = edge.mechanismAudit;
+    const calibration = mechanism.calibration;
+    const broadControl = mechanism.compositionControls.broadCmh;
+    const fineControl = mechanism.compositionControls.finePermutation;
 
     return `# Breakthrough Audit
 
@@ -604,13 +695,18 @@ Generated ${edge.generatedAt}. This is the shortest path through the second-pass
 
 ## Discovery
 
-The account's repeatable-looking signal is not simply "large bet" and not "copy a winning whale." It is a **rapid, concentrated taker sweep in a full-match or multi-map market**, followed by enough market inertia for a delayed observer to see a similar public price.
+The account's repeatable-looking signal is not simply "large bet" and not "copy a winning whale." Blindly copying every canonical $25,000 signal would have lost ${money(Math.abs(blind.all.profitUsdc))} over ${number(blind.all.bets)} equal $100 bets (${signedPercent(blind.all.roiPct, 2)} ROI), including ${signedPercent(blind.later.roiPct, 2)} after the fixed chronological split.
 
-Three pieces of evidence establish that narrower claim:
+The narrower candidate is a **rapid, concentrated taker sweep in a full-match or multi-map market**, followed by enough market inertia for a delayed observer to see a similar public price.
 
-1. Correcting BO1 semantics separates ${number(format.multiMapSeries.markets)} true multi-map series at ${signedPercent(format.multiMapSeries.roiPct, 2)} ROI from ${number(format.singleGameOrMap.markets)} single-game/map markets at ${signedPercent(format.singleGameOrMap.roiPct, 2)}. The ${number(format.bo1.markets)} mislabeled BO1 rows alone lost ${money(Math.abs(format.bo1.realizedPnlUsdc))}.
-2. On an unrelated market-wide tape, a forced 60-second copy with five cents adverse stress returned ${signedPercent(fixed.all.roiPct, 2)} over ${number(fixed.all.bets)} events and ${signedPercent(fixed.test.roiPct, 2)} over the chronological final ${number(fixed.test.bets)}.
-3. Signals concentrated into the final 60 seconds returned ${signedPercent(burst.roiPct, 2)}; slower accumulations returned ${signedPercent(noBurst.roiPct, 2)}. The split remains ${signedPercent(edge.subgroupChronology.earlier70Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.earlier70Pct.slower.roiPct, 1)} earlier and ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 1)} versus ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 1)} in the final period.
+Four pieces of evidence support that narrower claim:
+
+1. Blind copying loses ${signedPercent(blind.all.roiPct, 2)} overall and ${signedPercent(blind.later.roiPct, 2)} later. Urgency is the first observable filter that changes the sign.
+2. Correcting BO1 semantics separates ${number(format.multiMapSeries.markets)} true multi-map series at ${signedPercent(format.multiMapSeries.roiPct, 2)} ROI from ${number(format.singleGameOrMap.markets)} single-game/map markets at ${signedPercent(format.singleGameOrMap.roiPct, 2)}. The ${number(format.bo1.markets)} mislabeled BO1 rows alone lost ${money(Math.abs(format.bo1.realizedPnlUsdc))}.
+3. On an unrelated market-wide tape, a forced 60-second copy with five cents adverse stress returned ${signedPercent(fixed.all.roiPct, 2)} over ${number(fixed.all.bets)} already-filtered events and ${signedPercent(fixed.test.roiPct, 2)} over the chronological final ${number(fixed.test.bets)}.
+4. Signals concentrated into the final 60 seconds returned ${signedPercent(burst.roiPct, 2)}; slower accumulations returned ${signedPercent(noBurst.roiPct, 2)}. Rapid signals won ${number(calibration.burst60.wins)} times versus ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} implied by the execution proxy, while slow signals underperformed their proxy.
+
+![Blind-copy attribution ladder](./figures/blind_copy_funnel.png)
 
 ## What Survived Falsification
 
@@ -629,8 +725,26 @@ Three pieces of evidence establish that narrower claim:
 | Model after burst behavior | ${number(model.selected.bets)} bets / ${signedPercent(model.selected.roiPct, 2)} | Secondary filter; more top-winner concentration |
 | Remove burst feature | AUC ${Number(model.ablations.withoutTakerBurst60.rocAuc).toFixed(3)} vs ${Number(model.rocAuc).toFixed(3)} full | Burst adds predictive information in this sample |
 | Remove public-tape features | AUC ${Number(model.ablations.withoutPublicTape.rocAuc).toFixed(3)} | External flow and momentum add information |
+| Rapid calibration gap | ${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)} | 41 actual wins versus ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} implied |
+| Slow calibration gap | ${signedPoints(calibration.slower.calibrationGapPctPoints, 1)} | Public proxy does not underprice slow signals |
+| Broad discipline/price control | OR ${broadControl.commonOddsRatio.toFixed(2)}, \`p=${broadControl.twoSidedPValue.toFixed(3)}\` | Candidate survives broad composition control |
+| Fine discipline/price/time permutation | ${signedPoints(fineControl.effectPctPoints, 1)}, \`p=${fineControl.oneSidedPValue.toFixed(3)}\` | Candidate does not survive the tightest low-power control |
 
 The result is directional and execution-sensitive. It is not yet statistically decisive: the fixed final-period day-cluster interval is ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)}, and the walk-forward interval is ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(model.selectedDayClusterBootstrap.ci95HighPct, 1)}. Feature design occurred during this investigation, so the expanding-window result is not equivalent to a locked prospective trial.
+
+## Sharpened Discovery
+
+The most specific defensible hypothesis is **conviction compression**. The target's information appears strongest when it crosses liquidity quickly enough that at least 80% of observed aggressive buying arrives in one minute. The unrelated public execution proxy remains nearly unchanged, yet those sides later win ${percent(calibration.burst60.actualWinRatePct, 1)} of the time against ${percent(calibration.burst60.meanImpliedProbabilityPct, 1)} implied. Slow signals win only ${percent(calibration.slower.actualWinRatePct, 1)} against ${percent(calibration.slower.meanImpliedProbabilityPct, 1)} implied.
+
+![Urgency-conditioned realized and implied probabilities](./figures/urgency_calibration.png)
+
+The day-cluster bootstrap estimates a ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.estimatePctPoints, 1)} rapid-minus-slow calibration gap with a ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95LowPctPoints, 1)} to ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95HighPctPoints, 1)} interval. This is stronger than the ROI interval because it asks whether the target side wins more often than its observed price implies, not how a few long-shot payouts happened to land.
+
+The negative control is equally important. Tight conditioning by discipline, three price bands, and chronological period leaves only ${number(fineControl.comparableBets)} comparable observations; permuting urgency labels within those strata produces one-sided \`p=${fineControl.oneSidedPValue.toFixed(3)}\`. Composition may explain part of the raw effect. The next genuine discovery must come from a prospectively locked forward sample, not another retrospective slice.
+
+External microstructure research makes this hypothesis plausible without confirming it. [Engle and Lange](https://www.nber.org/papers/w6129) connect faster asymmetric transaction flow to thinner depth and higher trading costs; a 2026 [Polymarket informed-trading working paper](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527) finds order imbalance more robust than raw volume. This audit's sharper variable is therefore temporal concentration, not eventual stake. Neither paper tests this wallet or removes the need for prospective validation.
+
+![Chronological equity under blind and filtered rules](./figures/strategy_equity.png)
 
 ## What Failed
 
@@ -648,15 +762,16 @@ The evidence is most consistent with informed liquidity demand:
 
 1. The target pays taker fees to cross quickly when conviction appears.
 2. The first burst contains more information than the eventual position size.
-3. Public price response is often flat for 15-300 seconds, leaving a limited observation window.
-4. Full-match and multi-map theses work; one-map bets destroy value.
-5. Other whales visit the same markets, but no wallet consistently leads and agrees.
+3. Rapid signals outperform their public probability proxy; slow signals do not.
+4. Public price response is often flat for 15-300 seconds, leaving a limited observation window.
+5. Full-match and multi-map theses work; one-map bets destroy value.
+6. Other whales visit the same markets, but no wallet consistently leads and agrees.
 
 This mechanism is an inference from transaction behavior. It does not identify a private information source or prove causality.
 
 ## Decision
 
-There is enough evidence to run the frozen walk-forward filter in paper mode. There is not enough evidence to deploy capital. Promotion would require at least 200 new eligible signals, executable-depth snapshots, FOK failure accounting, stable clustered confidence bounds above zero, and positive ROI after the top five winners are removed.
+There is enough evidence to run the frozen walk-forward filter in paper mode. There is not enough evidence to deploy capital. Promotion would require at least 200 new eligible signals, executable-depth snapshots, FOK failure accounting, a prospectively locked urgency/format rule, stable clustered confidence bounds above zero, and positive ROI after the top five winners are removed.
 
 ## Evidence
 
@@ -668,6 +783,9 @@ There is enough evidence to run the frozen walk-forward filter in paper mode. Th
 - [Polymarket Data API trade documentation](https://docs.polymarket.com/api-reference/core/get-trades-for-a-user-or-markets)
 - [Polymarket Gamma market schema](https://docs.polymarket.com/api-reference/markets/list-markets)
 - [Prediction-market price formation research](https://www.sciencedirect.com/science/article/pii/S1386418123000794)
+- [Engle and Lange, Measuring, Forecasting and Explaining Time Varying Liquidity](https://www.nber.org/papers/w6129)
+- [Le, Beyond Liquidity: Informed Trading in Decentralized Prediction Markets](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6933527)
+- [Dubach, The Anatomy of a Decentralized Prediction Market](https://arxiv.org/abs/2604.24366)
 - [The Probability of Backtest Overfitting](https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf)
 `;
 }
@@ -679,6 +797,9 @@ function executiveReport(analysis, stats, onchain, edge, peers) {
     const fixed = edge.fixedExternalTapeBacktest;
     const model = edge.walkForwardModel;
     const peerAudit = peers.basket.chronologicalAudit;
+    const blind = edge.blindCopyCounterfactual;
+    const calibration = edge.mechanismAudit.calibration;
+    const fineControl = edge.mechanismAudit.compositionControls.finePermutation;
 
     return `# @djdjdjekekek: Investigation And Replication Research
 
@@ -693,10 +814,14 @@ The account is a two-layer automated operation: ${percent(execution.makerFillPct
 | True multi-map series | ${number(format.multiMapSeries.markets)} markets, ${signedMoney(format.multiMapSeries.realizedPnlUsdc)}, ${signedPercent(format.multiMapSeries.roiPct, 2)} ROI |
 | Single game/map including BO1 | ${number(format.singleGameOrMap.markets)} markets, ${signedMoney(format.singleGameOrMap.realizedPnlUsdc)}, ${signedPercent(format.singleGameOrMap.roiPct, 2)} ROI |
 | Forced external-tape backtest | ${number(fixed.all.bets)} bets, ${signedPercent(fixed.all.roiPct, 2)} all-period ROI |
-| Blind all-signal external-tape copy | ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.all.roiPct, 2)} all / ${signedPercent(edge.universeSensitivity.steps.allCanonicalSignals.afterFixedSplit.roiPct, 2)} after fixed split |
+| Blind all-signal external-tape copy | ${number(blind.all.bets)} bets, ${signedMoney(blind.all.profitUsdc)}, ${signedPercent(blind.all.roiPct, 2)} all / ${signedPercent(blind.later.roiPct, 2)} later |
+| Rapid-signal calibration | ${number(calibration.burst60.wins)} wins vs ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} implied; ${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)} |
+| Tight composition control | ${signedPoints(fineControl.effectPctPoints, 1)} across ${number(fineControl.comparableBets)} comparable bets; one-sided \`p=${fineControl.oneSidedPValue.toFixed(3)}\` |
 | Original-classifier BO1 counterfactual | ${number(edge.bo1ClassificationSensitivity.all.bets)} bets, ${signedPercent(edge.bo1ClassificationSensitivity.all.roiPct, 2)} all / ${signedPercent(edge.bo1ClassificationSensitivity.afterFixedSplit.roiPct, 2)} later |
 | Chronological final period | ${number(fixed.test.bets)} bets, ${signedPercent(fixed.test.roiPct, 2)} ROI; day-cluster interval ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)} |
 | Expanding-window model | ${number(model.selected.bets)} selected bets, ${signedPercent(model.selected.roiPct, 2)} ROI; ROC-AUC ${Number(model.rocAuc).toFixed(3)} |
+
+![Blind-copy and filtered-rule equity](./figures/strategy_equity.png)
 
 ## Corrections And Rejections
 
@@ -719,7 +844,7 @@ The type-3 Deposit Wallet resolves to controller EOA \`${onchain.wallet.owner}\`
 
 ## Bottom Line
 
-This is a credible paper-trading discovery, not a cracked money machine. Direction beats randomized and opposite sides, the final chronological slice is positive, and the walk-forward filter improves its baseline. Yet both clustered confidence intervals still touch or cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.
+This is a credible paper-trading candidate, not a cracked money machine. Direction beats randomized and opposite sides, urgency separates realized wins from public implied probabilities, and the walk-forward filter improves its baseline. Yet the tightest composition control is not significant, both ROI confidence intervals still cross zero, performance is concentrated, and public prints do not prove executable depth. The repository therefore freezes the model and emits paper-only FOK intents.
 `;
 }
 

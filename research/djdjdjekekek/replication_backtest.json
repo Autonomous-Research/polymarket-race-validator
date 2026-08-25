@@ -9,6 +9,7 @@
       "A public trade print proves market activity, not the exact historical ask depth available to a follower; the five-cent stress is a conservative proxy.",
       "The account was selected after exceptional performance, so trader-selection bias remains.",
       "The model family and feature set were chosen during this investigation; expanding-window predictions are pseudo-out-of-sample, not a locked prospective trial.",
+      "The urgency calibration and stratified mechanism audits were designed after observing this sample; their p-values diagnose compatibility with narrow nulls but do not correct for discovery search.",
       "The sample spans only about two months and event returns are highly concentrated."
     ]
   },
@@ -97,6 +98,76 @@
         "5": -1.8890416409520396
       }
     }
+  },
+  "blindCopyCounterfactual": {
+    "definition": "Copy every first canonical-event signal after the target crosses $25,000 at >=70% concentration; no discipline, format, price, or burst filter.",
+    "all": {
+      "bets": 139,
+      "wins": 80,
+      "winRatePct": 57.55395683453237,
+      "stakeUsdc": 13900,
+      "profitUsdc": -855.281122941401,
+      "roiPct": -6.153101603894971,
+      "profitFactor": 0.8550370978065424,
+      "maxDrawdownUsdc": 2055.759941622438,
+      "medianObservedPrice": 0.5598596612,
+      "medianAllInPrice": 0.6169975868452306,
+      "fallbackPrices": 4,
+      "roiWithoutTopWinnersPct": {
+        "1": -8.006323393027749,
+        "3": -10.834773844360779,
+        "5": -13.517394503442556
+      }
+    },
+    "earlier": {
+      "bets": 94,
+      "wins": 55,
+      "winRatePct": 58.51063829787234,
+      "stakeUsdc": 9400,
+      "profitUsdc": -554.7872076465908,
+      "roiPct": -5.901991570708413,
+      "profitFactor": 0.8577468698342072,
+      "maxDrawdownUsdc": 1177.678578811613,
+      "medianObservedPrice": 0.5895000555000001,
+      "medianAllInPrice": 0.6464162400373068,
+      "fallbackPrices": 4,
+      "roiWithoutTopWinnersPct": {
+        "1": -8.64923347250559,
+        "3": -12.890498104816006,
+        "5": -16.898118879740757
+      }
+    },
+    "later": {
+      "bets": 45,
+      "wins": 25,
+      "winRatePct": 55.55555555555556,
+      "stakeUsdc": 4500,
+      "profitUsdc": -300.4939152948099,
+      "roiPct": -6.677642562106886,
+      "profitFactor": 0.849753042352595,
+      "maxDrawdownUsdc": 1048.3836329469427,
+      "medianObservedPrice": 0.5299998881,
+      "medianAllInPrice": 0.5873078886371197,
+      "fallbackPrices": 0,
+      "roiWithoutTopWinnersPct": {
+        "1": -10.585246133623425,
+        "3": -17.746511574458715,
+        "5": -24.436018386024756
+      }
+    },
+    "calibration": {
+      "bets": 139,
+      "wins": 80,
+      "expectedWinsFromExecutionProxy": 77.15420816275,
+      "excessWins": 2.8457918372500046,
+      "actualWinRatePct": 57.55395683453237,
+      "meanImpliedProbabilityPct": 55.50662457751798,
+      "calibrationGapPctPoints": 2.047332257014389,
+      "brierScore": 0.2141091285984474,
+      "poissonBinomialUpperTailPValue": 0.3328231915990379,
+      "fallbackPrices": 4
+    },
+    "decision": "Rejected: blind copying is negative both overall and after the fixed chronological split."
   },
   "universeSensitivity": {
     "splitTimestamp": 1786407697,
@@ -1327,6 +1398,1557 @@
         "predictedWinProbability": 0.8702485993837346,
         "predictedEdge": 0.4211158540199631,
         "return": 1.226513230938123
+      }
+    ]
+  },
+  "mechanismAudit": {
+    "candidateMechanism": "Conviction compression: most aggressive target buying arrives in one minute, while the public execution proxy has not yet incorporated the target side's later realized win frequency.",
+    "calibration": {
+      "all": {
+        "bets": 80,
+        "wins": 52,
+        "expectedWinsFromExecutionProxy": 45.3326047315,
+        "excessWins": 6.667395268500002,
+        "actualWinRatePct": 65,
+        "meanImpliedProbabilityPct": 56.66575591437499,
+        "calibrationGapPctPoints": 8.334244085625,
+        "brierScore": 0.23310460790133858,
+        "poissonBinomialUpperTailPValue": 0.06997426738501034,
+        "fallbackPrices": 3
+      },
+      "burst60": {
+        "bets": 54,
+        "wins": 41,
+        "expectedWinsFromExecutionProxy": 31.237816721100007,
+        "excessWins": 9.762183278899993,
+        "actualWinRatePct": 75.92592592592592,
+        "meanImpliedProbabilityPct": 57.847808742777794,
+        "calibrationGapPctPoints": 18.078117183148144,
+        "brierScore": 0.21316703194523626,
+        "poissonBinomialUpperTailPValue": 0.002914787515914492,
+        "fallbackPrices": 1
+      },
+      "slower": {
+        "bets": 26,
+        "wins": 11,
+        "expectedWinsFromExecutionProxy": 14.094788010399999,
+        "excessWins": -3.0947880103999985,
+        "actualWinRatePct": 42.30769230769231,
+        "meanImpliedProbabilityPct": 54.21072311692308,
+        "calibrationGapPctPoints": -11.903030809230769,
+        "brierScore": 0.2745134195024742,
+        "poissonBinomialUpperTailPValue": 0.932976164853933,
+        "fallbackPrices": 2
+      },
+      "earlier": {
+        "burst60": {
+          "bets": 35,
+          "wins": 26,
+          "expectedWinsFromExecutionProxy": 21.4122521111,
+          "excessWins": 4.587747888900001,
+          "actualWinRatePct": 74.28571428571429,
+          "meanImpliedProbabilityPct": 61.17786317457142,
+          "calibrationGapPctPoints": 13.107851111142857,
+          "brierScore": 0.2049453526726094,
+          "poissonBinomialUpperTailPValue": 0.06571620024423189,
+          "fallbackPrices": 1
+        },
+        "slower": {
+          "bets": 21,
+          "wins": 9,
+          "expectedWinsFromExecutionProxy": 11.521000027399998,
+          "excessWins": -2.5210000273999977,
+          "actualWinRatePct": 42.857142857142854,
+          "meanImpliedProbabilityPct": 54.86190489238094,
+          "calibrationGapPctPoints": -12.004762035238093,
+          "brierScore": 0.28070194528895315,
+          "poissonBinomialUpperTailPValue": 0.9185029481202645,
+          "fallbackPrices": 2
+        }
+      },
+      "later": {
+        "burst60": {
+          "bets": 19,
+          "wins": 15,
+          "expectedWinsFromExecutionProxy": 9.82556461,
+          "excessWins": 5.174435389999999,
+          "actualWinRatePct": 78.94736842105263,
+          "meanImpliedProbabilityPct": 51.713497947368424,
+          "calibrationGapPctPoints": 27.233870473684213,
+          "brierScore": 0.22831223060533823,
+          "poissonBinomialUpperTailPValue": 0.010740557154674308,
+          "fallbackPrices": 0
+        },
+        "slower": {
+          "bets": 5,
+          "wins": 2,
+          "expectedWinsFromExecutionProxy": 2.573787983,
+          "excessWins": -0.5737879829999999,
+          "actualWinRatePct": 40,
+          "meanImpliedProbabilityPct": 51.475759659999994,
+          "calibrationGapPctPoints": -11.475759659999998,
+          "brierScore": 0.24852161119926253,
+          "poissonBinomialUpperTailPValue": 0.8545883954785257,
+          "fallbackPrices": 0
+        }
+      },
+      "dayClusterBootstrap": {
+        "dayClusters": 35,
+        "burst60": {
+          "estimatePctPoints": 18.078117183148144,
+          "ci95LowPctPoints": 5.501657158256999,
+          "ci95HighPctPoints": 28.724718488449962,
+          "probabilityPositivePct": 99.64
+        },
+        "slower": {
+          "estimatePctPoints": -11.903030809230769,
+          "ci95LowPctPoints": -29.294981965906103,
+          "ci95HighPctPoints": 3.5984230245395707,
+          "probabilityPositivePct": 6.529999999999999
+        },
+        "burstMinusSlower": {
+          "estimatePctPoints": 29.981147992378915,
+          "ci95LowPctPoints": 10.060398281017061,
+          "ci95HighPctPoints": 51.43790307600039,
+          "probabilityPositivePct": 99.875
+        }
+      }
+    },
+    "compositionControls": {
+      "broadCmh": {
+        "method": "Cochran-Mantel-Haenszel burst-versus-slow win odds, stratified by discipline and public execution-proxy price <=0.60 or >0.60; zero cells receive the library's 0.5 correction.",
+        "strata": 7,
+        "comparableBets": 67,
+        "commonOddsRatio": 3.361671139317388,
+        "ci95Low": 1.196188684858756,
+        "ci95High": 9.447366449761933,
+        "twoSidedPValue": 0.023427846733314217,
+        "details": [
+          {
+            "discipline": "Counter-Strike",
+            "priceBand": "<=0.60",
+            "bets": 8,
+            "table": [
+              [
+                3,
+                2
+              ],
+              [
+                1,
+                2
+              ]
+            ]
+          },
+          {
+            "discipline": "Counter-Strike",
+            "priceBand": ">0.60",
+            "bets": 5,
+            "table": [
+              [
+                3,
+                0
+              ],
+              [
+                2,
+                0
+              ]
+            ]
+          },
+          {
+            "discipline": "Dota 2",
+            "priceBand": "<=0.60",
+            "bets": 16,
+            "table": [
+              [
+                7,
+                3
+              ],
+              [
+                2,
+                4
+              ]
+            ]
+          },
+          {
+            "discipline": "Dota 2",
+            "priceBand": ">0.60",
+            "bets": 2,
+            "table": [
+              [
+                1,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "discipline": "League of Legends",
+            "priceBand": ">0.60",
+            "bets": 4,
+            "table": [
+              [
+                3,
+                0
+              ],
+              [
+                0,
+                1
+              ]
+            ]
+          },
+          {
+            "discipline": "Tennis",
+            "priceBand": "<=0.60",
+            "bets": 13,
+            "table": [
+              [
+                5,
+                2
+              ],
+              [
+                4,
+                2
+              ]
+            ]
+          },
+          {
+            "discipline": "Tennis",
+            "priceBand": ">0.60",
+            "bets": 19,
+            "table": [
+              [
+                10,
+                4
+              ],
+              [
+                2,
+                3
+              ]
+            ]
+          }
+        ],
+        "warning": "Descriptive post-discovery control with sparse cells; the price boundary and burst threshold were not prospectively locked."
+      },
+      "finePermutation": {
+        "method": "Shuffle burst labels within discipline x three public-price bands x fixed chronological period, preserving each stratum's burst count; statistic is the overlap-weighted calibration-gap difference.",
+        "strata": 11,
+        "comparableBets": 52,
+        "effectPctPoints": 9.640244073504602,
+        "oneSidedPValue": 0.2393380330983451,
+        "nullCi95LowPctPoints": -26.998207267193248,
+        "nullCi95HighPctPoints": 27.77516773333971,
+        "warning": "Only strata containing both burst and slow bets contribute. This tighter control is low-powered but materially weakens the raw difference."
+      }
+    },
+    "thresholdSensitivity": [
+      {
+        "minimumBurstShare": 0.5,
+        "bets": 72,
+        "wins": 49,
+        "winRatePct": 68.05555555555556,
+        "stakeUsdc": 7200,
+        "profitUsdc": 1065.9868200081914,
+        "roiPct": 14.80537250011377,
+        "profitFactor": 1.463472530438344,
+        "maxDrawdownUsdc": 608.0866524593007,
+        "medianObservedPrice": 0.5895000555000001,
+        "medianAllInPrice": 0.6464162400373068,
+        "fallbackPrices": 3,
+        "roiWithoutTopWinnersPct": {
+          "1": 12.475174620036961,
+          "3": 7.94109822310708,
+          "5": 3.6418472117730043
+        },
+        "calibration": {
+          "bets": 72,
+          "wins": 49,
+          "expectedWinsFromExecutionProxy": 40.566604815699996,
+          "excessWins": 8.433395184300004,
+          "actualWinRatePct": 68.05555555555556,
+          "meanImpliedProbabilityPct": 56.34250668847221,
+          "calibrationGapPctPoints": 11.713048867083337,
+          "brierScore": 0.23235698260334836,
+          "poissonBinomialUpperTailPValue": 0.022080357450416272,
+          "fallbackPrices": 3
+        }
+      },
+      {
+        "minimumBurstShare": 0.6,
+        "bets": 66,
+        "wins": 46,
+        "winRatePct": 69.6969696969697,
+        "stakeUsdc": 6600,
+        "profitUsdc": 1214.4589882359408,
+        "roiPct": 18.400893761150616,
+        "profitFactor": 1.6072294941179701,
+        "maxDrawdownUsdc": 643.8217447078223,
+        "medianObservedPrice": 0.5904999957,
+        "medianAllInPrice": 0.6474077807362011,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": 15.910916403851902,
+          "3": 11.054094374954564,
+          "5": 6.434031662566237
+        },
+        "calibration": {
+          "bets": 66,
+          "wins": 46,
+          "expectedWinsFromExecutionProxy": 37.4766048101,
+          "excessWins": 8.5233951899,
+          "actualWinRatePct": 69.6969696969697,
+          "meanImpliedProbabilityPct": 56.782734560757575,
+          "calibrationGapPctPoints": 12.91423513621212,
+          "brierScore": 0.2409697386298346,
+          "poissonBinomialUpperTailPValue": 0.01675930817438435,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "minimumBurstShare": 0.7,
+        "bets": 60,
+        "wins": 43,
+        "winRatePct": 71.66666666666667,
+        "stakeUsdc": 6000,
+        "profitUsdc": 1109.9493408249082,
+        "roiPct": 18.499155680415136,
+        "profitFactor": 1.6529113769558283,
+        "maxDrawdownUsdc": 462.43681821714074,
+        "medianObservedPrice": 0.5904999957,
+        "medianAllInPrice": 0.6474077807362011,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": 15.888214148835477,
+          "3": 10.768336376870469,
+          "5": 6.076227586068754
+        },
+        "calibration": {
+          "bets": 60,
+          "wins": 43,
+          "expectedWinsFromExecutionProxy": 34.317816781299996,
+          "excessWins": 8.682183218700004,
+          "actualWinRatePct": 71.66666666666667,
+          "meanImpliedProbabilityPct": 57.196361302166665,
+          "calibrationGapPctPoints": 14.470305364499996,
+          "brierScore": 0.22238032729217952,
+          "poissonBinomialUpperTailPValue": 0.011237803362571715,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "minimumBurstShare": 0.8,
+        "bets": 54,
+        "wins": 41,
+        "winRatePct": 75.92592592592592,
+        "stakeUsdc": 5400,
+        "profitUsdc": 1316.1633169842307,
+        "roiPct": 24.373394758967233,
+        "profitFactor": 2.0124333207571,
+        "maxDrawdownUsdc": 416.1796785887906,
+        "medianObservedPrice": 0.5930000129499999,
+        "medianAllInPrice": 0.649886422837011,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 21.577709640388974,
+          "3": 16.078610777273315,
+          "5": 11.028703946798037
+        },
+        "calibration": {
+          "bets": 54,
+          "wins": 41,
+          "expectedWinsFromExecutionProxy": 31.237816721100007,
+          "excessWins": 9.762183278899993,
+          "actualWinRatePct": 75.92592592592592,
+          "meanImpliedProbabilityPct": 57.847808742777794,
+          "calibrationGapPctPoints": 18.078117183148144,
+          "brierScore": 0.21316703194523626,
+          "poissonBinomialUpperTailPValue": 0.002914787515914492,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "minimumBurstShare": 0.9,
+        "bets": 50,
+        "wins": 38,
+        "winRatePct": 76,
+        "stakeUsdc": 5000,
+        "profitUsdc": 1255.1624859464011,
+        "roiPct": 25.103249718928023,
+        "profitFactor": 2.045968738288667,
+        "maxDrawdownUsdc": 434.65859881930317,
+        "medianObservedPrice": 0.5930000129499999,
+        "medianAllInPrice": 0.649886422837011,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 22.094240406179313,
+          "3": 16.14911316176829,
+          "5": 10.653459163450544
+        },
+        "calibration": {
+          "bets": 50,
+          "wins": 38,
+          "expectedWinsFromExecutionProxy": 28.9060821111,
+          "excessWins": 9.093917888899998,
+          "actualWinRatePct": 76,
+          "meanImpliedProbabilityPct": 57.8121642222,
+          "calibrationGapPctPoints": 18.1878357778,
+          "brierScore": 0.21823265806784944,
+          "poissonBinomialUpperTailPValue": 0.004021828851447708,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "minimumBurstShare": 0.95,
+        "bets": 48,
+        "wins": 36,
+        "winRatePct": 75,
+        "stakeUsdc": 4800,
+        "profitUsdc": 1175.1504002188317,
+        "roiPct": 24.482300004558994,
+        "profitFactor": 1.9792920001823593,
+        "maxDrawdownUsdc": 434.65859881930317,
+        "medianObservedPrice": 0.5900000570999999,
+        "medianAllInPrice": 0.6469120266239479,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 21.332036046281203,
+          "3": 15.088805175011997,
+          "5": 9.288222712272198
+        },
+        "calibration": {
+          "bets": 48,
+          "wins": 36,
+          "expectedWinsFromExecutionProxy": 27.578582087,
+          "excessWins": 8.421417912999999,
+          "actualWinRatePct": 75,
+          "meanImpliedProbabilityPct": 57.45537934791667,
+          "calibrationGapPctPoints": 17.544620652083335,
+          "brierScore": 0.22244534721931195,
+          "poissonBinomialUpperTailPValue": 0.006462393412089861,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "minimumBurstShare": 0.99,
+        "bets": 46,
+        "wins": 35,
+        "winRatePct": 76.08695652173914,
+        "stakeUsdc": 4600,
+        "profitUsdc": 1141.1272114615376,
+        "roiPct": 24.80711329264212,
+        "profitFactor": 2.037388374055943,
+        "maxDrawdownUsdc": 434.65859881930317,
+        "medianObservedPrice": 0.5930000129499999,
+        "medianAllInPrice": 0.649886422837011,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 21.52405567595384,
+          "3": 14.999373119028977,
+          "5": 9.316348273123204
+        },
+        "calibration": {
+          "bets": 46,
+          "wins": 35,
+          "expectedWinsFromExecutionProxy": 26.818581979900006,
+          "excessWins": 8.181418020099994,
+          "actualWinRatePct": 76.08695652173914,
+          "meanImpliedProbabilityPct": 58.30126517369567,
+          "calibrationGapPctPoints": 17.785691348043482,
+          "brierScore": 0.22018210326228183,
+          "poissonBinomialUpperTailPValue": 0.006719294922137738,
+          "fallbackPrices": 1
+        }
+      }
+    ],
+    "transactionShape": {
+      "oneShotSignals": 47,
+      "oneShotSignalsAlsoBurst": 47,
+      "multiFillBurstSignals": 7,
+      "groups": [
+        {
+          "key": "slower multi-fill",
+          "bets": 26,
+          "wins": 11,
+          "winRatePct": 42.30769230769231,
+          "stakeUsdc": 2600,
+          "profitUsdc": -635.8583832362337,
+          "roiPct": -24.456091662932067,
+          "profitFactor": 0.5760944111758441,
+          "maxDrawdownUsdc": 689.6370521781776,
+          "medianObservedPrice": 0.55050005405,
+          "medianAllInPrice": 0.6076844387905598,
+          "fallbackPrices": 2,
+          "roiWithoutTopWinnersPct": {
+            "1": -32.64431220887204,
+            "3": -46.01045750598677,
+            "5": -61.07146419348385
+          }
+        },
+        {
+          "key": "rapid multi-fill",
+          "bets": 7,
+          "wins": 7,
+          "winRatePct": 100,
+          "stakeUsdc": 700,
+          "profitUsdc": 526.9512240758381,
+          "roiPct": 75.2787462965483,
+          "profitFactor": null,
+          "maxDrawdownUsdc": 0,
+          "medianObservedPrice": 0.5499999927,
+          "medianAllInPrice": 0.6071999927438,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": 60.28238491520287,
+            "3": 36.80666927154863,
+            "5": 15.144369256379575
+          }
+        },
+        {
+          "key": "rapid one-shot",
+          "bets": 47,
+          "wins": 34,
+          "winRatePct": 72.3404255319149,
+          "stakeUsdc": 4700,
+          "profitUsdc": 789.2120929083925,
+          "roiPct": 16.791746657625374,
+          "profitFactor": 1.6070862253141478,
+          "maxDrawdownUsdc": 551.7684951551986,
+          "medianObservedPrice": 0.5950000286,
+          "medianAllInPrice": 0.65186927835118,
+          "fallbackPrices": 1,
+          "roiWithoutTopWinnersPct": {
+            "1": 13.405812757929949,
+            "3": 7.107622105890463,
+            "5": 1.334782400192246
+          }
+        }
+      ],
+      "warning": "At the threshold-crossing timestamp every one-shot signal is mechanically a burst signal, so the two features cannot be interpreted as independent treatments."
+    },
+    "byTiming": [
+      {
+        "key": "in-play",
+        "bets": 47,
+        "wins": 34,
+        "winRatePct": 72.3404255319149,
+        "stakeUsdc": 4700,
+        "profitUsdc": 689.1926016104425,
+        "roiPct": 14.663672374690265,
+        "profitFactor": 1.5301481550849558,
+        "maxDrawdownUsdc": 384.37596207713756,
+        "medianObservedPrice": 0.6100000204,
+        "medianAllInPrice": 0.66673202020416,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": 11.063982165758162,
+          "3": 4.599438291453787,
+          "5": -1.0427067184862437
+        },
+        "calibration": {
+          "bets": 47,
+          "wins": 34,
+          "expectedWinsFromExecutionProxy": 28.70610327825,
+          "excessWins": 5.293896721749999,
+          "actualWinRatePct": 72.3404255319149,
+          "meanImpliedProbabilityPct": 61.076815485638306,
+          "calibrationGapPctPoints": 11.263610046276598,
+          "brierScore": 0.22396929065582788,
+          "poissonBinomialUpperTailPValue": 0.06331384406411919,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "key": "pregame",
+        "bets": 33,
+        "wins": 18,
+        "winRatePct": 54.54545454545454,
+        "stakeUsdc": 3300,
+        "profitUsdc": -8.887667862445326,
+        "roiPct": -0.2693232685589493,
+        "profitFactor": 0.9940748880917031,
+        "maxDrawdownUsdc": 606.7016560248779,
+        "medianObservedPrice": 0.4800000017,
+        "medianAllInPrice": 0.53747300169694,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -5.442018201470823,
+          "3": -15.935886555088782,
+          "5": -25.504105985415542
+        },
+        "calibration": {
+          "bets": 33,
+          "wins": 18,
+          "expectedWinsFromExecutionProxy": 16.62650145325,
+          "excessWins": 1.3734985467499996,
+          "actualWinRatePct": 54.54545454545454,
+          "meanImpliedProbabilityPct": 50.38333773712122,
+          "calibrationGapPctPoints": 4.162116808333333,
+          "brierScore": 0.2461155142813084,
+          "poissonBinomialUpperTailPValue": 0.37511672030005944,
+          "fallbackPrices": 1
+        }
+      }
+    ],
+    "byTimingAndUrgency": [
+      {
+        "key": "in-play",
+        "urgency": "slower",
+        "bets": 16,
+        "wins": 9,
+        "winRatePct": 56.25,
+        "stakeUsdc": 1600,
+        "profitUsdc": -60.1186086616988,
+        "roiPct": -3.757413041356175,
+        "profitFactor": 0.9141162733404303,
+        "maxDrawdownUsdc": 282.879981260797,
+        "medianObservedPrice": 0.605,
+        "medianAllInPrice": 0.6617785,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -16.024535376484394,
+          "3": -37.11544215870468,
+          "5": -55.635399039807865
+        },
+        "calibration": {
+          "bets": 16,
+          "wins": 9,
+          "expectedWinsFromExecutionProxy": 9.375999999200001,
+          "excessWins": -0.37599999920000116,
+          "actualWinRatePct": 56.25,
+          "meanImpliedProbabilityPct": 58.599999995000005,
+          "calibrationGapPctPoints": -2.349999995,
+          "brierScore": 0.272622862977751,
+          "poissonBinomialUpperTailPValue": 0.6838920383477562,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "in-play",
+        "urgency": "rapid",
+        "bets": 31,
+        "wins": 25,
+        "winRatePct": 80.64516129032258,
+        "stakeUsdc": 3100,
+        "profitUsdc": 749.3112102721412,
+        "roiPct": 24.17132936361746,
+        "profitFactor": 2.2488520171202357,
+        "maxDrawdownUsdc": 239.8435197544415,
+        "medianObservedPrice": 0.6300000043,
+        "medianAllInPrice": 0.6865280042535601,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 19.225550140950872,
+          "3": 11.43185687062215,
+          "5": 5.037987200475687
+        },
+        "calibration": {
+          "bets": 31,
+          "wins": 25,
+          "expectedWinsFromExecutionProxy": 19.330103279050004,
+          "excessWins": 5.669896720949996,
+          "actualWinRatePct": 80.64516129032258,
+          "meanImpliedProbabilityPct": 62.35517186790324,
+          "calibrationGapPctPoints": 18.289989422419357,
+          "brierScore": 0.1988577694574159,
+          "poissonBinomialUpperTailPValue": 0.018747642501854,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "pregame",
+        "urgency": "slower",
+        "bets": 10,
+        "wins": 2,
+        "winRatePct": 20,
+        "stakeUsdc": 1000,
+        "profitUsdc": -575.7397745745349,
+        "roiPct": -57.57397745745349,
+        "profitFactor": 0.2803252817818314,
+        "maxDrawdownUsdc": 681.3849264906816,
+        "medianObservedPrice": 0.4143940152,
+        "medianAllInPrice": 0.47184976598518535,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -77.15053867598371,
+          "3": -100,
+          "5": -100
+        },
+        "calibration": {
+          "bets": 10,
+          "wins": 2,
+          "expectedWinsFromExecutionProxy": 4.7187880112,
+          "excessWins": -2.7187880112,
+          "actualWinRatePct": 20,
+          "meanImpliedProbabilityPct": 47.187880112,
+          "calibrationGapPctPoints": -27.187880112000002,
+          "brierScore": 0.27753830994203116,
+          "poissonBinomialUpperTailPValue": 0.9872775538348857,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "pregame",
+        "urgency": "rapid",
+        "bets": 23,
+        "wins": 16,
+        "winRatePct": 69.56521739130434,
+        "stakeUsdc": 2300,
+        "profitUsdc": 566.8521067120894,
+        "roiPct": 24.645743770090842,
+        "profitFactor": 1.8097887238744135,
+        "maxDrawdownUsdc": 225.31672953419638,
+        "medianObservedPrice": 0.5,
+        "medianAllInPrice": 0.5574250000000001,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 18.254326914884935,
+          "3": 4.883158896093565,
+          "5": -7.17755809598299
+        },
+        "calibration": {
+          "bets": 23,
+          "wins": 16,
+          "expectedWinsFromExecutionProxy": 11.907713442050001,
+          "excessWins": 4.092286557949999,
+          "actualWinRatePct": 69.56521739130434,
+          "meanImpliedProbabilityPct": 51.77266713934783,
+          "calibrationGapPctPoints": 17.792550251956524,
+          "brierScore": 0.23245342921142892,
+          "poissonBinomialUpperTailPValue": 0.057348600213957796,
+          "fallbackPrices": 0
+        }
+      }
+    ],
+    "byDiscipline": [
+      {
+        "key": "Counter-Strike",
+        "bets": 13,
+        "wins": 9,
+        "winRatePct": 69.23076923076923,
+        "stakeUsdc": 1300,
+        "profitUsdc": 234.66150774784893,
+        "roiPct": 18.050885211372993,
+        "profitFactor": 1.5866537693696225,
+        "maxDrawdownUsdc": 262.26805941204987,
+        "medianObservedPrice": 0.48000000470000004,
+        "medianAllInPrice": 0.5374730046915401,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 6.359080086066106,
+          "3": -16.495743557033755,
+          "5": -39.01566279727494
+        },
+        "calibration": {
+          "bets": 13,
+          "wins": 9,
+          "expectedWinsFromExecutionProxy": 7.221594212249999,
+          "excessWins": 1.7784057877500006,
+          "actualWinRatePct": 69.23076923076923,
+          "meanImpliedProbabilityPct": 55.55072470961539,
+          "calibrationGapPctPoints": 13.680044521153848,
+          "brierScore": 0.2150868988250972,
+          "poissonBinomialUpperTailPValue": 0.22552481636991215,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "Dota 2",
+        "bets": 18,
+        "wins": 10,
+        "winRatePct": 55.55555555555556,
+        "stakeUsdc": 1800,
+        "profitUsdc": 21.52764279198989,
+        "roiPct": 1.1959801551105496,
+        "profitFactor": 1.0269095534899872,
+        "maxDrawdownUsdc": 332.4509736336347,
+        "medianObservedPrice": 0.4143940152,
+        "medianAllInPrice": 0.47184976598518535,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": -7.297166158738332,
+          "3": -23.54764136808499,
+          "5": -39.89744688891495
+        },
+        "calibration": {
+          "bets": 18,
+          "wins": 10,
+          "expectedWinsFromExecutionProxy": 8.3440014245,
+          "excessWins": 1.6559985755,
+          "actualWinRatePct": 55.55555555555556,
+          "meanImpliedProbabilityPct": 46.35556346944444,
+          "calibrationGapPctPoints": 9.199992086111111,
+          "brierScore": 0.21700101366812077,
+          "poissonBinomialUpperTailPValue": 0.28686687655110876,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "key": "League of Legends",
+        "bets": 5,
+        "wins": 3,
+        "winRatePct": 60,
+        "stakeUsdc": 500,
+        "profitUsdc": -91.24174187482893,
+        "roiPct": -18.248348374965786,
+        "profitFactor": 0.5437912906258553,
+        "maxDrawdownUsdc": 200,
+        "medianObservedPrice": 0.6199999421,
+        "medianAllInPrice": 0.6766329426905799,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -35.58738359824463,
+          "3": -100,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 3,
+          "expectedWinsFromExecutionProxy": 3.2849999298,
+          "excessWins": -0.2849999298000001,
+          "actualWinRatePct": 60,
+          "meanImpliedProbabilityPct": 65.699998596,
+          "calibrationGapPctPoints": -5.699998596,
+          "brierScore": 0.21020498530260073,
+          "poissonBinomialUpperTailPValue": 0.7794274654968404,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Soccer",
+        "bets": 11,
+        "wins": 9,
+        "winRatePct": 81.81818181818183,
+        "stakeUsdc": 1100,
+        "profitUsdc": 500.3320943543959,
+        "roiPct": 45.48473585039963,
+        "profitFactor": 3.50166047177198,
+        "maxDrawdownUsdc": 200,
+        "medianObservedPrice": 0.5890001169,
+        "medianAllInPrice": 0.6459204859250536,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 32.778738831078094,
+          "3": 14.164969488219786,
+          "5": -3.4823988465739246
+        },
+        "calibration": {
+          "bets": 11,
+          "wins": 9,
+          "expectedWinsFromExecutionProxy": 6.012500464700001,
+          "excessWins": 2.9874995352999987,
+          "actualWinRatePct": 81.81818181818183,
+          "meanImpliedProbabilityPct": 54.65909513363637,
+          "calibrationGapPctPoints": 27.159086684545453,
+          "brierScore": 0.2570450232380812,
+          "poissonBinomialUpperTailPValue": 0.05655537724388158,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Tennis",
+        "bets": 32,
+        "wins": 21,
+        "winRatePct": 65.625,
+        "stakeUsdc": 3200,
+        "profitUsdc": 115.02543072859129,
+        "roiPct": 3.5945447102684778,
+        "profitFactor": 1.1045685733896284,
+        "maxDrawdownUsdc": 386.587293323607,
+        "medianObservedPrice": 0.6250000102,
+        "medianAllInPrice": 0.68157451010208,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -2.1039997179669667,
+          "3": -12.569106710306574,
+          "5": -21.70991242902466
+        },
+        "calibration": {
+          "bets": 32,
+          "wins": 21,
+          "expectedWinsFromExecutionProxy": 19.78950870185,
+          "excessWins": 1.21049129815,
+          "actualWinRatePct": 65.625,
+          "meanImpliedProbabilityPct": 61.84221469328125,
+          "calibrationGapPctPoints": 3.78278530671875,
+          "brierScore": 0.23766564129371093,
+          "poissonBinomialUpperTailPValue": 0.3958878774503052,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Valorant",
+        "bets": 1,
+        "wins": 0,
+        "winRatePct": 0,
+        "stakeUsdc": 100,
+        "profitUsdc": -100,
+        "roiPct": -100,
+        "profitFactor": 0,
+        "maxDrawdownUsdc": 100,
+        "medianObservedPrice": 0.6799999984,
+        "medianAllInPrice": 0.73591299842208,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": null,
+          "3": null,
+          "5": null
+        },
+        "calibration": {
+          "bets": 1,
+          "wins": 0,
+          "expectedWinsFromExecutionProxy": 0.6799999984,
+          "excessWins": -0.6799999984,
+          "actualWinRatePct": 0,
+          "meanImpliedProbabilityPct": 67.99999984,
+          "calibrationGapPctPoints": -67.99999984,
+          "brierScore": 0.46239999782400004,
+          "poissonBinomialUpperTailPValue": 1,
+          "fallbackPrices": 0
+        }
+      }
+    ],
+    "byDisciplineAndUrgency": [
+      {
+        "key": "Counter-Strike",
+        "urgency": "slower",
+        "bets": 5,
+        "wins": 3,
+        "winRatePct": 60,
+        "stakeUsdc": 500,
+        "profitUsdc": -33.251409464884354,
+        "roiPct": -6.650281892976871,
+        "profitFactor": 0.8337429526755781,
+        "maxDrawdownUsdc": 100,
+        "medianObservedPrice": 0.48000000470000004,
+        "medianAllInPrice": 0.5374730046915401,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -37.966620743550706,
+          "3": -100,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 3,
+          "expectedWinsFromExecutionProxy": 2.8500000102999996,
+          "excessWins": 0.1499999897000004,
+          "actualWinRatePct": 60,
+          "meanImpliedProbabilityPct": 57.00000020599999,
+          "calibrationGapPctPoints": 2.999999794000001,
+          "brierScore": 0.1856200004768,
+          "poissonBinomialUpperTailPValue": 0.634486243952206,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Counter-Strike",
+        "urgency": "rapid",
+        "bets": 8,
+        "wins": 6,
+        "winRatePct": 75,
+        "stakeUsdc": 800,
+        "profitUsdc": 267.9129172127333,
+        "roiPct": 33.48911465159166,
+        "profitFactor": 2.3395645860636667,
+        "maxDrawdownUsdc": 162.2680594120499,
+        "medianObservedPrice": 0.49992983059999996,
+        "medianAllInPrice": 0.5572472934226153,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 15.651481499668234,
+          "3": -24.50537576320933,
+          "5": -60.04313742883183
+        },
+        "calibration": {
+          "bets": 8,
+          "wins": 6,
+          "expectedWinsFromExecutionProxy": 4.37159420195,
+          "excessWins": 1.6284057980500002,
+          "actualWinRatePct": 75,
+          "meanImpliedProbabilityPct": 54.644927524375,
+          "calibrationGapPctPoints": 20.355072475625,
+          "brierScore": 0.23350371029278305,
+          "poissonBinomialUpperTailPValue": 0.1972461156560366,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "Dota 2",
+        "urgency": "slower",
+        "bets": 7,
+        "wins": 2,
+        "winRatePct": 28.57142857142857,
+        "stakeUsdc": 700,
+        "profitUsdc": -270.8372041772768,
+        "roiPct": -38.6910291681824,
+        "profitFactor": 0.45832559164544634,
+        "maxDrawdownUsdc": 400,
+        "medianObservedPrice": 0.3899999744,
+        "medianAllInPrice": 0.44739197430783995,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": -65.72580801397555,
+          "3": -100,
+          "5": -100
+        },
+        "calibration": {
+          "bets": 7,
+          "wins": 2,
+          "expectedWinsFromExecutionProxy": 2.9487880048,
+          "excessWins": -0.9487880047999999,
+          "actualWinRatePct": 28.57142857142857,
+          "meanImpliedProbabilityPct": 42.125542925714285,
+          "calibrationGapPctPoints": -13.554114354285716,
+          "brierScore": 0.23864044934947312,
+          "poissonBinomialUpperTailPValue": 0.8734408418360975,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "key": "Dota 2",
+        "urgency": "rapid",
+        "bets": 11,
+        "wins": 8,
+        "winRatePct": 72.72727272727273,
+        "stakeUsdc": 1100,
+        "profitUsdc": 292.36484696926675,
+        "roiPct": 26.57862245175152,
+        "profitFactor": 1.9745494898975555,
+        "maxDrawdownUsdc": 200,
+        "medianObservedPrice": 0.5,
+        "medianAllInPrice": 0.5574250000000001,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 14.678537947872519,
+          "3": -2.333351194486802,
+          "5": -25.12232883860887
+        },
+        "calibration": {
+          "bets": 11,
+          "wins": 8,
+          "expectedWinsFromExecutionProxy": 5.395213419699999,
+          "excessWins": 2.6047865803000008,
+          "actualWinRatePct": 72.72727272727273,
+          "meanImpliedProbabilityPct": 49.04739472454545,
+          "calibrationGapPctPoints": 23.67987800272727,
+          "brierScore": 0.20323046368907835,
+          "poissonBinomialUpperTailPValue": 0.09598617321569208,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "League of Legends",
+        "urgency": "slower",
+        "bets": 2,
+        "wins": 0,
+        "winRatePct": 0,
+        "stakeUsdc": 200,
+        "profitUsdc": -200,
+        "roiPct": -100,
+        "profitFactor": 0,
+        "maxDrawdownUsdc": 200,
+        "medianObservedPrice": 0.6049999681,
+        "medianAllInPrice": 0.6617724684200701,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -100,
+          "3": null,
+          "5": null
+        },
+        "calibration": {
+          "bets": 2,
+          "wins": 0,
+          "expectedWinsFromExecutionProxy": 1.2099999362,
+          "excessWins": -1.2099999362,
+          "actualWinRatePct": 0,
+          "meanImpliedProbabilityPct": 60.49999681,
+          "calibrationGapPctPoints": -60.49999681,
+          "brierScore": 0.3662499606210017,
+          "poissonBinomialUpperTailPValue": 1,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "League of Legends",
+        "urgency": "rapid",
+        "bets": 3,
+        "wins": 3,
+        "winRatePct": 100,
+        "stakeUsdc": 300,
+        "profitUsdc": 108.75825812517107,
+        "roiPct": 36.252752708390354,
+        "profitFactor": null,
+        "maxDrawdownUsdc": 0,
+        "medianObservedPrice": 0.6300000043,
+        "medianAllInPrice": 0.6865280042535601,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 28.825232803510737,
+          "3": null,
+          "5": null
+        },
+        "calibration": {
+          "bets": 3,
+          "wins": 3,
+          "expectedWinsFromExecutionProxy": 2.0749999936,
+          "excessWins": 0.9250000063999999,
+          "actualWinRatePct": 100,
+          "meanImpliedProbabilityPct": 69.16666645333333,
+          "calibrationGapPctPoints": 30.83333354666667,
+          "brierScore": 0.10617500175700005,
+          "poissonBinomialUpperTailPValue": 0.32016599652281996,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Soccer",
+        "urgency": "rapid",
+        "bets": 11,
+        "wins": 9,
+        "winRatePct": 81.81818181818183,
+        "stakeUsdc": 1100,
+        "profitUsdc": 500.3320943543959,
+        "roiPct": 45.48473585039963,
+        "profitFactor": 3.50166047177198,
+        "maxDrawdownUsdc": 200,
+        "medianObservedPrice": 0.5890001169,
+        "medianAllInPrice": 0.6459204859250536,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 32.778738831078094,
+          "3": 14.164969488219786,
+          "5": -3.4823988465739246
+        },
+        "calibration": {
+          "bets": 11,
+          "wins": 9,
+          "expectedWinsFromExecutionProxy": 6.012500464700001,
+          "excessWins": 2.9874995352999987,
+          "actualWinRatePct": 81.81818181818183,
+          "meanImpliedProbabilityPct": 54.65909513363637,
+          "calibrationGapPctPoints": 27.159086684545453,
+          "brierScore": 0.2570450232380812,
+          "poissonBinomialUpperTailPValue": 0.05655537724388158,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Tennis",
+        "urgency": "slower",
+        "bets": 11,
+        "wins": 6,
+        "winRatePct": 54.54545454545454,
+        "stakeUsdc": 1100,
+        "profitUsdc": -31.7697695940725,
+        "roiPct": -2.888160872188409,
+        "profitFactor": 0.9364604608118551,
+        "maxDrawdownUsdc": 206.97454526878568,
+        "medianObservedPrice": 0.6,
+        "medianAllInPrice": 0.656825,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -21.201919157963967,
+          "3": -50.112830627882396,
+          "5": -80.4799968767995
+        },
+        "calibration": {
+          "bets": 11,
+          "wins": 6,
+          "expectedWinsFromExecutionProxy": 6.4060000607,
+          "excessWins": -0.4060000607000003,
+          "actualWinRatePct": 54.54545454545454,
+          "meanImpliedProbabilityPct": 58.236364188181824,
+          "calibrationGapPctPoints": -3.6909096427272727,
+          "brierScore": 0.3039878036516375,
+          "poissonBinomialUpperTailPValue": 0.7269372875160214,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Tennis",
+        "urgency": "rapid",
+        "bets": 21,
+        "wins": 15,
+        "winRatePct": 71.42857142857143,
+        "stakeUsdc": 2100,
+        "profitUsdc": 146.7952003226637,
+        "roiPct": 6.990247634412556,
+        "profitFactor": 1.2446586672044397,
+        "maxDrawdownUsdc": 418.1602311721691,
+        "medianObservedPrice": 0.69,
+        "medianAllInPrice": 0.745772,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -0.9230857130978564,
+          "3": -14.196298360817094,
+          "5": -23.279456816758938
+        },
+        "calibration": {
+          "bets": 21,
+          "wins": 15,
+          "expectedWinsFromExecutionProxy": 13.38350864115,
+          "excessWins": 1.6164913588500003,
+          "actualWinRatePct": 71.42857142857143,
+          "meanImpliedProbabilityPct": 63.73099352928572,
+          "calibrationGapPctPoints": 7.697577899285714,
+          "brierScore": 0.2029254610109875,
+          "poissonBinomialUpperTailPValue": 0.29942922933593763,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "Valorant",
+        "urgency": "slower",
+        "bets": 1,
+        "wins": 0,
+        "winRatePct": 0,
+        "stakeUsdc": 100,
+        "profitUsdc": -100,
+        "roiPct": -100,
+        "profitFactor": 0,
+        "maxDrawdownUsdc": 100,
+        "medianObservedPrice": 0.6799999984,
+        "medianAllInPrice": 0.73591299842208,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": null,
+          "3": null,
+          "5": null
+        },
+        "calibration": {
+          "bets": 1,
+          "wins": 0,
+          "expectedWinsFromExecutionProxy": 0.6799999984,
+          "excessWins": -0.6799999984,
+          "actualWinRatePct": 0,
+          "meanImpliedProbabilityPct": 67.99999984,
+          "calibrationGapPctPoints": -67.99999984,
+          "brierScore": 0.46239999782400004,
+          "poissonBinomialUpperTailPValue": 1,
+          "fallbackPrices": 0
+        }
+      }
+    ],
+    "byMarketType": [
+      {
+        "key": "match winner",
+        "bets": 36,
+        "wins": 23,
+        "winRatePct": 63.888888888888886,
+        "stakeUsdc": 3600,
+        "profitUsdc": 98.27555535267456,
+        "roiPct": 2.729876537574293,
+        "profitFactor": 1.0755965810405188,
+        "maxDrawdownUsdc": 467.9722198142885,
+        "medianObservedPrice": 0.6100000102,
+        "medianAllInPrice": 0.6667320101020799,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -2.3421104752255033,
+          "3": -11.55315060529719,
+          "5": -19.951100548175624
+        },
+        "calibration": {
+          "bets": 36,
+          "wins": 23,
+          "expectedWinsFromExecutionProxy": 21.74971401205,
+          "excessWins": 1.2502859879500008,
+          "actualWinRatePct": 63.888888888888886,
+          "meanImpliedProbabilityPct": 60.415872255694445,
+          "calibrationGapPctPoints": 3.473016633194443,
+          "brierScore": 0.24255877227332853,
+          "poissonBinomialUpperTailPValue": 0.3961983545183882,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "outright",
+        "bets": 5,
+        "wins": 5,
+        "winRatePct": 100,
+        "stakeUsdc": 500,
+        "profitUsdc": 458.147146487098,
+        "roiPct": 91.62942929741959,
+        "profitFactor": null,
+        "maxDrawdownUsdc": 0,
+        "medianObservedPrice": 0.5,
+        "medianAllInPrice": 0.5574250000000001,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 71.40061011087076,
+          "3": 54.58088706154478,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 5,
+          "expectedWinsFromExecutionProxy": 2.4400003936999997,
+          "excessWins": 2.5599996063000003,
+          "actualWinRatePct": 100,
+          "meanImpliedProbabilityPct": 48.800007873999995,
+          "calibrationGapPctPoints": 51.199992126000005,
+          "brierScore": 0.27296030408137834,
+          "poissonBinomialUpperTailPValue": 0.024279931849037678,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "series winner",
+        "bets": 34,
+        "wins": 20,
+        "winRatePct": 58.82352941176471,
+        "stakeUsdc": 3400,
+        "profitUsdc": -18.30271595907338,
+        "roiPct": -0.5383151752668642,
+        "profitFactor": 0.9869266314578048,
+        "maxDrawdownUsdc": 850.5958260352783,
+        "medianObservedPrice": 0.5199999966,
+        "medianAllInPrice": 0.57734099661836,
+        "fallbackPrices": 2,
+        "roiWithoutTopWinnersPct": {
+          "1": -5.3531897780039115,
+          "3": -14.37910884100797,
+          "5": -23.373780116723143
+        },
+        "calibration": {
+          "bets": 34,
+          "wins": 20,
+          "expectedWinsFromExecutionProxy": 18.24039026255,
+          "excessWins": 1.759609737449999,
+          "actualWinRatePct": 58.82352941176471,
+          "meanImpliedProbabilityPct": 53.64820665455883,
+          "calibrationGapPctPoints": 5.175322757205883,
+          "brierScore": 0.22169581132648133,
+          "poissonBinomialUpperTailPValue": 0.3260742411525456,
+          "fallbackPrices": 2
+        }
+      },
+      {
+        "key": "team to advance",
+        "bets": 5,
+        "wins": 4,
+        "winRatePct": 80,
+        "stakeUsdc": 500,
+        "profitUsdc": 142.18494786729798,
+        "roiPct": 28.4369895734596,
+        "profitFactor": 2.42184947867298,
+        "maxDrawdownUsdc": 100,
+        "medianObservedPrice": 0.5950000286,
+        "medianAllInPrice": 0.65186927835118,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 6.190412609411183,
+          "3": -36.11773439804277,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 4,
+          "expectedWinsFromExecutionProxy": 2.9025000631999998,
+          "excessWins": 1.0974999368000002,
+          "actualWinRatePct": 80,
+          "meanImpliedProbabilityPct": 58.050001263999995,
+          "calibrationGapPctPoints": 21.949998735999994,
+          "brierScore": 0.2027587449520003,
+          "poissonBinomialUpperTailPValue": 0.29743397969781127,
+          "fallbackPrices": 0
+        }
+      }
+    ],
+    "byMarketTypeAndUrgency": [
+      {
+        "key": "match winner",
+        "urgency": "slower",
+        "bets": 13,
+        "wins": 7,
+        "winRatePct": 53.84615384615385,
+        "stakeUsdc": 1300,
+        "profitUsdc": -13.15469608475405,
+        "roiPct": -1.0118996988272346,
+        "profitFactor": 0.9780755065254099,
+        "maxDrawdownUsdc": 206.97454526878568,
+        "medianObservedPrice": 0.571,
+        "medianAllInPrice": 0.62806077,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -16.11700983919343,
+          "3": -43.0634265088958,
+          "5": -70.01536330796047
+        },
+        "calibration": {
+          "bets": 13,
+          "wins": 7,
+          "expectedWinsFromExecutionProxy": 7.1460000607000005,
+          "excessWins": -0.1460000607000005,
+          "actualWinRatePct": 53.84615384615385,
+          "meanImpliedProbabilityPct": 54.969231236153846,
+          "calibrationGapPctPoints": -1.123077390000002,
+          "brierScore": 0.29380506462830863,
+          "poissonBinomialUpperTailPValue": 0.6525366493159525,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "match winner",
+        "urgency": "rapid",
+        "bets": 23,
+        "wins": 16,
+        "winRatePct": 69.56521739130434,
+        "stakeUsdc": 2300,
+        "profitUsdc": 111.43025143742852,
+        "roiPct": 4.844793540757762,
+        "profitFactor": 1.1591860734820407,
+        "maxDrawdownUsdc": 518.1602311721691,
+        "medianObservedPrice": 0.6700000078,
+        "medianAllInPrice": 0.72604800769704,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": -2.4466665066905655,
+          "3": -14.544915968997147,
+          "5": -23.34576414136042
+        },
+        "calibration": {
+          "bets": 23,
+          "wins": 16,
+          "expectedWinsFromExecutionProxy": 14.603713951350002,
+          "excessWins": 1.3962860486499977,
+          "actualWinRatePct": 69.56521739130434,
+          "meanImpliedProbabilityPct": 63.494408484130446,
+          "calibrationGapPctPoints": 6.070808907173912,
+          "brierScore": 0.21359347659442668,
+          "poissonBinomialUpperTailPValue": 0.346050940079056,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "outright",
+        "urgency": "rapid",
+        "bets": 5,
+        "wins": 5,
+        "winRatePct": 100,
+        "stakeUsdc": 500,
+        "profitUsdc": 458.147146487098,
+        "roiPct": 91.62942929741959,
+        "profitFactor": null,
+        "maxDrawdownUsdc": 0,
+        "medianObservedPrice": 0.5,
+        "medianAllInPrice": 0.5574250000000001,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 71.40061011087076,
+          "3": 54.58088706154478,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 5,
+          "expectedWinsFromExecutionProxy": 2.4400003936999997,
+          "excessWins": 2.5599996063000003,
+          "actualWinRatePct": 100,
+          "meanImpliedProbabilityPct": 48.800007873999995,
+          "calibrationGapPctPoints": 51.199992126000005,
+          "brierScore": 0.27296030408137834,
+          "poissonBinomialUpperTailPValue": 0.024279931849037678,
+          "fallbackPrices": 0
+        }
+      },
+      {
+        "key": "series winner",
+        "urgency": "slower",
+        "bets": 13,
+        "wins": 4,
+        "winRatePct": 30.76923076923077,
+        "stakeUsdc": 1300,
+        "profitUsdc": -622.7036871514797,
+        "roiPct": -47.9002836270369,
+        "profitFactor": 0.30810701427613374,
+        "maxDrawdownUsdc": 776.4823560934235,
+        "medianObservedPrice": 0.48000000470000004,
+        "medianAllInPrice": 0.5374730046915401,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": -62.18511092150468,
+          "3": -88.42072604762706,
+          "5": -100
+        },
+        "calibration": {
+          "bets": 13,
+          "wins": 4,
+          "expectedWinsFromExecutionProxy": 6.948787949700001,
+          "excessWins": -2.9487879497000007,
+          "actualWinRatePct": 30.76923076923077,
+          "meanImpliedProbabilityPct": 53.452214997692316,
+          "calibrationGapPctPoints": -22.682984228461546,
+          "brierScore": 0.2552217743766396,
+          "poissonBinomialUpperTailPValue": 0.9786489975903755,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "series winner",
+        "urgency": "rapid",
+        "bets": 21,
+        "wins": 16,
+        "winRatePct": 76.19047619047619,
+        "stakeUsdc": 2100,
+        "profitUsdc": 604.4009711924062,
+        "roiPct": 28.78099862820982,
+        "profitFactor": 2.2088019423848126,
+        "maxDrawdownUsdc": 248.89220748185042,
+        "medianObservedPrice": 0.5399999932,
+        "medianAllInPrice": 0.5972569932367201,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 22.302421223867533,
+          "3": 9.878757438499823,
+          "5": -1.104634376031921
+        },
+        "calibration": {
+          "bets": 21,
+          "wins": 16,
+          "expectedWinsFromExecutionProxy": 11.29160231285,
+          "excessWins": 4.708397687150001,
+          "actualWinRatePct": 76.19047619047619,
+          "meanImpliedProbabilityPct": 53.769534823095235,
+          "calibrationGapPctPoints": 22.420941367380955,
+          "brierScore": 0.20094164372400242,
+          "poissonBinomialUpperTailPValue": 0.024706397808731028,
+          "fallbackPrices": 1
+        }
+      },
+      {
+        "key": "team to advance",
+        "urgency": "rapid",
+        "bets": 5,
+        "wins": 4,
+        "winRatePct": 80,
+        "stakeUsdc": 500,
+        "profitUsdc": 142.18494786729798,
+        "roiPct": 28.4369895734596,
+        "profitFactor": 2.42184947867298,
+        "maxDrawdownUsdc": 100,
+        "medianObservedPrice": 0.5950000286,
+        "medianAllInPrice": 0.65186927835118,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 6.190412609411183,
+          "3": -36.11773439804277,
+          "5": null
+        },
+        "calibration": {
+          "bets": 5,
+          "wins": 4,
+          "expectedWinsFromExecutionProxy": 2.9025000631999998,
+          "excessWins": 1.0974999368000002,
+          "actualWinRatePct": 80,
+          "meanImpliedProbabilityPct": 58.050001263999995,
+          "calibrationGapPctPoints": 21.949998735999994,
+          "brierScore": 0.2027587449520003,
+          "poissonBinomialUpperTailPValue": 0.29743397969781127,
+          "fallbackPrices": 0
+        }
       }
     ]
   },

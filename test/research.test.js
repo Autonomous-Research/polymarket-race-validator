@@ -16,6 +16,7 @@ const {
     simulateMarket
 } = require('../src/research/backtest');
 const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
+const edgeAnalysis = require('../research/djdjdjekekek/edge_analysis.json');
 const {
     activeEventKeys,
     buildReplicatorConfig,
@@ -187,6 +188,17 @@ test('paper config cannot be switched to live and excludes known leaks', () => {
     assert.strictEqual(config.strategy.minimumTakerBurst60Share, 0.8);
     assert.strictEqual(config.executionMode, 'MARKETABLE_LIMIT_FOK');
     assert.strictEqual(config.requirePostOnly, false);
+});
+
+test('committed edge artifact preserves the blind-copy rejection and tight falsification', () => {
+    const blind = edgeAnalysis.blindCopyCounterfactual;
+    const mechanism = edgeAnalysis.mechanismAudit;
+    assert.ok(blind.all.roiPct < 0);
+    assert.ok(blind.later.roiPct < 0);
+    assert.ok(mechanism.calibration.burst60.calibrationGapPctPoints > 0);
+    assert.ok(mechanism.calibration.slower.calibrationGapPctPoints < 0);
+    assert.ok(mechanism.compositionControls.broadCmh.twoSidedPValue < 0.05);
+    assert.ok(mechanism.compositionControls.finePermutation.oneSidedPValue > 0.05);
 });
 
 test('active positions reserve their canonical event in the paper monitor', () => {

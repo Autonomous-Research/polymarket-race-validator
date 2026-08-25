@@ -28,6 +28,7 @@ The deeper finding is more specific: **rapid, concentrated target taker sweeps i
 | True multi-map series | +$7.57M, +31.20% ROI |
 | Single game/map including BO1 | -$4.89M, -57.55% ROI |
 | BO1 rows previously mislabeled as series | 9 markets, -$1.78M, -67.80% ROI |
+| Blindly copy every canonical $25K signal | 139 bets, -$855.28 P&L, -6.15% ROI; -6.68% later |
 | Forced external-tape test | 80 bets, +8.50% ROI |
 | Chronological final 30% | 24 bets, +26.36% ROI |
 | Keep BO1 eligible as originally classified | 84 bets, +5.27% overall; 28 later bets, +14.09% |
@@ -68,11 +69,19 @@ The nested universe test identifies where the result comes from:
 
 This is a nested attribution ladder, not five independent trials. Discipline and price were informed by the same investigated sample; urgency and format are the more defensible core.
 
+![Blind-copy attribution ladder](research/djdjdjekekek/figures/blind_copy_funnel.png)
+
 ### The Mechanism Was Narrowed
 
 Signals where most aggressive buying arrived within 60 seconds returned +24.37%; slower accumulation returned -24.46%. The split keeps the same sign both earlier (+14.90% versus -22.56%) and in the chronological final period (+41.82% versus -32.40%). Removing the burst feature lowers walk-forward AUC from 0.635 to 0.547; removing public-tape flow and momentum lowers it to 0.576. These are post-discovery diagnostics, not independent confirmation.
 
 Public-price median markout was essentially zero from 15 seconds through five minutes. This points to urgency without immediate market repricing, not to final wallet size.
+
+The sharper diagnostic is probability calibration. Rapid signals won 41 times against 31.24 wins implied by the forced execution proxy, a +18.08 percentage-point gap. Slower signals won 11 times against 14.09 implied, a -11.90 point gap. A day-cluster bootstrap puts the rapid-minus-slow gap at +29.98 points with a +10.06 to +51.44 interval.
+
+That result is not a clean causal estimate. Broad discipline/price stratification retains 3.36x common win odds (`p=0.023`), but a tighter permutation within discipline, three price bands, and chronological period shrinks the effect to +9.64 points across 52 comparable bets (`p=0.239`). The candidate edge is therefore **conviction compression**, not proven private information: urgency appears informative before the market reprices, but composition explains part of the aggregate gap.
+
+![Urgency-conditioned probability calibration](research/djdjdjekekek/figures/urgency_calibration.png)
 
 The target's eventual position cannot be inferred reliably from the initial signal. A chronological sizing model has negative out-of-sample `R^2`, so the paper prototype uses fixed fractional sizing.
 
@@ -102,6 +111,7 @@ Core pipeline:
 - `src/research/statistical_analysis.py` - robust regression and event-cluster bootstrap.
 - `src/research/edge_analysis.py` - external execution, falsification, sensitivity, sizing, and walk-forward modeling.
 - `src/research/peer_analysis.py` - recurring-wallet and chronological leader audit.
+- `src/research/report_graphics.py` - reproducible PNG/SVG figures from committed artifacts.
 - `src/research/replicator.js` - model-scored paper-intent state machine.
 - `src/research/report.js` - reproducible Markdown reports.
 
@@ -111,6 +121,7 @@ Primary evidence:
 - `market_tape.json` - 143,507 compact external public prints.
 - `edge_features.csv`, `edge_analysis.json`, and `edge_model.json` - signal table, tests, and frozen model.
 - `peer_evidence.json` - recurring-wallet evidence and chronology test.
+- `figures/` - strategy funnel, calibration, equity, threshold, and execution graphics.
 - `onchain_evidence.json` and `flow_transactions.json` - decoded chain evidence.
 - `replication_backtest.json`, `replicator_config.json`, and `replication_intents.json` - prototype audit and output.
 
@@ -134,6 +145,7 @@ The committed snapshot and market tape can be analyzed without recollecting publ
 npm run research:analyze
 PYTHON=.venv/bin/python npm run research:stats
 PYTHON=.venv/bin/python npm run research:edge
+PYTHON=.venv/bin/python npm run research:graphics
 npm run research:replicate
 npm run research:report
 ```
