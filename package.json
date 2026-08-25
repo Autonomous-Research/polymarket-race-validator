@@ -2,15 +2,21 @@
   "name": "polymarket-trader-research",
   "version": "1.0.0",
   "private": true,
-  "description": "Polymarket trader reverse-engineering and dry-run replication research",
+  "description": "Polymarket trader onchain investigation, execution analysis, and paper-only replication research",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
     "probe": "node src/probe.js",
     "research:collect": "node src/trader_research.js collect",
+    "research:enrich": "node src/trader_research.js enrich",
+    "research:onchain": "node src/trader_research.js onchain",
     "research:analyze": "node src/trader_research.js analyze",
+    "research:stats": "${PYTHON:-python3} src/research/statistical_analysis.py",
     "research:replicate": "node src/trader_research.js replicate",
-    "test": "node --test test/utils.test.js"
+    "research:monitor": "node src/trader_research.js monitor",
+    "research:report": "node src/trader_research.js report",
+    "research:all": "node src/trader_research.js all && npm run research:stats && node src/trader_research.js replicate && node src/trader_research.js report",
+    "test": "node --test test/*.test.js"
   },
   "author": "",
   "license": "ISC",

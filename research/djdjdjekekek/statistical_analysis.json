@@ -1,0 +1,493 @@
+{
+  "generatedAt": "2026-08-25T13:48:34.073494+00:00",
+  "source": "research/djdjdjekekek/deep_analysis.json",
+  "markets": 385,
+  "methods": {
+    "bootstrapDraws": 10000,
+    "bootstrapUnit": "Canonical match/event where available; otherwise condition ID",
+    "randomSeed": 20260825
+  },
+  "robustLogit": {
+    "method": "Binomial GLM with HC3 heteroskedasticity-robust covariance",
+    "formula": "won ~ log_cost + taker_share + started_pregame + majority_pregame + dominant_concentration + dominant_average_price + C(market_type, Treatment(reference='match winner')) + C(discipline, Treatment(reference='Tennis'))",
+    "observations": 385,
+    "pseudoR2CoxSnell": 0.2845023885470115,
+    "aic": 442.39513250139373,
+    "coefficients": [
+      {
+        "term": "Intercept",
+        "coefficient": -18.572653703869797,
+        "oddsRatio": 8.590115081691945e-09,
+        "robustStdError": 6.284620463678758,
+        "pValue": 0.003124110947715855,
+        "oddsRatioCi95Low": 3.841672554096253e-14,
+        "oddsRatioCi95High": 0.0019207799748063186
+      },
+      {
+        "term": "C(market_type, Treatment(reference='match winner'))[T.outright]",
+        "coefficient": 1.9292468061076409,
+        "oddsRatio": 6.884323058268608,
+        "robustStdError": 1.1769041988220947,
+        "pValue": 0.10116003739731518,
+        "oddsRatioCi95Low": 0.6856122551141861,
+        "oddsRatioCi95High": 69.12639559325781
+      },
+      {
+        "term": "C(market_type, Treatment(reference='match winner'))[T.series winner]",
+        "coefficient": 0.14791963267084995,
+        "oddsRatio": 1.1594197131528712,
+        "robustStdError": 0.8804050418601632,
+        "pValue": 0.8665729265067234,
+        "oddsRatioCi95Low": 0.20646124883120928,
+        "oddsRatioCi95High": 6.510926766438725
+      },
+      {
+        "term": "C(market_type, Treatment(reference='match winner'))[T.short-horizon binary]",
+        "coefficient": 0.3212892697630227,
+        "oddsRatio": 1.378904398556629,
+        "robustStdError": 1.0396328759710975,
+        "pValue": 0.757290275779332,
+        "oddsRatioCi95Low": 0.17972026427774487,
+        "oddsRatioCi95High": 10.579649145298248
+      },
+      {
+        "term": "C(market_type, Treatment(reference='match winner'))[T.single-game/map]",
+        "coefficient": 0.22154483445773113,
+        "oddsRatio": 1.2480032005132018,
+        "robustStdError": 0.919714340890602,
+        "pValue": 0.8096447154743311,
+        "oddsRatioCi95Low": 0.20575643795075785,
+        "oddsRatioCi95High": 7.569687753167377
+      },
+      {
+        "term": "C(market_type, Treatment(reference='match winner'))[T.team to advance]",
+        "coefficient": 1.244620208234207,
+        "oddsRatio": 3.471616057736354,
+        "robustStdError": 1.19827899839754,
+        "pValue": 0.2989567778469948,
+        "oddsRatioCi95Low": 0.3315543695632311,
+        "oddsRatioCi95High": 36.35035203490036
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.Basketball]",
+        "coefficient": -0.22193665041480606,
+        "oddsRatio": 0.8009661035979039,
+        "robustStdError": 0.8518022703514143,
+        "pValue": 0.7944399426026238,
+        "oddsRatioCi95Low": 0.15085465999803713,
+        "oddsRatioCi95High": 4.252746975938003
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.Counter-Strike]",
+        "coefficient": -0.22242269791918196,
+        "oddsRatio": 0.8005768906178217,
+        "robustStdError": 0.9728308974600537,
+        "pValue": 0.8191530139099129,
+        "oddsRatioCi95Low": 0.11893998747740561,
+        "oddsRatioCi95High": 5.388628092070822
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.Dota 2]",
+        "coefficient": -0.6511583108808197,
+        "oddsRatio": 0.5214414355325877,
+        "robustStdError": 0.9386504624678549,
+        "pValue": 0.4878593498911763,
+        "oddsRatioCi95Low": 0.08283708665666051,
+        "oddsRatioCi95High": 3.282360373406778
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.League of Legends]",
+        "coefficient": -0.8618057275970435,
+        "oddsRatio": 0.42239865634479795,
+        "robustStdError": 1.0565185684413354,
+        "pValue": 0.4146698269011726,
+        "oddsRatioCi95Low": 0.05326136495712618,
+        "oddsRatioCi95High": 3.349907104812542
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.MLB]",
+        "coefficient": -0.6266801163850272,
+        "oddsRatio": 0.5343628820653396,
+        "robustStdError": 0.4452865266371655,
+        "pValue": 0.1593195542664929,
+        "oddsRatioCi95Low": 0.22325834698924557,
+        "oddsRatioCi95High": 1.2789832657093478
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.Other]",
+        "coefficient": -0.42578761119916836,
+        "oddsRatio": 0.6532550714491385,
+        "robustStdError": 0.882463475510098,
+        "pValue": 0.6294516158783592,
+        "oddsRatioCi95Low": 0.11585866442490396,
+        "oddsRatioCi95High": 3.6832997384552137
+      },
+      {
+        "term": "C(discipline, Treatment(reference='Tennis'))[T.Soccer]",
+        "coefficient": -1.1654936915741323,
+        "oddsRatio": 0.31176870644903454,
+        "robustStdError": 1.0799846528041332,
+        "pValue": 0.28050920465353935,
+        "oddsRatioCi95Low": 0.03754463771142295,
+        "oddsRatioCi95High": 2.588911020210251
+      },
+      {
+        "term": "log_cost",
+        "coefficient": 0.01490515527040517,
+        "oddsRatio": 1.0150167910571892,
+        "robustStdError": 0.0678282177053837,
+        "pValue": 0.8260669593401685,
+        "oddsRatioCi95Low": 0.8886643191180499,
+        "oddsRatioCi95High": 1.1593343672788718
+      },
+      {
+        "term": "taker_share",
+        "coefficient": 2.2738687887609403,
+        "oddsRatio": 9.716920903005583,
+        "robustStdError": 0.40668870342430297,
+        "pValue": 2.2553468268844476e-08,
+        "oddsRatioCi95Low": 4.378795020789438,
+        "oddsRatioCi95High": 21.562679090249908
+      },
+      {
+        "term": "started_pregame",
+        "coefficient": 0.9706416230726688,
+        "oddsRatio": 2.6396375684945523,
+        "robustStdError": 0.5574523767246625,
+        "pValue": 0.08164678439333828,
+        "oddsRatioCi95Low": 0.8851970898224307,
+        "oddsRatioCi95High": 7.871339132402187
+      },
+      {
+        "term": "majority_pregame",
+        "coefficient": -2.1215788852618838,
+        "oddsRatio": 0.11984226187567426,
+        "robustStdError": 0.6173045398015475,
+        "pValue": 0.000588536294223638,
+        "oddsRatioCi95Low": 0.03574040095089814,
+        "oddsRatioCi95High": 0.401846855361503
+      },
+      {
+        "term": "dominant_concentration",
+        "coefficient": 14.652670481680682,
+        "oddsRatio": 2309797.6509751487,
+        "robustStdError": 6.1985163600850255,
+        "pValue": 0.018083711533799274,
+        "oddsRatioCi95Low": 12.228895786428435,
+        "oddsRatioCi95High": 436275300863.326
+      },
+      {
+        "term": "dominant_average_price",
+        "coefficient": 5.087631885141648,
+        "oddsRatio": 162.00575918766944,
+        "robustStdError": 0.7459671005538822,
+        "pValue": 9.092482564764333e-12,
+        "oddsRatioCi95Low": 37.545864327852954,
+        "oddsRatioCi95High": 699.0348066245731
+      }
+    ],
+    "warning": "This is attribution, not a causal model. Total cost and majority-pregame status are known only after position construction."
+  },
+  "chronologicalValidation": {
+    "method": "Chronological 70/30 split; L2-regularized logistic regression",
+    "splitTimestamp": 1786083243,
+    "trainMarkets": 269,
+    "testMarkets": 116,
+    "trainWinRate": 0.483271375464684,
+    "testWinRate": 0.4827586206896552,
+    "model": {
+      "brier": 0.19418407833299356,
+      "logLoss": 0.5666179314267177,
+      "rocAuc": 0.7794642857142857
+    },
+    "targetAverageEntryPriceBaseline": {
+      "brier": 0.2116398031504139,
+      "logLoss": 0.6072882824774247,
+      "rocAuc": 0.7303571428571429
+    },
+    "trainingPrevalenceBaseline": {
+      "brier": 0.24970299775693605,
+      "logLoss": 0.6925530587970621,
+      "rocAuc": 0.5
+    },
+    "warning": "The model evaluates descriptive stability, not a deployable signal; several features summarize the target's completed position."
+  },
+  "bootstrapRoi": {
+    "all": {
+      "markets": 385,
+      "eventClusters": 340,
+      "costBasisUsdc": 56203622.57160553,
+      "realizedPnlUsdc": 5653889.9473,
+      "roiPct": 10.059653966426687,
+      "bootstrapMedianRoiPct": 9.950368222475905,
+      "ci95LowPct": -9.246710334760504,
+      "ci95HighPct": 28.152398015080266,
+      "probabilityPositivePct": 84.14
+    },
+    "takerShareAtLeast50Pct": {
+      "markets": 241,
+      "eventClusters": 219,
+      "costBasisUsdc": 42195944.57665528,
+      "realizedPnlUsdc": 10025697.750999998,
+      "roiPct": 23.759860933523623,
+      "bootstrapMedianRoiPct": 23.856735767956337,
+      "ci95LowPct": 1.340719390499109,
+      "ci95HighPct": 44.66558619099711,
+      "probabilityPositivePct": 98.15
+    },
+    "takerShareBelow50Pct": {
+      "markets": 144,
+      "eventClusters": 137,
+      "costBasisUsdc": 14007677.994950261,
+      "realizedPnlUsdc": -4371807.8037,
+      "roiPct": -31.210082108369626,
+      "bootstrapMedianRoiPct": -31.857588710360464,
+      "ci95LowPct": -61.67182877574356,
+      "ci95HighPct": 0.12111318997498217,
+      "probabilityPositivePct": 2.55
+    },
+    "startedPregame": {
+      "markets": 99,
+      "eventClusters": 97,
+      "costBasisUsdc": 23226734.83095111,
+      "realizedPnlUsdc": 6101464.6536,
+      "roiPct": 26.26914500900664,
+      "bootstrapMedianRoiPct": 25.274102967239294,
+      "ci95LowPct": -11.913153264320595,
+      "ci95HighPct": 55.76654471173942,
+      "probabilityPositivePct": 91.07
+    },
+    "startedInPlayOrUntimed": {
+      "markets": 286,
+      "eventClusters": 252,
+      "costBasisUsdc": 32976887.740654424,
+      "realizedPnlUsdc": -447574.7063000001,
+      "roiPct": -1.3572375592867818,
+      "bootstrapMedianRoiPct": -1.4164336378536517,
+      "ci95LowPct": -20.426293159765695,
+      "ci95HighPct": 17.22800183544812,
+      "probabilityPositivePct": 43.68
+    },
+    "singleGameOrMap": {
+      "markets": 72,
+      "eventClusters": 58,
+      "costBasisUsdc": 5875152.93166245,
+      "realizedPnlUsdc": -3112586.2195999995,
+      "roiPct": -52.97881188463385,
+      "bootstrapMedianRoiPct": -52.86402691820369,
+      "ci95LowPct": -83.67230684533224,
+      "ci95HighPct": 1.8626478764532939,
+      "probabilityPositivePct": 2.8000000000000003
+    },
+    "notSingleGameOrMap": {
+      "markets": 313,
+      "eventClusters": 312,
+      "costBasisUsdc": 50328469.639943086,
+      "realizedPnlUsdc": 8766476.1669,
+      "roiPct": 17.41852321283877,
+      "bootstrapMedianRoiPct": 17.18069781240661,
+      "ci95LowPct": -2.0668575617681264,
+      "ci95HighPct": 35.33110269745542,
+      "probabilityPositivePct": 95.88
+    },
+    "discipline:Basketball": {
+      "markets": 10,
+      "eventClusters": 10,
+      "costBasisUsdc": 1812858.3247446,
+      "realizedPnlUsdc": -117481.57550000004,
+      "roiPct": -6.480460932684914,
+      "bootstrapMedianRoiPct": -7.275119134348153,
+      "ci95LowPct": -82.69420429014099,
+      "ci95HighPct": 90.27420548768615,
+      "probabilityPositivePct": 43.53
+    },
+    "discipline:Counter-Strike": {
+      "markets": 76,
+      "eventClusters": 61,
+      "costBasisUsdc": 9887335.40312438,
+      "realizedPnlUsdc": 935279.6225999995,
+      "roiPct": 9.459369834914803,
+      "bootstrapMedianRoiPct": 8.726167724259929,
+      "ci95LowPct": -36.56531293098586,
+      "ci95HighPct": 45.010243249332895,
+      "probabilityPositivePct": 65.7
+    },
+    "discipline:Crypto 5m": {
+      "markets": 14,
+      "eventClusters": 14,
+      "costBasisUsdc": 273590.60286681,
+      "realizedPnlUsdc": -237506.0353,
+      "roiPct": -86.81074306328541,
+      "bootstrapMedianRoiPct": -86.48720309564114,
+      "ci95LowPct": -97.83860536147716,
+      "ci95HighPct": -37.63064267391377,
+      "probabilityPositivePct": 0.32
+    },
+    "discipline:Dota 2": {
+      "markets": 106,
+      "eventClusters": 80,
+      "costBasisUsdc": 20855548.99980003,
+      "realizedPnlUsdc": 1601786.1632000005,
+      "roiPct": 7.680383591030661,
+      "bootstrapMedianRoiPct": 6.349901616199275,
+      "ci95LowPct": -37.555662261574376,
+      "ci95HighPct": 45.196811359441824,
+      "probabilityPositivePct": 61.3
+    },
+    "discipline:League of Legends": {
+      "markets": 14,
+      "eventClusters": 12,
+      "costBasisUsdc": 2050925.5289171895,
+      "realizedPnlUsdc": 255847.57790000006,
+      "roiPct": 12.474737590061489,
+      "bootstrapMedianRoiPct": 12.822052118191596,
+      "ci95LowPct": -76.6140822237004,
+      "ci95HighPct": 46.91039194496873,
+      "probabilityPositivePct": 67.86999999999999
+    },
+    "discipline:MLB": {
+      "markets": 54,
+      "eventClusters": 53,
+      "costBasisUsdc": 6324754.55553005,
+      "realizedPnlUsdc": 160246.08960000004,
+      "roiPct": 2.533633332219807,
+      "bootstrapMedianRoiPct": 1.0224874707738574,
+      "ci95LowPct": -37.27342221721302,
+      "ci95HighPct": 46.19636003916446,
+      "probabilityPositivePct": 51.74999999999999
+    },
+    "discipline:Soccer": {
+      "markets": 27,
+      "eventClusters": 27,
+      "costBasisUsdc": 3292677.34914714,
+      "realizedPnlUsdc": 1218488.8707000003,
+      "roiPct": 37.00602098215332,
+      "bootstrapMedianRoiPct": 37.632987419371624,
+      "ci95LowPct": -0.6087109172149276,
+      "ci95HighPct": 72.75452602995556,
+      "probabilityPositivePct": 97.38
+    },
+    "discipline:Tennis": {
+      "markets": 71,
+      "eventClusters": 71,
+      "costBasisUsdc": 11172837.75447342,
+      "realizedPnlUsdc": 2198210.4889,
+      "roiPct": 19.674594200742536,
+      "bootstrapMedianRoiPct": 19.1563231066061,
+      "ci95LowPct": -12.248010926630045,
+      "ci95HighPct": 46.73844118562274,
+      "probabilityPositivePct": 89.17
+    },
+    "discipline:Valorant": {
+      "markets": 7,
+      "eventClusters": 6,
+      "costBasisUsdc": 139041.45711299,
+      "realizedPnlUsdc": 24909.615400000002,
+      "roiPct": 17.91524335059116,
+      "bootstrapMedianRoiPct": 17.48873761506986,
+      "ci95LowPct": -80.77563385420918,
+      "ci95HighPct": 105.68158916273195,
+      "probabilityPositivePct": 61.28
+    }
+  },
+  "pnlConcentration": {
+    "allMarkets": {
+      "all": {
+        "markets": 385,
+        "pnlUsdc": 5653889.947300002,
+        "roiPct": 10.059653966426687
+      },
+      "withoutTop1": {
+        "markets": 384,
+        "pnlUsdc": 2770899.983000003,
+        "roiPct": 5.144320224617902
+      },
+      "withoutTop5": {
+        "markets": 380,
+        "pnlUsdc": -2483199.587099999,
+        "roiPct": -5.217986373568506
+      },
+      "withoutTop10": {
+        "markets": 375,
+        "pnlUsdc": -6388124.973199997,
+        "roiPct": -14.169572753649387
+      }
+    },
+    "takerShareAtLeast50Pct": {
+      "all": {
+        "markets": 241,
+        "pnlUsdc": 10025697.751,
+        "roiPct": 23.759860933523626
+      },
+      "withoutTop1": {
+        "markets": 240,
+        "pnlUsdc": 7142707.786700001,
+        "roiPct": 17.921461767918657
+      },
+      "withoutTop5": {
+        "markets": 236,
+        "pnlUsdc": 1888608.216599999,
+        "roiPct": 5.623945438793264
+      },
+      "withoutTop10": {
+        "markets": 231,
+        "pnlUsdc": -1211738.0724,
+        "roiPct": -4.290019060436153
+      }
+    },
+    "takerShareBelow50Pct": {
+      "all": {
+        "markets": 144,
+        "pnlUsdc": -4371807.8037,
+        "roiPct": -31.210082108369626
+      },
+      "withoutTop1": {
+        "markets": 143,
+        "pnlUsdc": -5398766.4711000025,
+        "roiPct": -40.380948904297256
+      },
+      "withoutTop5": {
+        "markets": 139,
+        "pnlUsdc": -7403779.2814,
+        "roiPct": -62.10989528238723
+      },
+      "withoutTop10": {
+        "markets": 134,
+        "pnlUsdc": -8233100.857500002,
+        "roiPct": -80.83293074330004
+      }
+    }
+  },
+  "proposedStrategyBootstrap": {
+    "train": {
+      "bets": 27,
+      "roiPct": 16.612451791887217,
+      "ci95LowPct": -23.798953142923217,
+      "ci95HighPct": 56.561843614250996,
+      "probabilityPositivePct": 79.4,
+      "warning": "IID bet bootstrap; the small sample and strategy-selection process are not fully represented."
+    },
+    "test": {
+      "bets": 30,
+      "roiPct": 3.978219844954582,
+      "ci95LowPct": -28.805411472086995,
+      "ci95HighPct": 36.95571510271051,
+      "probabilityPositivePct": 59.309999999999995,
+      "warning": "IID bet bootstrap; the small sample and strategy-selection process are not fully represented."
+    },
+    "all": {
+      "bets": 57,
+      "roiPct": 9.962856030343726,
+      "ci95LowPct": -15.879608411390892,
+      "ci95HighPct": 36.04378483391911,
+      "probabilityPositivePct": 78.28,
+      "warning": "IID bet bootstrap; the small sample and strategy-selection process are not fully represented."
+    }
+  },
+  "interpretationLimits": [
+    "The trader and strategy were selected after observing exceptional performance, so selection bias remains.",
+    "Market outcomes within an event are correlated; event-cluster bootstrap reduces but cannot eliminate dependence.",
+    "P-values are descriptive and are not corrected for every exploratory comparison in the report.",
+    "Backtest fills use target trades as a price proxy, not a full historical order book."
+  ]
+}

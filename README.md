@@ -1,156 +1,158 @@
 # Polymarket Trader Research: `@djdjdjekekek`
 
-Reverse-engineering and dry-run replication prototype for the Polymarket account:
+Transaction-level investigation of a high-volume Polymarket account, including wallet-control attribution, decoded funding flows, maker/taker reconstruction, actual bet case studies, event correlation, statistical robustness checks, and a paper-only replication monitor.
 
-https://polymarket.com/@djdjdjekekek
+Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
-This repository resolves the public profile to its Polymarket proxy wallet, collects public trading and wallet-activity data, summarizes the strategy, and emits a dry-run replication plan. It does not place live trades.
+## Read This First
 
-## Executive Summary
+1. [Executive report](research/djdjdjekekek/report.md)
+2. [Onchain investigation](research/djdjdjekekek/onchain_report.md)
+3. [Deep trader report](research/djdjdjekekek/trader_report.md)
+4. [Replication report](research/djdjdjekekek/replication_report.md)
 
-Target profile:
+## Main Discovery
 
-- Username: `Djdjdjekekek`
-- Pseudonym: `Webbed-Myth`
-- Proxy wallet: `0x6d20c35f65d9899b6d6b74f8466e824580f9a165`
+The account is a two-layer operation. Small maker fills dominate row count, while a small number of large, fee-paying taker fills dominate capital and profitability.
 
-Latest collected snapshot:
+| Finding | Result |
+| --- | ---: |
+| Maker fills | 92.8% of fills, 27.9% of quote notional |
+| Taker fills | 7.2% of fills, 72.1% of quote notional |
+| Markets with at least 50% taker notional | +23.76% capital-weighted ROI |
+| Markets below 50% taker notional | -31.21% capital-weighted ROI |
+| Single-game/map markets | -$3.11M realized PnL |
+| Net cash withdrawn above deposits | $5.91M |
+| Fixed 60-second copy proxy, untouched test period | 30 bets, +3.98% ROI |
 
-- First observed trade: `2026-06-19T18:37:08.000Z`
-- Last observed trade: `2026-08-25T00:45:55.000Z`
-- Trade rows collected: `28,167`
-- Activity rows collected: `28,948`
-- Unique markets traded: `383`
-- Closed positions: `392`
-- Active positions: `1`
-- Gross observed trade notional: about `$74.6M`
-- Closed realized PnL: about `$5.6M`
+The aggressive/passive split survives a controlled logistic model and event-cluster bootstrap. The copy result does not yet survive a confidence test: its interval is wide and crosses zero. The prototype is therefore intentionally paper-only.
 
-Main thesis:
+## Onchain Result
 
-The trader is primarily a high-conviction esports and sports bettor, not a broad prediction-market maker. The strongest pattern is aggressive pyramiding into single match outcomes, with many small fills and occasional very large blocks. BTC 5-minute markets appear to be low-notional noise or experimentation relative to the core strategy.
+The public profile resolves to deposit wallet `0x6D20...a165`, a Polymarket `POLY_1271` wallet rather than a Gnosis Safe. Three independent contract surfaces resolve control to EOA `0xC332...141b`:
 
-The replication prototype therefore follows a constrained copy/strategy hybrid:
+- `owner()`
+- the address encoded in `id()`
+- the sole `OwnershipTransferred` initialization event
 
-- Follow only esports and sports outcomes.
-- Ignore BTC 5-minute markets by default.
-- Require strong target conviction before generating an intent.
-- Cap single-market and portfolio risk.
-- Treat historical closed markets as templates, not live order instructions.
-- Emit dry-run intents only.
+That EOA directly transacted with an EIP-7702 source account responsible for $29.56M across 358 funding transactions. Large deposit and withdrawal routers are labeled as infrastructure rather than falsely attributed to the owner. See the [onchain report](research/djdjdjekekek/onchain_report.md) for explorer links and confidence boundaries.
+
+## Actual Bet Reconstruction
+
+The analysis does not stop at profile totals. It reconstructs each market from fills, activity cash, exact taker hashes, CLOB metadata, game start time, resolved outcome, deposits, rebates, and correlated conditions.
+
+Representative cases include:
+
+- Team Spirit in the TI 2026 final: more than $1M of aggressive buys accumulated roughly 82 minutes before start; +$2.88M realized PnL.
+- FUT over FURIA: a roughly $1.01M taker BUY near 0.448, 2.5 minutes before start; +$1.54M PnL.
+- Team Yandex against Spirit: repeated same-direction series and game exposure during a 0-2 loss; approximately -$1.55M across correlated conditions.
+
+The resulting edge thesis is specific: domain selection, pregame thesis formation, and large aggressive conviction, followed by in-play inventory management. Maker rebates, generic live latency, and map duplication do not explain the profit.
 
 ## Repository Map
 
-Core implementation:
+Core pipeline:
 
-- `src/trader_research.js` - collector, analyzer, thesis builder, and dry-run replicator.
-- `test/utils.test.js` - focused tests for auth header generation, market classification, and replicator defaults.
-- `package.json` - npm scripts.
+- `src/trader_research.js` - command-line orchestration.
+- `src/research/collect.js` - public Polymarket collection with windowed pagination.
+- `src/research/onchain.js` - wallet control, contract state, logs and transaction-flow decoding.
+- `src/research/analyze.js` - fill reconstruction, accounting, timing, event grouping and case studies.
+- `src/research/backtest.js` - no-lookahead chronological simulations and execution sensitivity.
+- `src/research/statistical_analysis.py` - robust regression, chronological validation and clustered bootstrap.
+- `src/research/replicator.js` - guarded paper-intent state machine.
+- `src/research/report.js` - reproducible Markdown reports.
 
-Generated research artifacts:
+Primary structured artifacts:
 
-- `research/djdjdjekekek/report.md` - readable trader thesis and analysis.
-- `research/djdjdjekekek/analysis.json` - structured analysis output.
-- `research/djdjdjekekek/replicator_config.json` - dry-run strategy configuration.
-- `research/djdjdjekekek/replication_intents.json` - generated dry-run replication intents.
-- `research/djdjdjekekek/snapshot.json` - raw collected public data snapshot.
+- `snapshot.json` - raw public profile, fills, activity and positions.
+- `enrichment.json` - CLOB metadata, exact taker fills, rebates and onchain evidence.
+- `deep_analysis.json` - reconstructed market-level analysis.
+- `statistical_analysis.json` and `market_features.csv` - robustness outputs.
+- `onchain_evidence.json` and `flow_transactions.json` - decoded chain evidence.
+- `replication_backtest.json`, `replicator_config.json`, and `replication_intents.json` - prototype evidence and output.
 
-Legacy project files:
+All generated artifacts are under `research/djdjdjekekek/`.
 
-- `src/app.js`, `src/probe.js`, and `src/utils.js` are from the original Polymarket validator project and are left intact.
+## Setup
 
-## Commands
-
-Install dependencies:
+Node.js 20+ and Python 3.11+ are recommended.
 
 ```bash
 npm install
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-analysis.txt
 ```
 
-Run tests:
+Run verification:
 
 ```bash
 npm test
+.venv/bin/python -m py_compile src/research/statistical_analysis.py
 ```
 
-Collect fresh public data and regenerate all research artifacts:
+## Reproduce Saved Analysis
 
-```bash
-npm run research:collect
-```
-
-Rebuild analysis/report from the saved snapshot without calling Polymarket APIs:
+The saved snapshot can be analyzed without recollecting all public data:
 
 ```bash
 npm run research:analyze
+.venv/bin/python src/research/statistical_analysis.py
+npm run research:replicate
+npm run research:report
 ```
 
-Generate dry-run replication intents from the saved snapshot and config:
+## Refresh Public Data
 
 ```bash
+npm run research:collect
+npm run research:enrich
+npm run research:analyze
+.venv/bin/python src/research/statistical_analysis.py
 npm run research:replicate
+npm run research:report
 ```
 
-## Data Sources
+`npm run research:onchain` refreshes contract state and chain evidence separately. `npm run research:monitor` performs one fresh public-data pass, evaluates current order books, and emits paper intents only.
 
-The collector uses public Polymarket endpoints:
+For a complete rebuild with the virtual environment, run `PYTHON=.venv/bin/python npm run research:all`.
 
-- Gamma public search/profile endpoints for username-to-wallet resolution.
-- Data API positions, closed positions, activity, value, traded, and trades endpoints.
-
-The code uses time-window pagination for high-volume endpoints so the analysis does not silently stop at a single API page.
-
-## Strategy Thesis
-
-The observed strategy has four major features.
-
-First, notional concentration is domain-specific. Esports accounts for the largest share of observed trade notional, followed by traditional sports. BTC 5-minute trading has many rows but very small notional share.
-
-Second, position construction is pyramidal. The account often accumulates a single outcome through many fills. The median fill is small, but large individual fills and very large final market exposure are common.
-
-Third, outcomes are lumpy. The account has many losing closed positions, but a small number of very large winners dominate realized PnL. This is not a smooth market-making profile.
-
-Fourth, wallet activity is operationally simple from public data. Activity rows show deposits, withdrawals, trades, and redeems against the proxy wallet. The public endpoints do not expose a separate owner EOA, so deeper wallet clustering requires a block-indexer or explorer API.
-
-## Replication Prototype
-
-The prototype produces JSON intents such as:
-
-- `CLONE_ACTIVE_POSITION` for a current live holding.
-- `WATCH_NEXT_SIMILAR_SETUP` for historical setups that match the trader's pattern.
-
-The default rules are conservative:
-
-- Allowed families: `esports`, `sports`
-- Ignored families: `crypto-5m`
-- Max single order: `$2,500`
-- Max portfolio risk: `8%`
-- Max single-market risk: `2.5%`
-- Max copy lag: `300` seconds
-- Max slippage: `3` cents
-- No chase above price: `0.75`
-
-This is a research prototype. Live execution would require explicit credentials, stronger market-state checks, compliance review, and user-owned risk controls.
-
-## Caveats
-
-- Public Polymarket trade rows expose `size` and `price`; trade notional is derived as `size * price` when `usdcSize` is absent.
-- Public Data API wallet activity exposes the proxy wallet and transaction hashes, but not all owner-wallet relationships.
-- Reported profile value/PnL may move after snapshot time.
-- Historical replication intents are templates, not recommendations to trade stale markets.
-- This repository is for research and simulation, not financial advice.
-
-## Private GitHub Repo
-
-Suggested private repository:
+Optional environment variables:
 
 ```text
-autonomous-finance/polymarket-trader-research
+TARGET_USERNAME=djdjdjekekek
+TARGET_WALLET=0x...
+OUT_DIR=research/djdjdjekekek
+POLYGON_RPC=https://...
+HTTP_TIMEOUT_MS=30000
+REFRESH_ENRICHMENT=1
 ```
 
-Create and push after GitHub CLI authentication:
+## Replication Rules
 
-```bash
-gh auth login
-gh repo create autonomous-finance/polymarket-trader-research --private --source=. --remote=autonomous-finance --push
-```
+The fixed paper strategy watches exact target taker BUYs and requires:
+
+- at least $25,000 of cumulative aggressive target buying;
+- at least 70% net directional concentration;
+- an entry price from 0.30 to 0.85;
+- tennis, soccer, Dota 2, Counter-Strike, League of Legends, or Valorant;
+- no single game/map or short-horizon crypto condition;
+- one condition per canonical event;
+- a fresh signal and an order book that has not moved more than one cent adversely.
+
+The monitor emits a post-only paper BUY below the ask, caps exposure, records rejection reasons, and expires the intent after five minutes. It contains no order-signing or submission path.
+
+## Data Integrity
+
+- High-volume endpoints use recursive time windows rather than trusting an offset cap.
+- Maker/taker role comes from exact `takerOnly=true` transaction hashes.
+- Activity size and cash correct maker sub-fills exposed by the public trade feed.
+- The official fee curve independently checks role classification.
+- Every reported deposit and withdrawal has a decoded Blockscout transaction.
+- Correlated uncertainty is estimated by bootstrapping canonical events, not individual conditions.
+- Train/test selection is chronological and every execution waits for the configured copy lag.
+
+## Limits
+
+This is an investigation of public addresses and public market behavior. It does not identify a natural person. The account was selected because of exceptional observed performance, creating selection bias. Historical target fills are not a complete order book, passive queue fills are unproven, and a positive 30-bet test is not enough to deploy capital.
+
+This repository is for research and simulation, not financial advice.
