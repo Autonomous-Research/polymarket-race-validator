@@ -16,7 +16,7 @@ The breadth rule selected 30 bets, won 23, and returned +41.94% under the origin
 | At least 18 makers | 30 | 23 | 16.04 | +23.2 pp | +41.94% |
 | Held out after selection | 21 | 15 | 11.55 | +16.4 pp | +27.32% |
 
-![Atomic-breadth calibration](./figures/atomic_breadth_calibration.png)
+![Atomic-breadth calibration](./figures/atomic_breadth_calibration.svg)
 
 ## What The Chain Proves
 
@@ -28,7 +28,7 @@ The breadth rule selected 30 bets, won 23, and returned +41.94% under the origin
 
 Distinct signed accounts are not proven distinct humans. The fact is contract-level breadth, not human headcount.
 
-![Anatomy of one atomic sweep](./figures/atomic_sweep_anatomy.png)
+![Anatomy of one atomic sweep](./figures/atomic_sweep_anatomy.svg)
 
 ## Realistic Copy Speed
 
@@ -38,9 +38,9 @@ At one second plus one cent, blind copying returned +1.04%. At one second plus t
 
 There is no measured sub-minute latency cliff. Price impact is the cliff: a fast bot still loses after paying away roughly two cents on indiscriminate copies.
 
-![Latency and adverse-price surface](./figures/copy_execution_surface.png)
+![Latency and adverse-price surface](./figures/copy_execution_surface.svg)
 
-![Break-even execution frontier](./figures/copy_break_even_frontier.png)
+![Break-even execution frontier](./figures/copy_break_even_frontier.svg)
 
 ## Full Parameter Atlas
 
@@ -53,11 +53,11 @@ The exported audit contains 1,444 grid cells across four sensitivity families:
 
 At one second plus one cent, the held-out breadth sample returned +35.60%. The dense atlas is a fragility map, not 1,444 independent confirmations.
 
-![All measured latency curves](./figures/copy_latency_curves.png)
+![All measured latency curves](./figures/copy_latency_curves.svg)
 
-![All execution-cost curves](./figures/copy_cost_curves.png)
+![All execution-cost curves](./figures/copy_cost_curves.svg)
 
-![Fee and price-cost surface](./figures/fee_cost_surface.png)
+![Fee and price-cost surface](./figures/fee_cost_surface.svg)
 
 ## Capacity And Size
 
@@ -65,13 +65,13 @@ The audit adds 4,800 size cells, bringing the execution-and-capacity total to 6,
 
 That favorable current cross-section is not the follower's post-sweep book. Across 21 held-out breadth signals, the optimistic all-print turnover ceiling covered a $100.00 request within one second only 38.1% of the time. At 60 seconds it covered 85.7%; limiting participation to 25% reduced that to 71.4%. FOK rejects the whole order when capacity is short.
 
-![Immediate FOK capacity surface](./figures/live_fok_capacity_surface.png)
+![Immediate FOK capacity surface](./figures/live_fok_capacity_surface.svg)
 
-![Size, rejection, and conditional VWAP](./figures/live_depth_survival.png)
+![Size, rejection, and conditional VWAP](./figures/live_depth_survival.svg)
 
-![Historical post-sweep turnover surface](./figures/historical_capacity_surface.png)
+![Historical post-sweep turnover surface](./figures/historical_capacity_surface.svg)
 
-![Current book versus post-sweep capacity](./figures/capacity_reality_gap.png)
+![Current book versus post-sweep capacity](./figures/capacity_reality_gap.svg)
 
 ## Alpha, Literally
 
@@ -101,7 +101,7 @@ Two alternative stories fail descriptively. Broad winners consumed maker orders 
 
 The selection-repeating market null gives `p=0.0314`, but the seven-bet held-out day-cluster interval spans -8.7% to +110.4%. The null covers the stated grid, not every hypothesis considered. This is the sharpest lead, not a cracked private model.
 
-![Compact-fresh mechanism](./figures/compact_fresh_mechanism.png)
+![Compact-fresh mechanism](./figures/compact_fresh_mechanism.svg)
 
 ## Closing-Line Falsification
 
@@ -109,11 +109,11 @@ All 33 eligible pregame signals received a final non-target public print before 
 
 The high settlement win rate therefore lacks independent pregame price confirmation. Closing prints are not executable quotes, but this negative validation blocks an honest claim that the information source has been solved or that live capital is justified.
 
-![Closing-line validation](./figures/closing_line_validation.png)
+![Closing-line validation](./figures/closing_line_validation.svg)
 
-![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.png)
+![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.svg)
 
-![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.png)
+![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.svg)
 
 ## Falsification And Controls
 
@@ -127,7 +127,7 @@ The high settlement win rate therefore lacks independent pregame price confirmat
 | Breadth odds after rapid flow, notional, and period controls | OR 4.94, `p=0.043` | Alternative observable explanations |
 | Trigger notional in the same model | OR 0.94, `p=0.858` | Raw dollar size |
 
-![Chronological breadth test](./figures/breadth_chronology.png)
+![Chronological breadth test](./figures/breadth_chronology.svg)
 
 ## Mechanism
 

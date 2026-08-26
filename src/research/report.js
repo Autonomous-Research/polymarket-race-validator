@@ -278,9 +278,9 @@ A follower who copied every first canonical-event signal after the target crosse
 
 Blind copying also produced only ${number(blind.all.wins)} wins versus ${number(blind.calibration.expectedWinsFromExecutionProxy, 2)} implied by the execution proxy. Its ${signedPoints(blind.calibration.calibrationGapPctPoints, 1)} calibration gap is ordinary (Poisson-binomial upper-tail \`p=${blind.calibration.poissonBinomialUpperTailPValue.toFixed(3)}\`). That diagnostic assumes independent outcomes and calibrated proxy probabilities; it is not a causal p-value. The large-wager observation alone therefore contains no demonstrated follower edge.
 
-![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.png)
+![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.svg)
 
-![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.png)
+![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.svg)
 
 The deeper test replaces the target's later fills with ${number(edge.coverage.publicTakerPrints)} unrelated public taker prints from ${number(edge.coverage.tapeMarkets)} signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
 
@@ -309,7 +309,7 @@ The strongest new diagnostic compares realized wins with the probability visible
 | Later rapid | ${number(calibration.later.burst60.bets)} | ${number(calibration.later.burst60.wins)} | ${number(calibration.later.burst60.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.later.burst60.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.final30Pct.burst60.roiPct, 2)} |
 | Later slower | ${number(calibration.later.slower.bets)} | ${number(calibration.later.slower.wins)} | ${number(calibration.later.slower.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(calibration.later.slower.calibrationGapPctPoints, 1)} | ${signedPercent(edge.subgroupChronology.final30Pct.slower.roiPct, 2)} |
 
-![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.png)
+![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.svg)
 
 The raw gap is not only an in-play artifact. Rapid signals returned ${signedPercent(rapidPregame.roiPct, 2)} over ${number(rapidPregame.bets)} pregame bets and ${signedPercent(rapidInPlay.roiPct, 2)} over ${number(rapidInPlay.bets)} in-play bets. It is also not exactly one giant transaction: all ${number(mechanism.transactionShape.oneShotSignals)} one-shot signals are mechanically rapid at the threshold timestamp, but ${number(mechanism.transactionShape.multiFillBurstSignals)} rapid multi-fill signals also exist. Those seven all won, which is suggestive but far too small to estimate separately.
 
@@ -317,7 +317,7 @@ Uncertainty cuts both ways. A day-cluster bootstrap estimates the rapid-minus-sl
 
 The threshold sweep is smooth rather than isolated at exactly 80%: thresholds from 50% through 99% retain positive ROI, but these overlapping samples are correlated and were analyzed after discovery.
 
-![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.svg)
 
 An expanding-window model trained only on markets whose Gamma \`closedTime\` preceded each prediction selected ${number(model.selected.bets)} of ${number(model.predictions)} later signals and returned ${signedPercent(model.selected.roiPct, 2)}, versus ${signedPercent(model.samePeriodAlwaysCopy.roiPct, 2)} for always copying and ${signedPercent(model.samePeriodBurstGate.roiPct, 2)} for the transparent burst gate in the same period. Gamma close-time coverage is ${percent(edge.coverage.gammaClosedTimeCoveragePct, 1)}. Its ROC-AUC is ${Number(model.rocAuc).toFixed(3)}, but the day-cluster interval still reaches ${signedPercent(model.selectedDayClusterBootstrap.ci95LowPct, 1)} and removing its top five winners makes ROI ${signedPercent(model.selected.roiWithoutTopWinnersPct['5'], 1)}. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
 
@@ -564,7 +564,7 @@ The literal copy strategy is rejected before model selection. Copying every firs
 
 This matters because the ${number(fixed.all.bets)}-event primary test below is already a restricted universe. Its positive result must not be described as the return from blindly following the account.
 
-![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.png)
+![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.svg)
 
 ## Primary Historical Test
 
@@ -590,19 +590,19 @@ ${universeRows}
 
 Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
 
-![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.png)
+![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.svg)
 
 ## Mechanism Audit
 
 The candidate mechanism is **conviction compression**: most target taker buying arrives in one minute, but the next unrelated execution proxy still understates how often that side wins. Rapid signals record ${number(calibration.burst60.wins)} wins against ${number(calibration.burst60.expectedWinsFromExecutionProxy, 2)} implied (${signedPoints(calibration.burst60.calibrationGapPctPoints, 1)}); slower signals record ${number(calibration.slower.wins)} against ${number(calibration.slower.expectedWinsFromExecutionProxy, 2)} implied (${signedPoints(calibration.slower.calibrationGapPctPoints, 1)}).
 
-![Urgency-conditioned probability calibration](./figures/urgency_calibration.png)
+![Urgency-conditioned probability calibration](./figures/urgency_calibration.svg)
 
 The day-clustered rapid-minus-slow calibration interval is ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95LowPctPoints, 1)} to ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.ci95HighPctPoints, 1)} around a ${signedPoints(calibration.dayClusterBootstrap.burstMinusSlower.estimatePctPoints, 1)} estimate. Broad discipline/price stratification leaves ${broadControl.commonOddsRatio.toFixed(2)}x common win odds (\`p=${broadControl.twoSidedPValue.toFixed(3)}\`). The stronger falsification is less favorable: permuting urgency labels within discipline, three price bands, and chronological period reduces the effect to ${signedPoints(fineControl.effectPctPoints, 1)} across ${number(fineControl.comparableBets)} comparable bets, with one-sided \`p=${fineControl.oneSidedPValue.toFixed(3)}\`. That non-result is why the mechanism remains provisional.
 
 Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cut. They reuse overlapping bets, however, and do not count as independent confirmations.
 
-![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.svg)
 
 ## Execution Stress
 
@@ -612,7 +612,7 @@ Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cu
 | --- | ---: | ---: | ---: |
 ${slipRows}
 
-![ROI under adverse execution stress](./figures/execution_sensitivity.png)
+![ROI under adverse execution stress](./figures/execution_sensitivity.svg)
 
 ### Delay at five-cent stress
 
@@ -634,11 +634,11 @@ ${capacityRows}
 
 Current depth is a timestamped, favorable top-volume cross-section of ${number(liveCapacity.coverage.eligibleTokenSides)} token sides. Historical columns cover the ${number(capacity.breadthHeldOutEvents.length)} held-out breadth signals and accumulate prints after the target sweep; they are throughput ceilings, not simultaneous books. Unfilled opportunities stay cash and contribute zero P&L.
 
-![Immediate FOK capacity by stake and book-walk limit](./figures/live_fok_capacity_surface.png)
+![Immediate FOK capacity by stake and book-walk limit](./figures/live_fok_capacity_surface.svg)
 
-![Historical post-sweep capacity surface](./figures/historical_capacity_surface.png)
+![Historical post-sweep capacity surface](./figures/historical_capacity_surface.svg)
 
-![Current-book versus post-sweep capacity](./figures/capacity_reality_gap.png)
+![Current-book versus post-sweep capacity](./figures/capacity_reality_gap.svg)
 
 ## Leakage And Selection Audit
 
@@ -777,7 +777,7 @@ The breadth rule selected ${number(breadth.bets)} bets, won ${number(breadth.win
 | At least 18 makers | ${number(breadth.bets)} | ${number(breadth.wins)} | ${number(atomic.allCalibration.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(atomic.allCalibration.calibrationGapPctPoints, 1)} | ${signedPercent(breadth.roiPct, 2)} |
 | Held out after selection | ${number(heldOut.bets)} | ${number(heldOut.wins)} | ${number(heldOutCalibration.expectedWinsFromExecutionProxy, 2)} | ${signedPoints(heldOutCalibration.calibrationGapPctPoints, 1)} | ${signedPercent(heldOut.roiPct, 2)} |
 
-![Atomic-breadth calibration](./figures/atomic_breadth_calibration.png)
+![Atomic-breadth calibration](./figures/atomic_breadth_calibration.svg)
 
 ## What The Chain Proves
 
@@ -789,7 +789,7 @@ The breadth rule selected ${number(breadth.bets)} bets, won ${number(breadth.win
 
 Distinct signed accounts are not proven distinct humans. The fact is contract-level breadth, not human headcount.
 
-![Anatomy of one atomic sweep](./figures/atomic_sweep_anatomy.png)
+![Anatomy of one atomic sweep](./figures/atomic_sweep_anatomy.svg)
 
 ## Realistic Copy Speed
 
@@ -799,9 +799,9 @@ At one second plus one cent, blind copying returned ${signedPercent(blindFast.al
 
 There is no measured sub-minute latency cliff. Price impact is the cliff: a fast bot still loses after paying away roughly two cents on indiscriminate copies.
 
-![Latency and adverse-price surface](./figures/copy_execution_surface.png)
+![Latency and adverse-price surface](./figures/copy_execution_surface.svg)
 
-![Break-even execution frontier](./figures/copy_break_even_frontier.png)
+![Break-even execution frontier](./figures/copy_break_even_frontier.svg)
 
 ## Full Parameter Atlas
 
@@ -814,11 +814,11 @@ The exported audit contains ${number(atlasCells)} grid cells across four sensiti
 
 At one second plus one cent, the held-out breadth sample returned ${signedPercent(breadthFastHeldOutRoi, 2)}. The dense atlas is a fragility map, not ${number(atlasCells)} independent confirmations.
 
-![All measured latency curves](./figures/copy_latency_curves.png)
+![All measured latency curves](./figures/copy_latency_curves.svg)
 
-![All execution-cost curves](./figures/copy_cost_curves.png)
+![All execution-cost curves](./figures/copy_cost_curves.svg)
 
-![Fee and price-cost surface](./figures/fee_cost_surface.png)
+![Fee and price-cost surface](./figures/fee_cost_surface.svg)
 
 ## Capacity And Size
 
@@ -826,13 +826,13 @@ The audit adds ${number(capacity.scenarioCount)} size cells, bringing the execut
 
 That favorable current cross-section is not the follower's post-sweep book. Across 21 held-out breadth signals, the optimistic all-print turnover ceiling covered a ${money(100)} request within one second only ${percent(capacityCell(100, 1).fillRatePct, 1)} of the time. At 60 seconds it covered ${percent(capacityCell(100, 60).fillRatePct, 1)}; limiting participation to 25% reduced that to ${percent(capacityCell(100, 60, 'allPrints', 25).fillRatePct, 1)}. FOK rejects the whole order when capacity is short.
 
-![Immediate FOK capacity surface](./figures/live_fok_capacity_surface.png)
+![Immediate FOK capacity surface](./figures/live_fok_capacity_surface.svg)
 
-![Size, rejection, and conditional VWAP](./figures/live_depth_survival.png)
+![Size, rejection, and conditional VWAP](./figures/live_depth_survival.svg)
 
-![Historical post-sweep turnover surface](./figures/historical_capacity_surface.png)
+![Historical post-sweep turnover surface](./figures/historical_capacity_surface.svg)
 
-![Current book versus post-sweep capacity](./figures/capacity_reality_gap.png)
+![Current book versus post-sweep capacity](./figures/capacity_reality_gap.svg)
 
 ## Alpha, Literally
 
@@ -862,7 +862,7 @@ Two alternative stories fail descriptively. Broad winners consumed maker orders 
 
 The selection-repeating market null gives \`p=${compact.comparisons.selectionCorrectedMarketNull.oneSidedPValue.toFixed(4)}\`, but the seven-bet held-out day-cluster interval spans ${signedPercent(compact.heldOutDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(compact.heldOutDayClusterBootstrap.ci95HighPct, 1)}. The null covers the stated grid, not every hypothesis considered. This is the sharpest lead, not a cracked private model.
 
-![Compact-fresh mechanism](./figures/compact_fresh_mechanism.png)
+![Compact-fresh mechanism](./figures/compact_fresh_mechanism.svg)
 
 ## Closing-Line Falsification
 
@@ -870,11 +870,11 @@ All ${number(closing.allEligiblePregame.events)} eligible pregame signals receiv
 
 The high settlement win rate therefore lacks independent pregame price confirmation. Closing prints are not executable quotes, but this negative validation blocks an honest claim that the information source has been solved or that live capital is justified.
 
-![Closing-line validation](./figures/closing_line_validation.png)
+![Closing-line validation](./figures/closing_line_validation.svg)
 
-![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.png)
+![Breadth cutoff by execution cost](./figures/breadth_threshold_cost_surface.svg)
 
-![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.png)
+![Breadth cutoff by latency](./figures/breadth_threshold_latency_surface.svg)
 
 ## Falsification And Controls
 
@@ -888,7 +888,7 @@ The high settlement win rate therefore lacks independent pregame price confirmat
 | Breadth odds after rapid flow, notional, and period controls | OR ${breadthCoefficient.oddsRatio.toFixed(2)}, \`p=${breadthCoefficient.robustPValue.toFixed(3)}\` | Alternative observable explanations |
 | Trigger notional in the same model | OR ${notionalCoefficient.oddsRatio.toFixed(2)}, \`p=${notionalCoefficient.robustPValue.toFixed(3)}\` | Raw dollar size |
 
-![Chronological breadth test](./figures/breadth_chronology.png)
+![Chronological breadth test](./figures/breadth_chronology.svg)
 
 ## Mechanism
 
@@ -983,7 +983,7 @@ The account is a two-layer automated operation: ${percent(execution.makerFillPct
 | Chronological final period | ${number(fixed.test.bets)} bets, ${signedPercent(fixed.test.roiPct, 2)} ROI; day-cluster interval ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95LowPct, 1)} to ${signedPercent(edge.fixedTestDayClusterBootstrap.ci95HighPct, 1)} |
 | Expanding-window model | ${number(model.selected.bets)} selected bets, ${signedPercent(model.selected.roiPct, 2)} ROI; ROC-AUC ${Number(model.rocAuc).toFixed(3)} |
 
-![Blind-copy and filtered-rule equity](./figures/strategy_equity.png)
+![Blind-copy and filtered-rule equity](./figures/strategy_equity.svg)
 
 ## Corrections And Rejections
 

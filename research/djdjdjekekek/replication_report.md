@@ -31,7 +31,7 @@ The literal copy strategy is rejected before model selection. Copying every firs
 
 This matters because the 80-event primary test below is already a restricted universe. Its positive result must not be described as the return from blindly following the account.
 
-![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.png)
+![Chronological blind-copy and filtered-rule equity](./figures/strategy_equity.svg)
 
 ## Primary Historical Test
 
@@ -61,19 +61,19 @@ Blindly copying every canonical seed signal loses money. The nested ladder shows
 
 Urgency is the first rule that flips the sign; market format adds the largest structural improvement. Discipline and price increase ROI further but were informed by this investigated sample, so the ladder is attribution rather than five independent strategy trials.
 
-![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.png)
+![Nested rule attribution from blind copying to the exploratory full rule](./figures/blind_copy_funnel.svg)
 
 ## Mechanism Audit
 
 The candidate mechanism is **conviction compression**: most target taker buying arrives in one minute, but the next unrelated execution proxy still understates how often that side wins. Rapid signals record 41 wins against 31.24 implied (+18.1 pp); slower signals record 11 against 14.09 implied (-11.9 pp).
 
-![Urgency-conditioned probability calibration](./figures/urgency_calibration.png)
+![Urgency-conditioned probability calibration](./figures/urgency_calibration.svg)
 
 The day-clustered rapid-minus-slow calibration interval is +10.1 pp to +51.4 pp around a +30.0 pp estimate. Broad discipline/price stratification leaves 3.36x common win odds (`p=0.023`). The stronger falsification is less favorable: permuting urgency labels within discipline, three price bands, and chronological period reduces the effect to +9.6 pp across 52 comparable bets, with one-sided `p=0.239`. That non-result is why the mechanism remains provisional.
 
 Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cut. They reuse overlapping bets, however, and do not count as independent confirmations.
 
-![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+![Burst-share threshold sensitivity](./figures/burst_threshold_sensitivity.svg)
 
 ## Execution Stress
 
@@ -99,7 +99,7 @@ Thresholds from 50% through 99% remain positive, so 80% is not a single lucky cu
 | 25c | -23.61% | -7.36% | -18.74% |
 | 30c | -27.11% | -12.49% | -22.73% |
 
-![ROI under adverse execution stress](./figures/execution_sensitivity.png)
+![ROI under adverse execution stress](./figures/execution_sensitivity.svg)
 
 ### Delay at five-cent stress
 
@@ -139,11 +139,11 @@ The price-only replay is not enough to establish fills. The added capacity audit
 
 Current depth is a timestamped, favorable top-volume cross-section of 206 token sides. Historical columns cover the 21 held-out breadth signals and accumulate prints after the target sweep; they are throughput ceilings, not simultaneous books. Unfilled opportunities stay cash and contribute zero P&L.
 
-![Immediate FOK capacity by stake and book-walk limit](./figures/live_fok_capacity_surface.png)
+![Immediate FOK capacity by stake and book-walk limit](./figures/live_fok_capacity_surface.svg)
 
-![Historical post-sweep capacity surface](./figures/historical_capacity_surface.png)
+![Historical post-sweep capacity surface](./figures/historical_capacity_surface.svg)
 
-![Current-book versus post-sweep capacity](./figures/capacity_reality_gap.png)
+![Current-book versus post-sweep capacity](./figures/capacity_reality_gap.svg)
 
 ## Leakage And Selection Audit
 

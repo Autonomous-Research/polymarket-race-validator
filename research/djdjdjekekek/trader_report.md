@@ -35,9 +35,9 @@ A follower who copied every first canonical-event signal after the target crosse
 
 Blind copying also produced only 80 wins versus 77.15 implied by the execution proxy. Its +2.0 pp calibration gap is ordinary (Poisson-binomial upper-tail `p=0.333`). That diagnostic assumes independent outcomes and calibrated proxy probabilities; it is not a causal p-value. The large-wager observation alone therefore contains no demonstrated follower edge.
 
-![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.png)
+![Chronological equity for blind copying and progressively filtered rules](./figures/strategy_equity.svg)
 
-![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.png)
+![Nested blind-copy attribution ladder](./figures/blind_copy_funnel.svg)
 
 The deeper test replaces the target's later fills with 143,507 unrelated public taker prints from 149 signal markets. Every eligible event is forced into the simulation: after a 60-second lag, execution uses the first direction-neutral public print in the next minute, falls back to the trigger price when none exists, adds five cents adverse slippage, and applies the account-observed 3% fee curve.
 
@@ -66,7 +66,7 @@ The strongest new diagnostic compares realized wins with the probability visible
 | Later rapid | 19 | 15 | 9.83 | +27.2 pp | +41.82% |
 | Later slower | 5 | 2 | 2.57 | -11.5 pp | -32.40% |
 
-![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.png)
+![Realized win rates against execution-proxy implied probabilities](./figures/urgency_calibration.svg)
 
 The raw gap is not only an in-play artifact. Rapid signals returned +24.65% over 23 pregame bets and +24.17% over 31 in-play bets. It is also not exactly one giant transaction: all 47 one-shot signals are mechanically rapid at the threshold timestamp, but 7 rapid multi-fill signals also exist. Those seven all won, which is suggestive but far too small to estimate separately.
 
@@ -74,7 +74,7 @@ Uncertainty cuts both ways. A day-cluster bootstrap estimates the rapid-minus-sl
 
 The threshold sweep is smooth rather than isolated at exactly 80%: thresholds from 50% through 99% retain positive ROI, but these overlapping samples are correlated and were analyzed after discovery.
 
-![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.png)
+![Burst threshold sensitivity](./figures/burst_threshold_sensitivity.svg)
 
 An expanding-window model trained only on markets whose Gamma `closedTime` preceded each prediction selected 15 of 40 later signals and returned +27.54%, versus +5.40% for always copying and +20.05% for the transparent burst gate in the same period. Gamma close-time coverage is 100.0%. Its ROC-AUC is 0.635, but the day-cluster interval still reaches -13.3% and removing its top five winners makes ROI -22.1%. The burst is the primary guard; the model is a secondary paper filter, not proof of deployable alpha.
 

@@ -22,7 +22,7 @@ The account is a two-layer automated operation: 92.8% of fills are maker executi
 | Chronological final period | 24 bets, +26.36% ROI; day-cluster interval -15.9% to +55.8% |
 | Expanding-window model | 15 selected bets, +27.54% ROI; ROC-AUC 0.635 |
 
-![Blind-copy and filtered-rule equity](./figures/strategy_equity.png)
+![Blind-copy and filtered-rule equity](./figures/strategy_equity.svg)
 
 ## Corrections And Rejections
 

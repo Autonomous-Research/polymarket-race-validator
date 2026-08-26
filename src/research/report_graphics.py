@@ -37,6 +37,7 @@ LIGHT = "#F4F6F7"
 DISPLAY_LAGS = (0, 1, 2, 5, 10, 15, 30, 60, 120, 300)
 DISPLAY_COSTS = (0, 0.5, 1, 2, 3, 5, 7.5, 10, 20, 30)
 SERIES_COLORS = (POSITIVE, SECONDARY, ACCENT, NEGATIVE, "#6E5A8A", "#657A54", INK)
+PNG_DPI = 300
 
 
 def configure_style() -> None:
@@ -50,6 +51,9 @@ def configure_style() -> None:
         "axes.titleweight": "bold",
         "font.family": "DejaVu Sans",
         "font.size": 11,
+        "lines.antialiased": True,
+        "patch.antialiased": True,
+        "text.antialiased": True,
         "text.color": INK,
         "xtick.color": MUTED,
         "ytick.color": MUTED,
@@ -69,13 +73,33 @@ def save_figure(fig: plt.Figure, output_dir: Path, name: str) -> list[str]:
         metadata = {"Software": "polymarket-trader-research"} if extension == "png" else {"Date": None}
         fig.savefig(
             path,
-            dpi=190 if extension == "png" else None,
+            dpi=PNG_DPI if extension == "png" else None,
             bbox_inches="tight",
             metadata=metadata,
         )
+        if extension == "svg":
+            normalized = "\n".join(
+                line.rstrip() for line in path.read_text(encoding="utf-8").splitlines()
+            ) + "\n"
+            path.write_text(normalized, encoding="utf-8")
         files.append(str(path))
     plt.close(fig)
     return files
+
+
+def vector_heatmap(axis, values: np.ndarray, **kwargs):
+    """Draw a cell grid that remains vector artwork in SVG and PDF output."""
+    rows, columns = values.shape
+    image = axis.pcolormesh(
+        np.arange(columns + 1) - 0.5,
+        np.arange(rows + 1) - 0.5,
+        values,
+        shading="flat",
+        **kwargs,
+    )
+    axis.set_xlim(-0.5, columns - 0.5)
+    axis.set_ylim(rows - 0.5, -0.5)
+    return image
 
 
 def annotate_bars(axis, bars, values, suffix="%") -> None:
@@ -553,7 +577,7 @@ def copy_execution_surface(edge: dict, output_dir: Path) -> list[str]:
     normalization = TwoSlopeNorm(vmin=-26, vcenter=0, vmax=42)
     image = None
     for axis, (title, values, subtitle) in zip(axes, panels):
-        image = axis.imshow(values, cmap="RdYlGn", norm=normalization, aspect="auto")
+        image = vector_heatmap(axis, values, cmap="RdYlGn", norm=normalization)
         for row_index in range(len(lags)):
             for column_index in range(len(slippage)):
                 value = values[row_index, column_index]
@@ -736,7 +760,7 @@ def fee_cost_surface(edge: dict, output_dir: Path) -> list[str]:
     ]
     image = None
     for axis, values, title in panels:
-        image = axis.imshow(values, cmap="RdYlGn", norm=normalization, aspect="auto")
+        image = vector_heatmap(axis, values, cmap="RdYlGn", norm=normalization)
         for row_index in range(len(fees)):
             for column_index in range(len(costs)):
                 value = values[row_index, column_index]
@@ -781,9 +805,9 @@ def breadth_threshold_cost_surface(edge: dict, output_dir: Path) -> list[str]:
     ])
 
     fig, axis = plt.subplots(figsize=(14.5, 8.8))
-    image = axis.imshow(
-        values, cmap="RdYlGn", norm=TwoSlopeNorm(vmin=-65, vcenter=0, vmax=85),
-        aspect="auto"
+    image = vector_heatmap(
+        axis, values, cmap="RdYlGn",
+        norm=TwoSlopeNorm(vmin=-65, vcenter=0, vmax=85),
     )
     locked_index = thresholds.index(18)
     axis.axhline(locked_index - 0.5, color=INK, linewidth=2.0)
@@ -825,9 +849,9 @@ def breadth_threshold_latency_surface(edge: dict, output_dir: Path) -> list[str]
     ])
 
     fig, axis = plt.subplots(figsize=(14.5, 8.8))
-    image = axis.imshow(
-        values, cmap="RdYlGn", norm=TwoSlopeNorm(vmin=-35, vcenter=0, vmax=70),
-        aspect="auto"
+    image = vector_heatmap(
+        axis, values, cmap="RdYlGn",
+        norm=TwoSlopeNorm(vmin=-35, vcenter=0, vmax=70),
     )
     locked_index = thresholds.index(18)
     axis.axhline(locked_index - 0.5, color=INK, linewidth=2.0)
@@ -1193,7 +1217,7 @@ def live_fok_capacity_surface(edge: dict, output_dir: Path) -> list[str]:
             [lookup.get((stake, buffer), {}).get("fillRatePct", np.nan) for buffer in buffers]
             for stake in stakes
         ])
-        image_handle = axis.imshow(matrix, vmin=0, vmax=100, cmap="YlGnBu", aspect="auto")
+        image_handle = vector_heatmap(axis, matrix, vmin=0, vmax=100, cmap="YlGnBu")
         for row_index, stake in enumerate(stakes):
             for column_index, buffer in enumerate(buffers):
                 value = matrix[row_index, column_index]
@@ -1289,7 +1313,7 @@ def historical_capacity_surface(edge: dict, output_dir: Path) -> list[str]:
             [lookup.get((stake, window), np.nan) for window in windows]
             for stake in stakes
         ])
-        image_handle = axis.imshow(matrix, vmin=0, vmax=100, cmap="magma_r", aspect="auto")
+        image_handle = vector_heatmap(axis, matrix, vmin=0, vmax=100, cmap="magma_r")
         for row_index in range(len(stakes)):
             for column_index in range(len(windows)):
                 value = matrix[row_index, column_index]
@@ -1563,8 +1587,12 @@ def main() -> None:
             "features": args.features,
             "triggers": args.triggers,
         },
+        "rendering": {
+            "preferredFormat": "svg",
+            "pngDpi": PNG_DPI,
+        },
         "files": [str(Path(path).relative_to(output_dir.parent)) for path in files],
-        "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content.",
+        "note": "Every figure is generated from committed research artifacts; reports use fully vector SVG, with print-grade PNG fallbacks carrying identical content.",
     }
     manifest_path = output_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

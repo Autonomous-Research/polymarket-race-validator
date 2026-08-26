@@ -1,9 +1,13 @@
 {
-  "generatedAt": "2026-08-25T20:28:18.539933+00:00",
+  "generatedAt": "2026-08-26T10:39:22.844925+00:00",
   "source": {
     "edge": "research/djdjdjekekek/edge_analysis.json",
     "features": "research/djdjdjekekek/edge_features.csv",
     "triggers": "research/djdjdjekekek/trigger_transactions.json"
+  },
+  "rendering": {
+    "preferredFormat": "svg",
+    "pngDpi": 300
   },
   "files": [
     "figures/blind_copy_funnel.png",
@@ -69,5 +73,5 @@
     "figures/compact_fresh_mechanism.png",
     "figures/compact_fresh_mechanism.svg"
   ],
-  "note": "Every figure is generated from committed research artifacts; SVG and PNG carry identical content."
+  "note": "Every figure is generated from committed research artifacts; reports use fully vector SVG, with print-grade PNG fallbacks carrying identical content."
 }

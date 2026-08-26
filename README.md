@@ -6,7 +6,7 @@ Transaction-level investigation of a high-volume Polymarket account. The reposit
 
 **[Read the illustrated plain-English essay (PDF)](research/djdjdjekekek/plain_english_essay.pdf)**
 
-The 31-figure PDF explains what blind copying would have done across 1,444 price/latency cells plus 4,800 size/capacity cells, the atomic-liquidity fingerprint that best identifies the trader's alpha, the sharper compact-fresh mechanism, closing-line falsification, exact paper-only controls, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
+The 31-figure vector PDF explains what blind copying would have done across 1,444 price/latency cells plus 4,800 size/capacity cells, the atomic-liquidity fingerprint that best identifies the trader's alpha, the sharper compact-fresh mechanism, closing-line falsification, exact paper-only controls, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
 
 Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
@@ -84,7 +84,7 @@ The nested universe test identifies where the result comes from:
 
 This is a nested attribution ladder, not five independent trials. Discipline and price were informed by the same investigated sample; urgency and format are the more defensible core.
 
-![Blind-copy attribution ladder](research/djdjdjekekek/figures/blind_copy_funnel.png)
+![Blind-copy attribution ladder](research/djdjdjekekek/figures/blind_copy_funnel.svg)
 
 ### The Mechanism Was Decoded
 
@@ -100,9 +100,9 @@ The closest observed second-stage mechanism is **compact-fresh breadth**: at lea
 
 Two simpler stories did not fit. Broad winners consumed fresher maker orders than broad losses, so stale-quote harvesting is not the mechanism. The 30 broad signals touched 388 unique makers, and repeated maker identities or prior target outcomes against them did not separate wins from losses.
 
-![Atomic-breadth probability calibration](research/djdjdjekekek/figures/atomic_breadth_calibration.png)
+![Atomic-breadth probability calibration](research/djdjdjekekek/figures/atomic_breadth_calibration.svg)
 
-![Copy latency and execution-cost surface](research/djdjdjekekek/figures/copy_execution_surface.png)
+![Copy latency and execution-cost surface](research/djdjdjekekek/figures/copy_execution_surface.svg)
 
 ### Size And Independent Validation
 
@@ -110,15 +110,15 @@ A current official-CLOB snapshot walked displayed asks for 206 high-volume sport
 
 The historical audit separately spans 4,800 combinations of stake, one-to-60-second accumulation window, one-to-10-cent price buffer, 5%-to-100% participation, strategy, and print proxy. Historical prints are cumulative turnover ceilings, not simultaneous FOK depth. The main result is rejection risk: one second after held-out broad sweeps, only 8/21 signals showed even $100 of optimistic all-print turnover through +1 cent.
 
-![Immediate FOK size surface](research/djdjdjekekek/figures/live_fok_capacity_surface.png)
+![Immediate FOK size surface](research/djdjdjekekek/figures/live_fok_capacity_surface.svg)
 
-![Current generic depth versus post-sweep turnover](research/djdjdjekekek/figures/capacity_reality_gap.png)
+![Current generic depth versus post-sweep turnover](research/djdjdjekekek/figures/capacity_reality_gap.svg)
 
 Closing-line validation is negative. Among 12 broad pregame signals, mean CLV was -1.06 cents and median CLV -0.67 cents; only four were positive. Settlement outcomes remain unusually strong, but the pregame market did not independently validate the target side. That contradiction is the primary reason this repository does not add signing or live order submission.
 
 The size conclusion is directionally consistent with independent primary research on Polymarket NBA books, which found executable mispricings constrained by shallow depth: [Cheng, Yang, and Zou (2026)](https://arxiv.org/abs/2605.00864). That paper is microstructure context, not validation of this wallet strategy.
 
-![Closing-line validation](research/djdjdjekekek/figures/closing_line_validation.png)
+![Closing-line validation](research/djdjdjekekek/figures/closing_line_validation.svg)
 
 The target's eventual position cannot be inferred reliably from the initial signal. A chronological sizing model has negative out-of-sample `R^2`, so the paper prototype uses fixed fractional sizing.
 

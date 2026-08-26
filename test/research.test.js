@@ -18,6 +18,7 @@ const {
 const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
 const deepAnalysis = require('../research/djdjdjekekek/deep_analysis.json');
 const edgeAnalysis = require('../research/djdjdjekekek/edge_analysis.json');
+const figureManifest = require('../research/djdjdjekekek/figures/manifest.json');
 const { renderHtml } = require('../src/research/plain_english_essay');
 const { parseTriggerTransaction } = require('../src/research/trigger_transactions');
 const {
@@ -359,6 +360,10 @@ test('copy execution audit spans same-second through five minutes and solves bre
 
 test('plain-English essay renders the key claim, caveat, and every chart', () => {
     const html = renderHtml(deepAnalysis, edgeAnalysis);
+    assert.deepStrictEqual(figureManifest.rendering, {
+        preferredFormat: 'svg',
+        pngDpi: 300
+    });
     assert.match(html, /Inside the whale's alpha/);
     assert.match(html, /-6\.15%/);
     assert.match(html, /\+41\.94%/);
@@ -406,8 +411,9 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
         'closing_line_validation',
         'compact_fresh_mechanism'
     ]) {
-        assert.match(html, new RegExp(`figures/${figure}\\.png`));
+        assert.match(html, new RegExp(`figures/${figure}\\.svg`));
     }
+    assert.doesNotMatch(html, /<img src="figures\/[^"']+\.png"/);
     assert.doesNotMatch(html, /\b(?:undefined|NaN)\b/);
 });
 

@@ -157,14 +157,14 @@ function renderHtml(analysis, edge) {
         margin: 0;
         color: var(--ink);
         background: var(--paper);
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: 'Liberation Sans', Arial, Helvetica, sans-serif;
         font-size: 18px;
         line-height: 1.62;
         letter-spacing: 0;
     }
     a { color: #205f8f; text-decoration-thickness: 1px; text-underline-offset: 3px; }
     a:hover { color: var(--teal); }
-    code { font-family: Consolas, 'Liberation Mono', monospace; font-size: 0.9em; }
+    code { font-family: 'Liberation Mono', Consolas, monospace; font-size: 0.9em; }
     .page { width: min(100% - 40px, 980px); margin: 0 auto; }
     .masthead {
         border-top: 8px solid var(--red);
@@ -179,7 +179,7 @@ function renderHtml(analysis, edge) {
         font-weight: 800;
         text-transform: uppercase;
     }
-    h1, h2, h3 { font-family: Georgia, 'Times New Roman', serif; letter-spacing: 0; }
+    h1, h2, h3 { font-family: 'Liberation Serif', Georgia, 'Times New Roman', serif; letter-spacing: 0; }
     h1 {
         max-width: 860px;
         margin: 0;
@@ -264,7 +264,7 @@ function renderHtml(analysis, edge) {
         margin: 18px 0;
         padding: 18px 20px;
         background: var(--soft);
-        font-family: Consolas, 'Liberation Mono', monospace;
+        font-family: 'Liberation Mono', Consolas, monospace;
         font-size: 17px;
         line-height: 1.6;
         overflow-wrap: anywhere;
@@ -440,7 +440,7 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/blind_copy_funnel.png" alt="Bar chart showing blind copying losing money and filtered strategies improving the result.">
+        <img src="figures/blind_copy_funnel.svg" alt="Bar chart showing blind copying losing money and filtered strategies improving the result.">
         <figcaption><strong>What blind copying would have done:</strong> the first row is the naive strategy. It loses over the full history and after the fixed date split. Earlier behavioral filters found useful clues, but they did not expose what was inside the triggering blockchain transaction.</figcaption>
     </figure>
 
@@ -462,7 +462,7 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/strategy_equity.png" alt="Chronological cumulative profit chart comparing blind copying with progressively filtered strategies.">
+        <img src="figures/strategy_equity.svg" alt="Chronological cumulative profit chart comparing blind copying with progressively filtered strategies.">
         <figcaption>The red blind-copy line remains underwater. More selective rules improve because they reject most trades. This was the clue that the wallet's value lives in selection, not in its address.</figcaption>
     </figure>
 
@@ -476,12 +476,12 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/copy_execution_surface.png" alt="Two heatmaps showing representative copy-trading returns across latency and adverse-price scenarios for blind copying and the breadth rule.">
+        <img src="figures/copy_execution_surface.svg" alt="Two heatmaps showing representative copy-trading returns across latency and adverse-price scenarios for blind copying and the breadth rule.">
         <figcaption><strong>Read across for execution quality; read down for speed.</strong> Blind copying flips from pale green to red at roughly two cents in almost every sub-minute row. The held-out breadth strategy remains green much farther across. A 0.1-second or 0.5-second bot lies between the first two rows because the source timestamps are only one second precise.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/copy_break_even_frontier.png" alt="Two line charts showing the maximum adverse price compatible with break-even returns at each copy delay.">
+        <img src="figures/copy_break_even_frontier.svg" alt="Two line charts showing the maximum adverse price compatible with break-even returns at each copy delay.">
         <figcaption>The blind copier has roughly ${number(blindOneSecondBreakEven.allMaxAdverseCents, 1)} cents of room at one second. The 18-maker filter has roughly ${number(breadthOneSecondBreakEven.heldOutMaxAdverseCents, 1)} cents in the held-out half. The near-flat lines mean this dataset does not support a claim that sub-five-second speed is the main edge.</figcaption>
     </figure>
 
@@ -509,22 +509,22 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/copy_latency_curves.png" alt="Line atlas showing blind-copy and breadth-filtered ROI at fifteen delays for seven execution-cost levels.">
+        <img src="figures/copy_latency_curves.svg" alt="Line atlas showing blind-copy and breadth-filtered ROI at fifteen delays for seven execution-cost levels.">
         <figcaption><strong>All fifteen measured delays:</strong> each line holds the adverse price constant. The lines barely move through the sub-minute region, while moving between price-cost lines changes the answer immediately.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/copy_cost_curves.png" alt="Line atlas showing ROI across seventeen adverse-price assumptions at representative copy delays.">
+        <img src="figures/copy_cost_curves.svg" alt="Line atlas showing ROI across seventeen adverse-price assumptions at representative copy delays.">
         <figcaption><strong>All seventeen cost assumptions:</strong> blind-copy curves cross zero near two cents regardless of delay. The held-out breadth curves cross near twenty cents.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/fee_cost_surface.png" alt="Heatmaps showing ROI across six fee rates and seventeen adverse-price assumptions for blind and breadth-filtered copying.">
+        <img src="figures/fee_cost_surface.svg" alt="Heatmaps showing ROI across six fee rates and seventeen adverse-price assumptions for blind and breadth-filtered copying.">
         <figcaption>Fees shift the result gradually. Paying through the book shifts it much faster. The primary replay uses the account-observed 3% fee curve; every other fee row is a labeled counterfactual.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/execution_print_coverage.png" alt="Line chart showing public execution-proxy coverage at each latency for blind and breadth-filtered signals.">
+        <img src="figures/execution_print_coverage.svg" alt="Line chart showing public execution-proxy coverage at each latency for blind and breadth-filtered signals.">
         <figcaption>Fast scenarios still have roughly 99% public-print coverage. Missing prints are kept with a fallback instead of being dropped, but a public print still does not prove historical ask depth or queue position.</figcaption>
     </figure>
 
@@ -546,17 +546,17 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/live_fok_capacity_surface.png" alt="Three heatmaps showing immediate FOK fill rates by stake and price buffer in current sports moneyline books.">
+        <img src="figures/live_fok_capacity_surface.svg" alt="Three heatmaps showing immediate FOK fill rates by stake and price buffer in current sports moneyline books.">
         <figcaption><strong>What size does to a real book:</strong> ${money(100)} through +1 cent fit in ${plainPct(liveCapacityCell(100).fillRatePct, 1)} of the sampled token sides; ${money(10000)} fit in ${plainPct(liveCapacityCell(10000).fillRatePct, 1)}; ${money(25000)} fit in only ${plainPct(liveCapacityCell(25000).fillRatePct, 1)}. Larger buffers raise fill coverage by authorizing worse prices.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/live_depth_survival.png" alt="Curves showing current full-fill rates and conditional VWAP slippage by requested FOK size.">
+        <img src="figures/live_depth_survival.svg" alt="Curves showing current full-fill rates and conditional VWAP slippage by requested FOK size.">
         <figcaption>The left panel contains the main size penalty: rejected orders. The right panel conditions on books that could fill completely, so the modest VWAP numbers cannot be read as proof that large orders are generally easy to execute.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/capacity_reality_gap.png" alt="Line chart comparing current generic FOK capacity with observed post-sweep historical turnover.">
+        <img src="figures/capacity_reality_gap.svg" alt="Line chart comparing current generic FOK capacity with observed post-sweep historical turnover.">
         <figcaption>The timing problem is visible. Generic liquid books often look deep before anyone trades. Immediately after a broad target sweep, the optimistic turnover ceiling is far lower because the first mover has already removed supply.</figcaption>
     </figure>
 
@@ -568,12 +568,12 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/historical_capacity_surface.png" alt="Heatmaps showing post-sweep turnover coverage across stake, speed, participation, and public-print proxies.">
+        <img src="figures/historical_capacity_surface.svg" alt="Heatmaps showing post-sweep turnover coverage across stake, speed, participation, and public-print proxies.">
         <figcaption>Capacity disappears fastest at large stake and short delay. The middle panel limits the hypothetical follower to 25% of observed turnover. The right panel uses the narrower reported-side proxy. None is a reconstructed historical book.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/historical_size_projection.png" alt="Curves showing historical capacity coverage and retrospective outcome-weighted returns by requested stake.">
+        <img src="figures/historical_size_projection.svg" alt="Curves showing historical capacity coverage and retrospective outcome-weighted returns by requested stake.">
         <figcaption>The outcome-weighted panel is intentionally labeled as retrospective: capacity selects which known events remain in the sample. It is useful for diagnosing scale and selection effects, not for forecasting profit.</figcaption>
     </figure>
 
@@ -587,7 +587,7 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/atomic_sweep_anatomy.png" alt="Bar chart showing the individual price levels and maker orders consumed by one winning FURIA trigger transaction.">
+        <img src="figures/atomic_sweep_anatomy.svg" alt="Bar chart showing the individual price levels and maker orders consumed by one winning FURIA trigger transaction.">
         <figcaption>An illustrative winning FURIA trigger matched 35 maker orders from 25 distinct signed accounts across four price levels, from 43 to 46 cents. The target consumed about ${money(1005518.93, 2)} of notional; the median resting order was 36 seconds old. This example explains the mechanism. The statistical result uses every eligible event.</figcaption>
     </figure>
 
@@ -613,17 +613,17 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/atomic_breadth_calibration.png" alt="Bar chart comparing price-implied and actual win rates for broad and narrow trigger transactions.">
+        <img src="figures/atomic_breadth_calibration.svg" alt="Bar chart comparing price-implied and actual win rates for broad and narrow trigger transactions.">
         <figcaption>Public prices expected similar difficulty after filtering. Broad atomic sweeps won far more often than their prices implied; narrower triggers landed almost exactly where the market predicted.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/maker_breadth_distribution.png" alt="Two charts showing wins, losses, actual win rates, and market-implied probabilities across maker-breadth bands.">
+        <img src="figures/maker_breadth_distribution.svg" alt="Two charts showing wins, losses, actual win rates, and market-implied probabilities across maker-breadth bands.">
         <figcaption>The 18-maker rule sits inside a graded transaction pattern. Outcomes begin separating from public probabilities around the broad-sweep region; stricter bins eventually become too small to trust.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/breadth_notional_scatter.png" alt="Scatter plot comparing trigger notional with distinct maker breadth, colored by resolved outcome.">
+        <img src="figures/breadth_notional_scatter.svg" alt="Scatter plot comparing trigger notional with distinct maker breadth, colored by resolved outcome.">
         <figcaption>Large notional appears above and below the line and among winners and losers. The informative dimension is how broadly one order consumed standing liquidity, not simply how many dollars it represented.</figcaption>
     </figure>
 
@@ -635,12 +635,12 @@ function renderHtml(analysis, edge) {
     </section>
 
     <figure>
-        <img src="figures/breadth_chronology.png" alt="Three chronological bars showing returns for broad-sweep signals in development, validation, and final-test periods.">
+        <img src="figures/breadth_chronology.svg" alt="Three chronological bars showing returns for broad-sweep signals in development, validation, and final-test periods.">
         <figcaption>The middle period was modest, but crucially stayed positive. The final block rebounded without changing the 18-maker rule.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/breadth_threshold_lock.png" alt="Chart showing development calibration across maker-breadth cutoffs and the held-out result at the selected threshold of 18.">
+        <img src="figures/breadth_threshold_lock.svg" alt="Chart showing development calibration across maker-breadth cutoffs and the held-out result at the selected threshold of 18.">
         <figcaption>The dashed line marks the cutoff chosen on development data. The held-out curve was not used to select 18. Nearby cutoffs tell a similar story, while very strict cutoffs leave too few bets.</figcaption>
     </figure>
 
@@ -681,7 +681,7 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </section>
 
     <figure>
-        <img src="figures/compact_fresh_mechanism.png" alt="Charts comparing broad sweeps with the compact-fresh exploratory transaction geometry.">
+        <img src="figures/compact_fresh_mechanism.svg" alt="Charts comparing broad sweeps with the compact-fresh exploratory transaction geometry.">
         <figcaption>The second-stage fingerprint concentrates the result, including in the held-out block, but the sample is too small to promote it into a live strategy. The paper monitor records it as a shadow tag while the frozen 18-maker rule remains the primary gate.</figcaption>
     </figure>
 
@@ -694,17 +694,17 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </section>
 
     <figure>
-        <img src="figures/closing_line_validation.png" alt="Chronological and distribution charts of closing-line value for broad and narrow pregame signals.">
+        <img src="figures/closing_line_validation.svg" alt="Chronological and distribution charts of closing-line value for broad and narrow pregame signals.">
         <figcaption>Broad sweeps won more often at settlement, yet their prices generally did not strengthen before play. This is the report's strongest negative result and the main reason the mechanism remains a prospective paper hypothesis.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/breadth_threshold_cost_surface.png" alt="Heatmap showing held-out ROI for maker-breadth cutoffs from five through thirty and adverse execution costs from zero through thirty cents.">
+        <img src="figures/breadth_threshold_cost_surface.svg" alt="Heatmap showing held-out ROI for maker-breadth cutoffs from five through thirty and adverse execution costs from zero through thirty cents.">
         <figcaption><strong>Breadth by cost:</strong> the dark horizontal outline is the frozen 18-maker row. Neighboring cutoffs form a broad profitable region at realistic costs; very strict rows are based on tiny samples and are not alternative strategies.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/breadth_threshold_latency_surface.png" alt="Heatmap showing held-out ROI for maker-breadth cutoffs and all fifteen measured copy delays at one cent adverse execution.">
+        <img src="figures/breadth_threshold_latency_surface.svg" alt="Heatmap showing held-out ROI for maker-breadth cutoffs and all fifteen measured copy delays at one cent adverse execution.">
         <figcaption><strong>Breadth by latency:</strong> horizontal bands dominate vertical changes. Choosing broad sweeps mattered much more than whether the historical proxy entered at one, five, or sixty seconds.</figcaption>
     </figure>
 
@@ -716,12 +716,12 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </section>
 
     <figure>
-        <img src="figures/urgency_calibration.png" alt="Bar chart comparing public implied probability with actual win rate for rapid and slow signals.">
+        <img src="figures/urgency_calibration.svg" alt="Bar chart comparing public implied probability with actual win rate for rapid and slow signals.">
         <figcaption>Rapid buying was the first useful behavioral clue. It remains a confidence tag, not a hard requirement, because its own middle validation period lost money.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/burst_threshold_sensitivity.png" alt="Line and bar chart showing urgency results across several rapid-flow definitions.">
+        <img src="figures/burst_threshold_sensitivity.svg" alt="Line and bar chart showing urgency results across several rapid-flow definitions.">
         <figcaption>The urgency clue was not one lucky exact cutoff, but these overlapping thresholds are descriptive rather than independent confirmations.</figcaption>
     </figure>
 
@@ -774,12 +774,12 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </section>
 
     <figure>
-        <img src="figures/alpha_subgroup_robustness.png" alt="Horizontal bars showing the broad-minus-narrow calibration advantage across disciplines, price bands, notional bands, timing, and flow speed.">
+        <img src="figures/alpha_subgroup_robustness.svg" alt="Horizontal bars showing the broad-minus-narrow calibration advantage across disciplines, price bands, notional bands, timing, and flow speed.">
         <figcaption>Most descriptive slices retain a positive breadth advantage. The clear weak spot is the 70-85 cent entry-price band, and several sport cells are tiny. This chart is a map of where to challenge the rule, not a menu for subgroup optimization.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/alpha_leave_one_discipline_out.png" alt="Bar chart showing all-period and held-out breadth ROI after removing each discipline in turn.">
+        <img src="figures/alpha_leave_one_discipline_out.svg" alt="Bar chart showing all-period and held-out breadth ROI after removing each discipline in turn.">
         <figcaption>The weakest held-out leave-one-discipline-out result was still ${pct(weakestLeaveOneOut.heldOut.roiPct, 1)} after excluding ${weakestLeaveOneOut.excludedDiscipline}. No single sport or esport category creates the aggregate sign.</figcaption>
     </figure>
 
@@ -802,22 +802,22 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </section>
 
     <figure>
-        <img src="figures/alpha_equity_drawdown.png" alt="Chronological equity and drawdown charts for broad and narrow trigger transactions.">
+        <img src="figures/alpha_equity_drawdown.svg" alt="Chronological equity and drawdown charts for broad and narrow trigger transactions.">
         <figcaption>The broad curve separates early and stays positive through validation and final test. Narrow triggers deteriorate sharply. Vertical lines show the development and validation boundaries.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/alpha_daily_pnl.png" alt="Daily breadth-strategy profit bars with a cumulative profit line.">
+        <img src="figures/alpha_daily_pnl.svg" alt="Daily breadth-strategy profit bars with a cumulative profit line.">
         <figcaption>Profits arrive on clusters of signal days rather than evenly. That dependence is why the report resamples whole trading days instead of pretending every event is independent.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/breadth_execution_sensitivity.png" alt="Line chart showing broad-sweep returns under increasingly adverse execution assumptions.">
+        <img src="figures/breadth_execution_sensitivity.svg" alt="Line chart showing broad-sweep returns under increasingly adverse execution assumptions.">
         <figcaption>At the original 60-second mark, the breadth rule remains positive as the assumed price penalty rises. At ten cents, all broad signals return ${pct(stressTen.all.roiPct, 1)} and the held-out half returns ${pct(stressTenHeldOutRoi, 1)}. The held-out line reaches break-even near 20 cents.</figcaption>
     </figure>
 
     <figure>
-        <img src="figures/execution_sensitivity.png" alt="Line chart showing the broader filtered universe losing return as adverse execution movement rises.">
+        <img src="figures/execution_sensitivity.svg" alt="Line chart showing the broader filtered universe losing return as adverse execution movement rises.">
         <figcaption>The wider eligible universe is much less forgiving. This is why a realistic copy test must report price impact rather than assuming the bot receives the whale's fill.</figcaption>
     </figure>
 
@@ -972,6 +972,7 @@ function renderPdf() {
             '--no-sandbox',
             '--disable-gpu',
             '--disable-dev-shm-usage',
+            '--force-color-profile=srgb',
             '--no-pdf-header-footer',
             `--user-data-dir=${profile}`,
             `--print-to-pdf=${OUTPUT_PDF}`,
