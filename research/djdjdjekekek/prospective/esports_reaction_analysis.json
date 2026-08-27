@@ -1,0 +1,1965 @@
+{
+  "generatedAt": "2026-08-27T03:32:50.400Z",
+  "status": "observational_event_study",
+  "method": {
+    "clock": "Local websocket receive time for both sports and CLOB messages.",
+    "baseline": "Beneficiary outcome midpoint at the preceding distinct public sports state.",
+    "transitionFilter": "CS2 updates where exactly one side gained one round and map-series score was unchanged.",
+    "timingLimitation": "The round occurred somewhere between public sports observations; the feed supplies no authoritative round timestamp."
+  },
+  "coverage": {
+    "joinedCs2Games": 6,
+    "directionalRoundTransitions": 19,
+    "transitionsWithBaselineAndOneSecondQuote": 18,
+    "targetAssetsWithQuotes": 6
+  },
+  "publicSportsCadenceMs": {
+    "medianDistinctStateInterval": 20377,
+    "minimumDistinctStateInterval": 20080,
+    "maximumDistinctStateInterval": 20998
+  },
+  "eventAlignedMidpoint": [
+    {
+      "offsetSeconds": -10,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 0.861,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 55.6
+    },
+    {
+      "offsetSeconds": -5,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 0.889,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 55.6
+    },
+    {
+      "offsetSeconds": -1,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 0.944,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 61.1
+    },
+    {
+      "offsetSeconds": 0,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 1,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 61.1
+    },
+    {
+      "offsetSeconds": 0.1,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 1,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 61.1
+    },
+    {
+      "offsetSeconds": 0.5,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 0.972,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 66.7
+    },
+    {
+      "offsetSeconds": 1,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 1.028,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 66.7
+    },
+    {
+      "offsetSeconds": 5,
+      "observations": 18,
+      "meanMoveFromPreviousStateCents": 1.194,
+      "medianMoveFromPreviousStateCents": 0.5,
+      "positiveMovePct": 66.7
+    }
+  ],
+  "firstHalfCentBeneficialMove": {
+    "observed": 15,
+    "beforePublicUpdate": 15,
+    "atOrAfterPublicUpdate": 0,
+    "medianRelativeToPublicUpdateMs": -17200
+  },
+  "finalHalfCentBeneficialRegime": {
+    "observedAtPublicUpdate": 11,
+    "startedBeforePublicUpdate": 11,
+    "medianStartRelativeToPublicUpdateMs": -17207,
+    "individualStartRelativeToPublicUpdateMs": [
+      -17207,
+      -54,
+      -20435,
+      -18054,
+      -19891,
+      -13499,
+      -10154,
+      -19958,
+      -16549,
+      -20152,
+      -16560
+    ]
+  },
+  "gameClusterBootstrap": {
+    "moveAtMinusOneSecond": {
+      "estimateCents": 0.944,
+      "gameClusters": 4,
+      "observations": 18,
+      "iterations": 20000,
+      "ci95LowCents": 0.444,
+      "ci95HighCents": 1.444,
+      "probabilityPositivePct": 100
+    },
+    "moveAtPublicUpdate": {
+      "estimateCents": 1,
+      "gameClusters": 4,
+      "observations": 18,
+      "iterations": 20000,
+      "ci95LowCents": 0.556,
+      "ci95HighCents": 1.5,
+      "probabilityPositivePct": 100
+    },
+    "incrementalMoveFromFeedToPlusOneSecond": {
+      "estimateCents": 0.028,
+      "gameClusters": 4,
+      "observations": 18,
+      "iterations": 20000,
+      "ci95LowCents": 0,
+      "ci95HighCents": 0.079,
+      "probabilityPositivePct": 68.3
+    }
+  },
+  "headline": {
+    "meanMoveAlreadyPresentOneSecondBeforeFeedCents": 0.944,
+    "meanMoveOneSecondAfterFeedCents": 1.028,
+    "incrementalMeanMoveFromMinusOneToPlusOneCents": 0.084,
+    "beneficialAtMinusOneSecond": 11,
+    "beneficialAtPublicUpdate": 11,
+    "analyzableTransitions": 18,
+    "incrementalMeanMoveFromFeedToPlusOneCents": 0.028
+  },
+  "transitions": [
+    {
+      "gameId": "1650525",
+      "question": "Counter-Strike: Zomblers vs Incognito (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 977.702763,
+      "homeTeam": "Zomblers",
+      "awayTeam": "Incognito",
+      "priorScore": "9-4|1-0|Bo3",
+      "score": "10-4|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Zomblers",
+      "targetOutcome": "Zomblers",
+      "targetAssetId": "4279806937918349344369831405850913043534179325484620858473280525034827147843",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787797933729,
+      "sportsReceivedAtMs": 1787797954128,
+      "sportsObservationIntervalMs": 20399,
+      "baselineAtPreviousState": null,
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 3465,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 3539,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 7539,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 8539,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 8639,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 9039,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 9539,
+          "moveFromPreviousStateCents": null
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.94,
+          "bestAsk": 0.97,
+          "midpoint": 0.955,
+          "quoteAgeMs": 13539,
+          "moveFromPreviousStateCents": null
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": null,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": null,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650525",
+      "question": "Counter-Strike: Zomblers vs Incognito (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 977.702763,
+      "homeTeam": "Zomblers",
+      "awayTeam": "Incognito",
+      "priorScore": "10-4|1-0|Bo3",
+      "score": "11-4|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Zomblers",
+      "targetOutcome": "Zomblers",
+      "targetAssetId": "4279806937918349344369831405850913043534179325484620858473280525034827147843",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798015146,
+      "sportsReceivedAtMs": 1787798035226,
+      "sportsObservationIntervalMs": 20080,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798001153,
+        "serverTimestampMs": 1787798001136,
+        "bestBid": 0.94,
+        "bestAsk": 0.97,
+        "midpoint": 0.955,
+        "requestedAtMs": 1787798015146,
+        "quoteAgeMs": 13993
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 6861,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 11861,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 15861,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 16861,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 16961,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 17361,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 17861,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 21861,
+          "moveFromPreviousStateCents": 0.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798018019,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -17207,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798018019,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -17207
+    },
+    {
+      "gameId": "1650525",
+      "question": "Counter-Strike: Zomblers vs Incognito (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 977.702763,
+      "homeTeam": "Zomblers",
+      "awayTeam": "Incognito",
+      "priorScore": "11-4|1-0|Bo3",
+      "score": "12-4|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Zomblers",
+      "targetOutcome": "Zomblers",
+      "targetAssetId": "4279806937918349344369831405850913043534179325484620858473280525034827147843",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798116828,
+      "sportsReceivedAtMs": 1787798137072,
+      "sportsObservationIntervalMs": 20244,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798108528,
+        "serverTimestampMs": 1787798108510,
+        "bestBid": 0.94,
+        "bestAsk": 0.98,
+        "midpoint": 0.96,
+        "requestedAtMs": 1787798116828,
+        "quoteAgeMs": 8300
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 3743,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 8743,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 12743,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.95,
+          "bestAsk": 0.99,
+          "midpoint": 0.97,
+          "quoteAgeMs": 20,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.95,
+          "bestAsk": 0.99,
+          "midpoint": 0.97,
+          "quoteAgeMs": 120,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.95,
+          "bestAsk": 0.98,
+          "midpoint": 0.965,
+          "quoteAgeMs": 156,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.95,
+          "bestAsk": 0.99,
+          "midpoint": 0.97,
+          "quoteAgeMs": 413,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.95,
+          "bestAsk": 0.99,
+          "midpoint": 0.97,
+          "quoteAgeMs": 4413,
+          "moveFromPreviousStateCents": 1
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798120782,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -16290,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798137018,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -54
+    },
+    {
+      "gameId": "1650515",
+      "question": "Counter-Strike: Overtake vs NuTorious (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 26135.184816,
+      "homeTeam": "Overtake Sector",
+      "awayTeam": "NuTorious",
+      "priorScore": "4-5|1-0|Bo3",
+      "score": "5-5|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Overtake Sector",
+      "targetOutcome": "Overtake",
+      "targetAssetId": "54921690327905207882402911300108969184534884974892734578766427223822575154689",
+      "outcomeNameMatchScore": 0.5333,
+      "previousSportsReceivedAtMs": 1787798035228,
+      "sportsReceivedAtMs": 1787798056226,
+      "sportsObservationIntervalMs": 20998,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798035225,
+        "serverTimestampMs": 1787798035208,
+        "bestBid": 0.73,
+        "bestAsk": 0.76,
+        "midpoint": 0.745,
+        "requestedAtMs": 1787798035228,
+        "quoteAgeMs": 3
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.75,
+          "bestAsk": 0.79,
+          "midpoint": 0.77,
+          "quoteAgeMs": 5950,
+          "moveFromPreviousStateCents": 2.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.75,
+          "bestAsk": 0.79,
+          "midpoint": 0.77,
+          "quoteAgeMs": 10950,
+          "moveFromPreviousStateCents": 2.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.75,
+          "bestAsk": 0.78,
+          "midpoint": 0.765,
+          "quoteAgeMs": 610,
+          "moveFromPreviousStateCents": 2
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.75,
+          "bestAsk": 0.78,
+          "midpoint": 0.765,
+          "quoteAgeMs": 94,
+          "moveFromPreviousStateCents": 2
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.75,
+          "bestAsk": 0.78,
+          "midpoint": 0.765,
+          "quoteAgeMs": 194,
+          "moveFromPreviousStateCents": 2
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.75,
+          "bestAsk": 0.78,
+          "midpoint": 0.765,
+          "quoteAgeMs": 594,
+          "moveFromPreviousStateCents": 2
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.75,
+          "bestAsk": 0.78,
+          "midpoint": 0.765,
+          "quoteAgeMs": 326,
+          "moveFromPreviousStateCents": 2
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.76,
+          "bestAsk": 0.78,
+          "midpoint": 0.77,
+          "quoteAgeMs": 1777,
+          "moveFromPreviousStateCents": 2.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798035533,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -20693,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798035791,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -20435
+    },
+    {
+      "gameId": "1650515",
+      "question": "Counter-Strike: Overtake vs NuTorious (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 26135.184816,
+      "homeTeam": "Overtake Sector",
+      "awayTeam": "NuTorious",
+      "priorScore": "5-5|1-0|Bo3",
+      "score": "6-5|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Overtake Sector",
+      "targetOutcome": "Overtake",
+      "targetAssetId": "54921690327905207882402911300108969184534884974892734578766427223822575154689",
+      "outcomeNameMatchScore": 0.5333,
+      "previousSportsReceivedAtMs": 1787798177364,
+      "sportsReceivedAtMs": 1787798197741,
+      "sportsObservationIntervalMs": 20377,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798177299,
+        "serverTimestampMs": 1787798177282,
+        "bestBid": 0.74,
+        "bestAsk": 0.78,
+        "midpoint": 0.76,
+        "requestedAtMs": 1787798177364,
+        "quoteAgeMs": 65
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.77,
+          "bestAsk": 0.8,
+          "midpoint": 0.785,
+          "quoteAgeMs": 3840,
+          "moveFromPreviousStateCents": 2.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 2733,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 1003,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 2003,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 2103,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 2503,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 3003,
+          "moveFromPreviousStateCents": 3
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.78,
+          "bestAsk": 0.8,
+          "midpoint": 0.79,
+          "quoteAgeMs": 7003,
+          "moveFromPreviousStateCents": 3
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798179213,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -18528,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798179687,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -18054
+    },
+    {
+      "gameId": "1650515",
+      "question": "Counter-Strike: Overtake vs NuTorious (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 26135.184816,
+      "homeTeam": "Overtake Sector",
+      "awayTeam": "NuTorious",
+      "priorScore": "8-7|1-0|Bo3",
+      "score": "9-7|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Overtake Sector",
+      "targetOutcome": "Overtake",
+      "targetAssetId": "54921690327905207882402911300108969184534884974892734578766427223822575154689",
+      "outcomeNameMatchScore": 0.5333,
+      "previousSportsReceivedAtMs": 1787798786926,
+      "sportsReceivedAtMs": 1787798807418,
+      "sportsObservationIntervalMs": 20492,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798780935,
+        "serverTimestampMs": 1787798780100,
+        "bestBid": 0.84,
+        "bestAsk": 0.85,
+        "midpoint": 0.845,
+        "requestedAtMs": 1787798786926,
+        "quoteAgeMs": 5991
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 16483,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 21483,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 25483,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 26483,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 26583,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 26983,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 27483,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.84,
+          "bestAsk": 0.85,
+          "midpoint": 0.845,
+          "quoteAgeMs": 31483,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": null,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": null,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650515",
+      "question": "Counter-Strike: Overtake vs NuTorious (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 26135.184816,
+      "homeTeam": "Overtake Sector",
+      "awayTeam": "NuTorious",
+      "priorScore": "9-7|1-0|Bo3",
+      "score": "10-7|1-0|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Overtake Sector",
+      "targetOutcome": "Overtake",
+      "targetAssetId": "54921690327905207882402911300108969184534884974892734578766427223822575154689",
+      "outcomeNameMatchScore": 0.5333,
+      "previousSportsReceivedAtMs": 1787799356032,
+      "sportsReceivedAtMs": 1787799376431,
+      "sportsObservationIntervalMs": 20399,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799354870,
+        "serverTimestampMs": 1787799354850,
+        "bestBid": 0.86,
+        "bestAsk": 0.9,
+        "midpoint": 0.88,
+        "requestedAtMs": 1787799356032,
+        "quoteAgeMs": 1162
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 141,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 54,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.87,
+          "bestAsk": 0.9,
+          "midpoint": 0.885,
+          "quoteAgeMs": 84,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 315,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 415,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 178,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 6,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.86,
+          "bestAsk": 0.9,
+          "midpoint": 0.88,
+          "quoteAgeMs": 1340,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799357601,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -18830,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "0-0|1-1|Bo3",
+      "score": "1-0|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798177500,
+      "sportsReceivedAtMs": 1787798197909,
+      "sportsObservationIntervalMs": 20409,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798175862,
+        "serverTimestampMs": 1787798175845,
+        "bestBid": 0.84,
+        "bestAsk": 0.87,
+        "midpoint": 0.855,
+        "requestedAtMs": 1787798177500,
+        "quoteAgeMs": 1638
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 8209,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 13209,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 17209,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 18209,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 18309,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 18709,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 19209,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.85,
+          "bestAsk": 0.88,
+          "midpoint": 0.865,
+          "quoteAgeMs": 23209,
+          "moveFromPreviousStateCents": 1
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798178018,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -19891,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798178018,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -19891
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "5-1|1-1|Bo3",
+      "score": "6-1|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798827828,
+      "sportsReceivedAtMs": 1787798848181,
+      "sportsObservationIntervalMs": 20353,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798820569,
+        "serverTimestampMs": 1787798820549,
+        "bestBid": 0.9,
+        "bestAsk": 0.94,
+        "midpoint": 0.9199999999999999,
+        "requestedAtMs": 1787798827828,
+        "quoteAgeMs": 7259
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 692,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.91,
+          "bestAsk": 0.96,
+          "midpoint": 0.935,
+          "quoteAgeMs": 159,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 2703,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 3703,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 3803,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 4203,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.92,
+          "bestAsk": 0.95,
+          "midpoint": 0.935,
+          "quoteAgeMs": 4703,
+          "moveFromPreviousStateCents": 1.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.92,
+          "bestAsk": 0.96,
+          "midpoint": 0.94,
+          "quoteAgeMs": 178,
+          "moveFromPreviousStateCents": 2
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798834682,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -13499,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798834682,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -13499
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "6-1|1-1|Bo3",
+      "score": "7-1|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798990286,
+      "sportsReceivedAtMs": 1787799010626,
+      "sportsObservationIntervalMs": 20340,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798983980,
+        "serverTimestampMs": 1787798983960,
+        "bestBid": 0.93,
+        "bestAsk": 0.95,
+        "midpoint": 0.94,
+        "requestedAtMs": 1787798990286,
+        "quoteAgeMs": 6306
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 154,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 5154,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 9154,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 10154,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 10254,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 10654,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 11154,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 15154,
+          "moveFromPreviousStateCents": 0.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799000472,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -10154,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787799000472,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -10154
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "7-1|1-1|Bo3",
+      "score": "8-1|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799071828,
+      "sportsReceivedAtMs": 1787799092292,
+      "sportsObservationIntervalMs": 20464,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799071744,
+        "serverTimestampMs": 1787799071709,
+        "bestBid": 0.93,
+        "bestAsk": 0.95,
+        "midpoint": 0.94,
+        "requestedAtMs": 1787799071828,
+        "quoteAgeMs": 84
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 9958,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 14958,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 18958,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 19958,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 20058,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 20458,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 20958,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.94,
+          "bestAsk": 0.95,
+          "midpoint": 0.945,
+          "quoteAgeMs": 24958,
+          "moveFromPreviousStateCents": 0.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799072334,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -19958,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787799072334,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -19958
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "8-1|1-1|Bo3",
+      "score": "9-1|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799213952,
+      "sportsReceivedAtMs": 1787799234242,
+      "sportsObservationIntervalMs": 20290,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799206408,
+        "serverTimestampMs": 1787799206389,
+        "bestBid": 0.95,
+        "bestAsk": 0.97,
+        "midpoint": 0.96,
+        "requestedAtMs": 1787799213952,
+        "quoteAgeMs": 7544
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 17834,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 22834,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 26834,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 27834,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 27934,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 28334,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 28834,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.95,
+          "bestAsk": 0.97,
+          "midpoint": 0.96,
+          "quoteAgeMs": 32834,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": null,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": null,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "9-1|1-1|Bo3",
+      "score": "9-2|1-1|Bo3",
+      "beneficiarySide": "away",
+      "beneficiaryTeam": "shimmer",
+      "targetOutcome": "shimmer",
+      "targetAssetId": "6288404433559297866979411137201313914282340133373420148566385713960595512650",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799295218,
+      "sportsReceivedAtMs": 1787799315453,
+      "sportsObservationIntervalMs": 20235,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799293913,
+        "serverTimestampMs": 1787799293893,
+        "bestBid": 0.02,
+        "bestAsk": 0.06,
+        "midpoint": 0.04,
+        "requestedAtMs": 1787799295218,
+        "quoteAgeMs": 1305
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.01,
+          "bestAsk": 0.06,
+          "midpoint": 0.034999999999999996,
+          "quoteAgeMs": 6359,
+          "moveFromPreviousStateCents": -0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.01,
+          "bestAsk": 0.06,
+          "midpoint": 0.034999999999999996,
+          "quoteAgeMs": 11359,
+          "moveFromPreviousStateCents": -0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 172,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 1172,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 1272,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 1672,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 2172,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.02,
+          "bestAsk": 0.06,
+          "midpoint": 0.04,
+          "quoteAgeMs": 6172,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799313160,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -2293,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650524",
+      "question": "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 7900.713038999999,
+      "homeTeam": "Elusive",
+      "awayTeam": "shimmer",
+      "priorScore": "9-2|1-1|Bo3",
+      "score": "10-2|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Elusive",
+      "targetOutcome": "Elusive",
+      "targetAssetId": "97750602952318090196932542307161932262781068043562846760254855241639494437903",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799356132,
+      "sportsReceivedAtMs": 1787799376334,
+      "sportsObservationIntervalMs": 20202,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799355729,
+        "serverTimestampMs": 1787799355709,
+        "bestBid": 0.94,
+        "bestAsk": 0.98,
+        "midpoint": 0.96,
+        "requestedAtMs": 1787799356132,
+        "quoteAgeMs": 403
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 7851,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 12851,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 16851,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 17851,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 17951,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 18351,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 18851,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.94,
+          "bestAsk": 0.98,
+          "midpoint": 0.96,
+          "quoteAgeMs": 22851,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": null,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": null,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650523",
+      "question": "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 2992.971257999999,
+      "homeTeam": "Villainous",
+      "awayTeam": "Detonate",
+      "priorScore": "0-0|1-1|Bo3",
+      "score": "1-0|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Villainous",
+      "targetOutcome": "Villainous",
+      "targetAssetId": "97378161560940383614227440753193201971822265720284323225003133308381762879334",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798929527,
+      "sportsReceivedAtMs": 1787798949925,
+      "sportsObservationIntervalMs": 20398,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798923027,
+        "serverTimestampMs": 1787798923000,
+        "bestBid": 0.68,
+        "bestAsk": 0.72,
+        "midpoint": 0.7,
+        "requestedAtMs": 1787798929527,
+        "quoteAgeMs": 6500
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 4732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 9732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 13732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 14732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 14832,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 15232,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 15732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.68,
+          "bestAsk": 0.73,
+          "midpoint": 0.7050000000000001,
+          "quoteAgeMs": 19732,
+          "moveFromPreviousStateCents": 0.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798932725,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -17200,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787798933376,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -16549
+    },
+    {
+      "gameId": "1650523",
+      "question": "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 2992.971257999999,
+      "homeTeam": "Villainous",
+      "awayTeam": "Detonate",
+      "priorScore": "1-0|1-1|Bo3",
+      "score": "2-0|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Villainous",
+      "targetOutcome": "Villainous",
+      "targetAssetId": "97378161560940383614227440753193201971822265720284323225003133308381762879334",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787798970027,
+      "sportsReceivedAtMs": 1787798990432,
+      "sportsObservationIntervalMs": 20405,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787798964920,
+        "serverTimestampMs": 1787798964901,
+        "bestBid": 0.69,
+        "bestAsk": 0.74,
+        "midpoint": 0.715,
+        "requestedAtMs": 1787798970027,
+        "quoteAgeMs": 5107
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.69,
+          "bestAsk": 0.74,
+          "midpoint": 0.715,
+          "quoteAgeMs": 169,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.69,
+          "bestAsk": 0.73,
+          "midpoint": 0.71,
+          "quoteAgeMs": 2302,
+          "moveFromPreviousStateCents": -0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.7,
+          "bestAsk": 0.73,
+          "midpoint": 0.715,
+          "quoteAgeMs": 143,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.7,
+          "bestAsk": 0.73,
+          "midpoint": 0.715,
+          "quoteAgeMs": 1143,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.7,
+          "bestAsk": 0.73,
+          "midpoint": 0.715,
+          "quoteAgeMs": 1243,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.7,
+          "bestAsk": 0.73,
+          "midpoint": 0.715,
+          "quoteAgeMs": 1643,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.7,
+          "bestAsk": 0.73,
+          "midpoint": 0.715,
+          "quoteAgeMs": 2143,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.7,
+          "bestAsk": 0.76,
+          "midpoint": 0.73,
+          "quoteAgeMs": 3834,
+          "moveFromPreviousStateCents": 1.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787798976825,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -13607,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650523",
+      "question": "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 2992.971257999999,
+      "homeTeam": "Villainous",
+      "awayTeam": "Detonate",
+      "priorScore": "2-0|1-1|Bo3",
+      "score": "3-0|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Villainous",
+      "targetOutcome": "Villainous",
+      "targetAssetId": "97378161560940383614227440753193201971822265720284323225003133308381762879334",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799051326,
+      "sportsReceivedAtMs": 1787799071646,
+      "sportsObservationIntervalMs": 20320,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799046752,
+        "serverTimestampMs": 1787799046732,
+        "bestBid": 0.79,
+        "bestAsk": 0.82,
+        "midpoint": 0.8049999999999999,
+        "requestedAtMs": 1787799051326,
+        "quoteAgeMs": 4574
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.79,
+          "bestAsk": 0.82,
+          "midpoint": 0.8049999999999999,
+          "quoteAgeMs": 14894,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.8,
+          "bestAsk": 0.81,
+          "midpoint": 0.805,
+          "quoteAgeMs": 2675,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.8,
+          "bestAsk": 0.81,
+          "midpoint": 0.805,
+          "quoteAgeMs": 1307,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.8,
+          "bestAsk": 0.81,
+          "midpoint": 0.805,
+          "quoteAgeMs": 2307,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.8,
+          "bestAsk": 0.81,
+          "midpoint": 0.805,
+          "quoteAgeMs": 2407,
+          "moveFromPreviousStateCents": 0
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.8,
+          "bestAsk": 0.82,
+          "midpoint": 0.81,
+          "quoteAgeMs": 232,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.8,
+          "bestAsk": 0.82,
+          "midpoint": 0.81,
+          "quoteAgeMs": 732,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.8,
+          "bestAsk": 0.81,
+          "midpoint": 0.805,
+          "quoteAgeMs": 2815,
+          "moveFromPreviousStateCents": 0
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799063745,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -7901,
+      "finalHalfCentBeneficialRegimeStartedAtMs": null,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": null
+    },
+    {
+      "gameId": "1650523",
+      "question": "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 2992.971257999999,
+      "homeTeam": "Villainous",
+      "awayTeam": "Detonate",
+      "priorScore": "3-0|1-1|Bo3",
+      "score": "4-0|1-1|Bo3",
+      "beneficiarySide": "home",
+      "beneficiaryTeam": "Villainous",
+      "targetOutcome": "Villainous",
+      "targetAssetId": "97378161560940383614227440753193201971822265720284323225003133308381762879334",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799153130,
+      "sportsReceivedAtMs": 1787799173421,
+      "sportsObservationIntervalMs": 20291,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799153022,
+        "serverTimestampMs": 1787799153002,
+        "bestBid": 0.74,
+        "bestAsk": 0.8,
+        "midpoint": 0.77,
+        "requestedAtMs": 1787799153130,
+        "quoteAgeMs": 108
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.8,
+          "bestAsk": 0.86,
+          "midpoint": 0.8300000000000001,
+          "quoteAgeMs": 1569,
+          "moveFromPreviousStateCents": 6
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 4962,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 8962,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 9962,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 10062,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 10462,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 10962,
+          "moveFromPreviousStateCents": 6.5
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.81,
+          "bestAsk": 0.86,
+          "midpoint": 0.835,
+          "quoteAgeMs": 14962,
+          "moveFromPreviousStateCents": 6.5
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799153269,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -20152,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787799153269,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -20152
+    },
+    {
+      "gameId": "1650523",
+      "question": "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs",
+      "volume24hr": 2992.971257999999,
+      "homeTeam": "Villainous",
+      "awayTeam": "Detonate",
+      "priorScore": "4-0|1-1|Bo3",
+      "score": "4-1|1-1|Bo3",
+      "beneficiarySide": "away",
+      "beneficiaryTeam": "Detonate",
+      "targetOutcome": "Detonate",
+      "targetAssetId": "40845960255801503006119490191294922465395644443670457362598571757006941548664",
+      "outcomeNameMatchScore": 1,
+      "previousSportsReceivedAtMs": 1787799274760,
+      "sportsReceivedAtMs": 1787799295314,
+      "sportsObservationIntervalMs": 20554,
+      "baselineAtPreviousState": {
+        "receivedAtMs": 1787799269879,
+        "serverTimestampMs": 1787799269860,
+        "bestBid": 0.19,
+        "bestAsk": 0.26,
+        "midpoint": 0.225,
+        "requestedAtMs": 1787799274760,
+        "quoteAgeMs": 4881
+      },
+      "observations": [
+        {
+          "offsetSeconds": -10,
+          "bestBid": 0.2,
+          "bestAsk": 0.26,
+          "midpoint": 0.23,
+          "quoteAgeMs": 5979,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -5,
+          "bestBid": 0.2,
+          "bestAsk": 0.26,
+          "midpoint": 0.23,
+          "quoteAgeMs": 285,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": -1,
+          "bestBid": 0.2,
+          "bestAsk": 0.26,
+          "midpoint": 0.23,
+          "quoteAgeMs": 4285,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 0,
+          "bestBid": 0.2,
+          "bestAsk": 0.27,
+          "midpoint": 0.23500000000000001,
+          "quoteAgeMs": 165,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.1,
+          "bestBid": 0.2,
+          "bestAsk": 0.27,
+          "midpoint": 0.23500000000000001,
+          "quoteAgeMs": 265,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 0.5,
+          "bestBid": 0.2,
+          "bestAsk": 0.26,
+          "midpoint": 0.23,
+          "quoteAgeMs": 89,
+          "moveFromPreviousStateCents": 0.5
+        },
+        {
+          "offsetSeconds": 1,
+          "bestBid": 0.2,
+          "bestAsk": 0.27,
+          "midpoint": 0.23500000000000001,
+          "quoteAgeMs": 490,
+          "moveFromPreviousStateCents": 1
+        },
+        {
+          "offsetSeconds": 5,
+          "bestBid": 0.22,
+          "bestAsk": 0.27,
+          "midpoint": 0.245,
+          "quoteAgeMs": 64,
+          "moveFromPreviousStateCents": 2
+        }
+      ],
+      "firstHalfCentBeneficialMoveAtMs": 1787799278408,
+      "firstHalfCentBeneficialMoveRelativeToFeedMs": -16906,
+      "finalHalfCentBeneficialRegimeStartedAtMs": 1787799278754,
+      "finalHalfCentBeneficialRegimeStartedRelativeToFeedMs": -16560
+    }
+  ],
+  "interpretation": "This audit measures whether series-winner quotes had repriced before a public CS2 score update reached the same process. Pre-update movement demonstrates that this public feed can be stale relative to the market; it does not identify who moved the market or prove that the target wallet owns a private feed.",
+  "source": {
+    "file": "research/djdjdjekekek/prospective/esports_reaction_capture.ndjson.gz",
+    "bytes": 3752715,
+    "sha256": "7ac7265d20a965ab5cf620ae55ae08607d67422eb6c26b650a2198415c06d633"
+  }
+}

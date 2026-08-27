@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-08-27T03:10:00.000Z",
+  "method": "Curated source facts used only to align public match state with immutable wallet timestamps. No score or timing fact below is inferred from the wallet outcome.",
+  "m80": {
+    "conditionId": "0xcd278aec06fc0ff8630e422241930ac55998964502921570f46f2a04b6b5b91b",
+    "matchId": "4da07aca-6348-4312-b5bf-c5a07273f0bb",
+    "sources": {
+      "blastMatch": "https://blast.tv/cs/tournaments/open-2026-season-2/match/4da07aca/navi-m80",
+      "hltvMatch": "https://www.hltv.org/matches/2396925/natus-vincere-vs-m80-blast-open-porto-2026",
+      "hltvReport": "https://www.hltv.org/news/45396/m80-stun-navi-at-blast-open",
+      "twitchVod": "https://www.twitch.tv/videos/2856775537"
+    },
+    "sourceChecks": {
+      "blastPageSha256": "7f302a99898646a5267907fc56fdd852ee28f0f486d9a351afd3776c6279aa6b",
+      "hltvRenderedPageSha256": "20eed767b2f04b84db79f03caec24a97720b14c15b8595ceb1aea8ff7cb355ed",
+      "twitchThirtySecondExtractSha256": "758327bb030c9d8236349230fa58ee0a3c1c613968f66be8ab3af28fea9f610b"
+    },
+    "series": {
+      "natusVincereMaps": 1,
+      "m80Maps": 2,
+      "winner": "M80"
+    },
+    "maps": [
+      {
+        "map": "Anubis",
+        "natusVincereRounds": 13,
+        "m80Rounds": 4,
+        "startedAt": "2026-08-26T14:28:05.870Z",
+        "endedAt": "2026-08-26T15:07:47.156Z"
+      },
+      {
+        "map": "Mirage",
+        "natusVincereRounds": 6,
+        "m80Rounds": 13,
+        "startedAt": "2026-08-26T15:23:05.977Z",
+        "endedAt": "2026-08-26T16:08:52.203Z"
+      },
+      {
+        "map": "Inferno",
+        "natusVincereRounds": 6,
+        "m80Rounds": 13,
+        "startedAt": "2026-08-26T16:24:55.235Z",
+        "endedAt": "2026-08-26T17:12:53.651Z"
+      }
+    ],
+    "broadcastAlignment": {
+      "vodProgramDateTimeAtOffsetZero": "2026-08-26T08:06:09.524Z",
+      "hltvInfernoVodOffsetSeconds": 29968,
+      "observations": [
+        {
+          "label": "first_wallet_fill",
+          "walletTimestamp": 1787763859,
+          "vodOffsetSeconds": 32289.476,
+          "score": "M80 9-6 Natus Vincere",
+          "round": 16,
+          "bomb": "planted_by_M80",
+          "m80PlayersAlive": 5,
+          "natusVincerePlayersAlive": 3,
+          "precisionMs": 500,
+          "method": "Frame inspection at the wallet timestamp after aligning the Twitch HLS PROGRAM-DATE-TIME clock."
+        },
+        {
+          "label": "m80_round_win_visible",
+          "observedAt": "2026-08-26T17:04:26.524Z",
+          "vodOffsetSeconds": 32297,
+          "score": "M80 10-6 Natus Vincere",
+          "round": 16,
+          "precisionMs": 500,
+          "method": "First half-second sample in which the broadcast scoreboard displayed 10-6 and ROUND WIN."
+        }
+      ],
+      "reproduction": {
+        "hltvMapThreeOffset": "8h19m28s",
+        "inspectionWindow": "8h58m00s-8h58m30s",
+        "note": "The broadcast is evidence of what a public viewer could see, not a measurement of the wallet's private data latency."
+      }
+    }
+  },
+  "g2M80": {
+    "conditionId": "0x9e6290492aa30bc84767b40642e558812da877359a0ef6e251f79308f38ceca1",
+    "sources": {
+      "hltvMatch": "https://www.hltv.org/matches/2396561/g2-vs-m80-esports-world-cup-2026",
+      "twitchVod": "https://www.twitch.tv/videos/2844017976"
+    },
+    "sourceChecks": {
+      "hltvRenderedPageSha256": "1f842c3587fb48169e0db68ae8742553e7519cab90a81138776cecb946762fb4",
+      "twitchThirtyFiveSecondExtractSha256": "1572dc731f6d5c1b589b434347e62b31e5405a199e5881e85ff56477c3c7236c"
+    },
+    "match": {
+      "map": "Mirage",
+      "g2Rounds": 13,
+      "m80Rounds": 11,
+      "winner": "G2"
+    },
+    "broadcastAlignment": {
+      "vodProgramDateTimeAtOffsetZero": "2026-08-12T08:10:47.587Z",
+      "hltvMatchVodOffsetSeconds": 14262,
+      "observation": {
+        "label": "reverse_breadth_cluster_start",
+        "walletTimestamp": 1786539469,
+        "vodOffsetSeconds": 17221.413,
+        "score": "G2 12-11 M80",
+        "round": 24,
+        "roundClockSeconds": 19,
+        "bomb": "not_planted",
+        "g2PlayersAlive": 3,
+        "m80PlayersAlive": 3,
+        "precisionMs": 500,
+        "method": "Frame inspection at the passive-cluster timestamp after aligning the Twitch HLS PROGRAM-DATE-TIME clock."
+      },
+      "note": "M80 needed the final regulation round to force overtime; G2 instead won the round and the map 13-11."
+    }
+  },
+  "nemesis": {
+    "conditionId": "0x5f9c6ccf1d7be2e6e0904cde22a0d886c4a7aae94c676123f8fadb95b0138ed0",
+    "sources": {
+      "hltvMatch": "https://www.hltv.org/matches/2397043/nemesis-vs-1win-gluck-moscow-cyber-games-2026-closed-qualifier"
+    },
+    "sourceChecks": {
+      "hltvRenderedPageSha256": "13d9888275be7ce3e454ae1c5e808c552e18a042b58d79e6780020a66427a857"
+    },
+    "series": {
+      "teamNemesisMaps": 2,
+      "oneWinMaps": 1,
+      "winner": "Team Nemesis"
+    },
+    "mapTwo": {
+      "recordedScoreAtForfeit": "Team Nemesis 7-12 1WIN",
+      "recordedWinner": "1WIN",
+      "completion": "forfeit",
+      "reason": "technical difficulties"
+    },
+    "note": "The committed Polymarket rule says an unfinished Map 2 resolves 50-50. The committed closed market metadata has both tokens at 0.5 and no winner."
+  },
+  "limits": [
+    "Broadcast timestamps include stream delay and do not reveal the target's source.",
+    "One profitable M80 case cannot establish a strategy win rate.",
+    "The M80 state observation was assembled after the result and is a mechanism audit, not a prospective backtest."
+  ]
+}

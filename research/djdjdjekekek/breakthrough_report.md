@@ -1,6 +1,6 @@
 # Breakthrough Audit: Atomic Breadth
 
-Generated 2026-08-25T20:19:42.882017+00:00. For the illustrated, nontechnical version, read [the plain-English essay](./plain_english_essay.pdf).
+Generated 2026-08-27T02:29:02.832215+00:00. For the illustrated, nontechnical version, read [the plain-English essay](./plain_english_essay.pdf).
 
 ## Discovery
 

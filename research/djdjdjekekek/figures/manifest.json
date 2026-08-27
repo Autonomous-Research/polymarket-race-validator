@@ -1,9 +1,15 @@
 {
-  "generatedAt": "2026-08-26T10:39:22.844925+00:00",
+  "generatedAt": "2026-08-27T03:33:21.957106+00:00",
   "source": {
     "edge": "research/djdjdjekekek/edge_analysis.json",
     "features": "research/djdjdjekekek/edge_features.csv",
-    "triggers": "research/djdjdjekekek/trigger_transactions.json"
+    "triggers": "research/djdjdjekekek/trigger_transactions.json",
+    "state": "research/djdjdjekekek/esports_state_analysis.json",
+    "dota": "research/djdjdjekekek/dota_independent_backtest.json",
+    "prospective": "research/djdjdjekekek/prospective/prospective_audit.json",
+    "liveProbe": "research/djdjdjekekek/prospective/live_probe_validation.json",
+    "sportsReaction": "research/djdjdjekekek/prospective/esports_reaction_analysis.json",
+    "cs2Case": "research/djdjdjekekek/prospective/cs2_case_audit.json"
   },
   "rendering": {
     "preferredFormat": "svg",
@@ -71,7 +77,25 @@
     "figures/closing_line_validation.png",
     "figures/closing_line_validation.svg",
     "figures/compact_fresh_mechanism.png",
-    "figures/compact_fresh_mechanism.svg"
+    "figures/compact_fresh_mechanism.svg",
+    "figures/public_follower_lead_lag.png",
+    "figures/public_follower_lead_lag.svg",
+    "figures/esports_moat_audit.png",
+    "figures/esports_moat_audit.svg",
+    "figures/dota_live_telemetry_case.png",
+    "figures/dota_live_telemetry_case.svg",
+    "figures/dota_state_model_validation.png",
+    "figures/dota_state_model_validation.svg",
+    "figures/dota_independent_falsification.png",
+    "figures/dota_independent_falsification.svg",
+    "figures/prospective_signal_audit.png",
+    "figures/prospective_signal_audit.svg",
+    "figures/live_probe_latency.png",
+    "figures/live_probe_latency.svg",
+    "figures/esports_public_feed_reaction.png",
+    "figures/esports_public_feed_reaction.svg",
+    "figures/cs2_wallet_state_cases.png",
+    "figures/cs2_wallet_state_cases.svg"
   ],
   "note": "Every figure is generated from committed research artifacts; reports use fully vector SVG, with print-grade PNG fallbacks carrying identical content."
 }

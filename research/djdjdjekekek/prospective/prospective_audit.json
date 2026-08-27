@@ -1,0 +1,279 @@
+{
+  "generatedAt": "2026-08-27T03:32:49.576Z",
+  "status": "insufficient_new_evidence",
+  "conclusion": "No post-cutoff signal passed the previously frozen atomic-breadth rule. This window neither validates nor falsifies profitability.",
+  "frozenBoundary": {
+    "cutoffTimestamp": 1787638152,
+    "cutoffTime": "2026-08-25T06:09:12.000Z",
+    "ruleWasFrozenBeforeProspectiveWindow": true
+  },
+  "frozenRule": {
+    "signalSource": "taker",
+    "thresholdUsdc": 25000,
+    "minimumConcentration": 0.7,
+    "allowedDisciplines": [
+      "Tennis",
+      "Soccer",
+      "Dota 2",
+      "Counter-Strike",
+      "League of Legends",
+      "Valorant"
+    ],
+    "excludedMarketTypes": [
+      "single-game/map",
+      "short-horizon binary"
+    ],
+    "minimumTriggerPrice": 0.3,
+    "maximumTriggerPrice": 0.85,
+    "firstCanonicalEventSignalOnly": true,
+    "minimumUniqueMakers": 18,
+    "compactFreshShadow": {
+      "maximumPriceLevels": 3,
+      "maximumMedianMakerAgeSeconds": 300,
+      "productionGate": false
+    }
+  },
+  "coverage": {
+    "snapshotGeneratedAt": "2026-08-27T02:50:19.079Z",
+    "postCutoffTrades": 875,
+    "markets": 19,
+    "rawThresholdSignals": 7,
+    "decodedRawThresholdSignals": 7,
+    "frozenBaseEligibleSignals": 2,
+    "rawBroadSweepsBeforeUniverseGuards": 2,
+    "frozenBreadthEligibleSignals": 0,
+    "compactFreshShadowSignals": 0,
+    "resolvedFrozenBreadthSignals": 0
+  },
+  "observedBroadOutsideFrozenUniverse": [
+    {
+      "signalTime": "2026-08-26T21:57:12.000Z",
+      "title": "Los Angeles Dodgers vs. Atlanta Braves",
+      "discipline": "MLB",
+      "uniqueMakers": 40,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 5597.327999949455,
+      "rejectionReasons": [
+        "DISCIPLINE_EXCLUDED:MLB"
+      ]
+    },
+    {
+      "signalTime": "2026-08-27T02:43:07.000Z",
+      "title": "Minnesota Twins vs. Athletics",
+      "discipline": "MLB",
+      "uniqueMakers": 19,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 14.990999937057495,
+      "rejectionReasons": [
+        "DISCIPLINE_EXCLUDED:MLB"
+      ]
+    }
+  ],
+  "candidates": [
+    {
+      "conditionId": "0x5cf9bb2f681d28ee817006a963596f2ba0530d65c5472b9044f024cb18746997",
+      "eventKey": "2026-08-25|polona hercog|us open qualification wta moyuka uchijima",
+      "title": "US Open, Qualification WTA: Moyuka Uchijima vs Polona Hercog",
+      "discipline": "Tennis",
+      "marketType": "match winner",
+      "signalTimestamp": 1787674555,
+      "signalTime": "2026-08-25T16:15:55.000Z",
+      "outcome": "Moyuka Uchijima",
+      "concentration": 1,
+      "triggerPrice": 0.9674829042,
+      "triggerHash": "0x50b326c5607ecd0b96905d7d7cf3e9c7d20f84af3b1ec6bd34b4cb75519b7825",
+      "resolvedWinner": "Moyuka Uchijima",
+      "resolutionStatus": "resolved",
+      "won": true,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 4,
+      "uniquePriceLevels": 4,
+      "medianMakerAgeSeconds": 31.695000052452087,
+      "baseEligible": false,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "TRIGGER_PRICE_ABOVE_0.85",
+        "MAKER_BREADTH_BELOW_18"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0x1bb47db176b3715c0a56583b9bd64e55abeda9990fb39a558474d1d60deffc70",
+      "eventKey": "2026-08-25|ignacio buse|winston salem open adam walton",
+      "title": "Winston-Salem Open: Adam Walton vs Ignacio Buse",
+      "discipline": "Tennis",
+      "marketType": "match winner",
+      "signalTimestamp": 1787688043,
+      "signalTime": "2026-08-25T20:00:43.000Z",
+      "outcome": "Ignacio Buse",
+      "concentration": 1,
+      "triggerPrice": 0.75,
+      "triggerHash": "0x5069857442146d9641ef00db95ec30b39e80006a6c5462daec72af1f110df6f3",
+      "resolvedWinner": "Ignacio Buse",
+      "resolutionStatus": "resolved",
+      "won": true,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 11,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 7.8440001010894775,
+      "baseEligible": true,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "MAKER_BREADTH_BELOW_18"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0xab741c530b7c57d6bd6907c7ffb15910f7f8b4596e4ba014b496cf1bd4753b61",
+      "eventKey": "2026-08-25|guido justo|us open qualification atp hugo gaston",
+      "title": "US Open, Qualification ATP: Hugo Gaston vs Guido Justo",
+      "discipline": "Tennis",
+      "marketType": "match winner",
+      "signalTimestamp": 1787688900,
+      "signalTime": "2026-08-25T20:15:00.000Z",
+      "outcome": "Hugo Gaston",
+      "concentration": 1,
+      "triggerPrice": 0.8910238135,
+      "triggerHash": "0x16e92b69023abf574369d35ca3c446d4ca50f1de308e872dccaa78c46f4a07c7",
+      "resolvedWinner": "Hugo Gaston",
+      "resolutionStatus": "resolved",
+      "won": true,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 11,
+      "uniquePriceLevels": 3,
+      "medianMakerAgeSeconds": 6.097499966621399,
+      "baseEligible": false,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "TRIGGER_PRICE_ABOVE_0.85",
+        "MAKER_BREADTH_BELOW_18"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0x57ab38386fb9d1f9829e40a4a8d3815c1d3dc0a7becc4c48d77e5b18e11f664a",
+      "eventKey": "2026-08-25|atlanta braves|los angeles dodgers",
+      "title": "Los Angeles Dodgers vs. Atlanta Braves",
+      "discipline": "MLB",
+      "marketType": "match winner",
+      "signalTimestamp": 1787709214,
+      "signalTime": "2026-08-26T01:53:34.000Z",
+      "outcome": "Los Angeles Dodgers",
+      "concentration": 1,
+      "triggerPrice": 0.49,
+      "triggerHash": "0xcf6047e7817d19667000c903291362eedfa897870db7f692f7ed84b5f7c6a91a",
+      "resolvedWinner": "Atlanta Braves",
+      "resolutionStatus": "resolved",
+      "won": false,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 5,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 7.891000032424927,
+      "baseEligible": false,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "DISCIPLINE_EXCLUDED:MLB",
+        "MAKER_BREADTH_BELOW_18"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0x8be360b0463ec8f8ae38aaad8b082d3575af540357b1fd370d84456f40ff7fb8",
+      "eventKey": "2026-08-26|augsburg facundo mena|kai wehnelt",
+      "title": "Augsburg: Facundo Mena vs Kai Wehnelt",
+      "discipline": "Tennis",
+      "marketType": "match winner",
+      "signalTimestamp": 1787752207,
+      "signalTime": "2026-08-26T13:50:07.000Z",
+      "outcome": "Facundo Mena",
+      "concentration": 1,
+      "triggerPrice": 0.5799999999,
+      "triggerHash": "0xa273a16ea2e9b4e912cc3dac23af359825fb43ee3d834ab93fb5f4e260675ca4",
+      "resolvedWinner": "Facundo Mena",
+      "resolutionStatus": "resolved",
+      "won": true,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 3,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 10.007999897003174,
+      "baseEligible": true,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "MAKER_BREADTH_BELOW_18"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0x15d23f19a29782bd79a767a3b9a84c0b42262202d66e9f92b4143924522acd1a",
+      "eventKey": "2026-08-26|atlanta braves|los angeles dodgers",
+      "title": "Los Angeles Dodgers vs. Atlanta Braves",
+      "discipline": "MLB",
+      "marketType": "match winner",
+      "signalTimestamp": 1787781432,
+      "signalTime": "2026-08-26T21:57:12.000Z",
+      "outcome": "Los Angeles Dodgers",
+      "concentration": 1,
+      "triggerPrice": 0.55,
+      "triggerHash": "0x12a957a84adf5b441ff140c2c7944f1181c24fd7e2a56e75f8328d8363a554f9",
+      "resolvedWinner": null,
+      "resolutionStatus": "active_or_unresolved",
+      "won": null,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 40,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 5597.327999949455,
+      "baseEligible": false,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "DISCIPLINE_EXCLUDED:MLB"
+      ],
+      "firstCanonicalEventSignal": true
+    },
+    {
+      "conditionId": "0xc393da485cd2e1dd53547aee6c28f838da9b2a5e4dc9b4ada64b32e2b4c67026",
+      "eventKey": "2026-08-27|athletics|minnesota twins",
+      "title": "Minnesota Twins vs. Athletics",
+      "discipline": "MLB",
+      "marketType": "match winner",
+      "signalTimestamp": 1787798587,
+      "signalTime": "2026-08-27T02:43:07.000Z",
+      "outcome": "Athletics",
+      "concentration": 1,
+      "triggerPrice": 0.32,
+      "triggerHash": "0x1b82af129460fe6d52863feaf3a0ff9dbd2162e87ab4dda50c8262d4c509e3aa",
+      "resolvedWinner": null,
+      "resolutionStatus": "active_or_unresolved",
+      "won": null,
+      "decoded": true,
+      "decodedTargetTakerBuy": true,
+      "uniqueMakers": 19,
+      "uniquePriceLevels": 1,
+      "medianMakerAgeSeconds": 14.990999937057495,
+      "baseEligible": false,
+      "breadthEligible": false,
+      "compactFreshShadow": false,
+      "rejectionReasons": [
+        "DISCIPLINE_EXCLUDED:MLB"
+      ],
+      "firstCanonicalEventSignal": true
+    }
+  ],
+  "warnings": [
+    "Zero qualifying signals is an exposure problem, not a zero-return observation.",
+    "Active or unresolved outcomes are retained as null and are never scored as losses.",
+    "The compact-fresh rule remains a retrospective shadow tag and is not promoted by this audit.",
+    "A broad sweep in an excluded discipline does not validate a core-universe strategy."
+  ]
+}

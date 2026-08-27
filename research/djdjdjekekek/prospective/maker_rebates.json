@@ -1,0 +1,142 @@
+[
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x1bb47db176b3715c0a56583b9bd64e55abeda9990fb39a558474d1d60deffc70",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "48.563346"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x20e102eac0aa751682b9b40d70883a3efdf7279f24c7f4e0e6b037e455bce061",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "36.464622"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x509cef93b73045eecb1deab095735180a8b9192ca000217be5515c0610babdc0",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "16.050346"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x5cf9bb2f681d28ee817006a963596f2ba0530d65c5472b9044f024cb18746997",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "8.44746"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x6c9e41a94dfa04d934740c70d07aff22a1110a5b9767e12234101e45e38b8e09",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "46.81353"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x738829004a8989c2a5bcddf14b705ebec99d4209b2256d0cb5870f2dc042caab",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "43.195351"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x7e30518fe626e4cef2e0555fa78bdce118cbbb06a6573176d008fbefa60d78e6",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "70.715379"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0x987d4bddd296307a6aeab0914f582d6044ceaeec915f27ab127f1c0ceae95f17",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "36.076429"
+  },
+  {
+    "date": "2026-08-25T00:00:00Z",
+    "condition_id": "0xab741c530b7c57d6bd6907c7ffb15910f7f8b4596e4ba014b496cf1bd4753b61",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "1.349291"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x15d23f19a29782bd79a767a3b9a84c0b42262202d66e9f92b4143924522acd1a",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "22.523141"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x29019df1f940644d9134d2c7b6cbfe0c3f86d45b50080987265de3ce5c14610b",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "2.023478"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x4102ea2628aa151400253071f16dfc78409591d4cb7ff9be087d34e97ae53fb0",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "996.26797"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x57ab38386fb9d1f9829e40a4a8d3815c1d3dc0a7becc4c48d77e5b18e11f664a",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "193.13097"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x5f9c6ccf1d7be2e6e0904cde22a0d886c4a7aae94c676123f8fadb95b0138ed0",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "7.676057"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x6030d2d4e1f4410a11a50fe866c8f6ad85eb4680165f28ddbad2a340aebeca11",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "365.562708"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x825db995fc4b22745189d5a323e11aa0f1a7ff381a4e71d23bf2d1b5e4792477",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "408.763736"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0x8be360b0463ec8f8ae38aaad8b082d3575af540357b1fd370d84456f40ff7fb8",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "1203.070279"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0xcd278aec06fc0ff8630e422241930ac55998964502921570f46f2a04b6b5b91b",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "82.491953"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0xdb5c49406d63804d59e7c7c6f9cd314a2b60602d10d22d8b04ecb2a4aaeeded5",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "215.773655"
+  },
+  {
+    "date": "2026-08-26T00:00:00Z",
+    "condition_id": "0xe59366a0f9a5b07a1760e5561c53a984f4fceff3d6a56f8b745bb9e42657abba",
+    "asset_address": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+    "maker_address": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+    "rebated_fees_usdc": "115.089597"
+  }
+]

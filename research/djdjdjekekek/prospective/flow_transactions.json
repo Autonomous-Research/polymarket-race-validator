@@ -1,0 +1,874 @@
+[
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787671882,
+    "reportedUsdc": 60000,
+    "transaction": {
+      "hash": "0xec7cedf98d236a458056ee7a57a9d307e2f658df33983988db2d4f8766e65136",
+      "status": "ok",
+      "timestamp": "2026-08-25T15:31:22.000000Z",
+      "blockNumber": 92644570,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 60000,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 60000,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 60000,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "WITHDRAWAL",
+    "timestamp": 1787677938,
+    "reportedUsdc": 67329.303131,
+    "transaction": {
+      "hash": "0xeaf87da2cc8a9bac20da1d059542266666e9361ac0ccdd8d4c76fcd6f4ace933",
+      "status": "ok",
+      "timestamp": "2026-08-25T17:12:18.000000Z",
+      "blockNumber": 92648607,
+      "method": "0x0a3c4405",
+      "from": "0x69bafd370769222F0a3da1B5a8D8E6AEA1530Fce",
+      "to": "0x00000000000Fb5C9ADea0298D729A0CB3823Cc07",
+      "tokenTransfers": [
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 67329.303131,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 67329.303131,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0x0000000000000000000000000000000000000000",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 67329.303131,
+          "type": "token_burning"
+        },
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0x4cD00E387622C35bDDB9b4c962C136462338BC31",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 67329.303131,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787686567,
+    "reportedUsdc": 6490,
+    "transaction": {
+      "hash": "0x5c659a783c39fc89a2ff307b7e6e01392f1ea4af002f6ec3320c7dd2f325a6f8",
+      "status": "ok",
+      "timestamp": "2026-08-25T19:36:07.000000Z",
+      "blockNumber": 92654360,
+      "method": "handleOps",
+      "from": "0x256b3CC1e516d124B3027EcD083Aa5a940d1328e",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 6490,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 6490,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 6490,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787687227,
+    "reportedUsdc": 14900,
+    "transaction": {
+      "hash": "0x60cefcf3da6b746ccf8edc3067628811b7445193fb6d3f8da888c13790926a7f",
+      "status": "ok",
+      "timestamp": "2026-08-25T19:47:07.000000Z",
+      "blockNumber": 92654800,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 14900,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 14900,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 14900,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787687889,
+    "reportedUsdc": 50000.489802,
+    "transaction": {
+      "hash": "0x9f3081bd6cf1b03285a1a62ad7968b3be22d5f121ba4e26a6f1338206fc389dc",
+      "status": "ok",
+      "timestamp": "2026-08-25T19:58:09.000000Z",
+      "blockNumber": 92655241,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 50000.489802,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 50000.489802,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 50000.489802,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "WITHDRAWAL",
+    "timestamp": 1787692269,
+    "reportedUsdc": 82341.158937,
+    "transaction": {
+      "hash": "0x6fc24bbf90bc87d5d1835ab70c9861cc4393d1f817e9b094d17f1009c0ae9524",
+      "status": "ok",
+      "timestamp": "2026-08-25T21:11:09.000000Z",
+      "blockNumber": 92658161,
+      "method": "0x0a3c4405",
+      "from": "0xD3447596D282d62bC94240D17cAee437EfcfDE62",
+      "to": "0x00000000000Fb5C9ADea0298D729A0CB3823Cc07",
+      "tokenTransfers": [
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 82341.158937,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 82341.158937,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0x0000000000000000000000000000000000000000",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 82341.158937,
+          "type": "token_burning"
+        },
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0x4cD00E387622C35bDDB9b4c962C136462338BC31",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 82341.158937,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787705757,
+    "reportedUsdc": 22000,
+    "transaction": {
+      "hash": "0x5503dd933be7d392eca352b12fbef7d59c2dedf92f09802a6977986c6f99be98",
+      "status": "ok",
+      "timestamp": "2026-08-26T00:55:57.000000Z",
+      "blockNumber": 92667153,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 22000,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 22000,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 22000,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787709157,
+    "reportedUsdc": 60341.160477,
+    "transaction": {
+      "hash": "0x2cf1eb5d9d882ce94b6f38920f3374db731911f3ae3c567589e8c50f8680e55d",
+      "status": "ok",
+      "timestamp": "2026-08-26T01:52:37.000000Z",
+      "blockNumber": 92669420,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 60341.160477,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 60341.160477,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 60341.160477,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787710743,
+    "reportedUsdc": 155868.655727,
+    "transaction": {
+      "hash": "0xe36c76a2ad3d69681bf9737fcb8e919b48f974850a24fa6d1a62ccae2db874d1",
+      "status": "ok",
+      "timestamp": "2026-08-26T02:19:03.000000Z",
+      "blockNumber": 92670477,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 155868.655727,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 155868.655727,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 155868.655727,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787750896,
+    "reportedUsdc": 77450.588144,
+    "transaction": {
+      "hash": "0x61537e3009c20d310605b5d6d5c7a9e5df926385ee98463fa89d78392e8e449f",
+      "status": "ok",
+      "timestamp": "2026-08-26T13:28:16.000000Z",
+      "blockNumber": 92697246,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 77450.588144,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 77450.588144,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 77450.588144,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787750967,
+    "reportedUsdc": 231482.538443,
+    "transaction": {
+      "hash": "0xc8b02b031b5baf51e64974e7460efb5673d59975bbf29d40c151a5964c209e88",
+      "status": "ok",
+      "timestamp": "2026-08-26T13:29:27.000000Z",
+      "blockNumber": 92697293,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 231482.538443,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 231482.538443,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 231482.538443,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "WITHDRAWAL",
+    "timestamp": 1787768023,
+    "reportedUsdc": 692915.431587,
+    "transaction": {
+      "hash": "0x8a80017ee81405edf7da4a8589b40fbc7af3fb0948489cda9416cc9b6904592a",
+      "status": "ok",
+      "timestamp": "2026-08-26T18:13:43.000000Z",
+      "blockNumber": 92708664,
+      "method": "0x0a3c4405",
+      "from": "0xF10f4614e3ea9A1563B3695bfe3B1e81aAB5D7e9",
+      "to": "0x00000000000Fb5C9ADea0298D729A0CB3823Cc07",
+      "tokenTransfers": [
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 692915.431587,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 692915.431587,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0x0000000000000000000000000000000000000000",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 692915.431587,
+          "type": "token_burning"
+        },
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0x4cD00E387622C35bDDB9b4c962C136462338BC31",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 692915.431587,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "WITHDRAWAL",
+    "timestamp": 1787771935,
+    "reportedUsdc": 81922.05545,
+    "transaction": {
+      "hash": "0x5df71d66bb46d69f45a3dcc71f9dbbb265934f09e4eda79fd7ac4774e8746472",
+      "status": "ok",
+      "timestamp": "2026-08-26T19:18:55.000000Z",
+      "blockNumber": 92711272,
+      "method": "0x0a3c4405",
+      "from": "0xB93e662605B48299f4B77Db37A6Fdbf285Bd9a80",
+      "to": "0x00000000000Fb5C9ADea0298D729A0CB3823Cc07",
+      "tokenTransfers": [
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 81922.05545,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 81922.05545,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0x0000000000000000000000000000000000000000",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 81922.05545,
+          "type": "token_burning"
+        },
+        {
+          "from": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "to": "0x4cD00E387622C35bDDB9b4c962C136462338BC31",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 81922.05545,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787773606,
+    "reportedUsdc": 10000,
+    "transaction": {
+      "hash": "0x1d16d6ed08d82944a0dc52c81192d599ffe25034f645b6218cf06ee200954243",
+      "status": "ok",
+      "timestamp": "2026-08-26T19:46:46.000000Z",
+      "blockNumber": 92712386,
+      "method": "handleOps",
+      "from": "0xc2d17664b6f038fFa2ebA5e93b73529C596dd492",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 10000,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 10000,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 10000,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787778285,
+    "reportedUsdc": 37000,
+    "transaction": {
+      "hash": "0x224d0b4c4eca52fca8ec75445e1e0f880149a623c71abd0b9b437d3975677d57",
+      "status": "ok",
+      "timestamp": "2026-08-26T21:04:45.000000Z",
+      "blockNumber": 92715505,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 37000,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 37000,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 37000,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787778885,
+    "reportedUsdc": 30737.487453,
+    "transaction": {
+      "hash": "0xa9d2ec82e139b35601826fc86ce29bb8da8f4dafd71965c2dca401343aa25131",
+      "status": "ok",
+      "timestamp": "2026-08-26T21:14:45.000000Z",
+      "blockNumber": 92715905,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 30737.487453,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 30737.487453,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 30737.487453,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787781411,
+    "reportedUsdc": 155703.625781,
+    "transaction": {
+      "hash": "0xcb297943077d803e0f44cbc2e7d93afa95f9f5f8d955927bdcb58412dbb54931",
+      "status": "ok",
+      "timestamp": "2026-08-26T21:56:51.000000Z",
+      "blockNumber": 92717589,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 155703.625781,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 155703.625781,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 155703.625781,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787796025,
+    "reportedUsdc": 39000,
+    "transaction": {
+      "hash": "0xa2cd17e0b672e85d37510c3225a5882e7afbad117272e61f0025b31b30833ca3",
+      "status": "ok",
+      "timestamp": "2026-08-27T02:00:25.000000Z",
+      "blockNumber": 92727332,
+      "method": "handleOps",
+      "from": "0x554B30EFCc7bF683b6E97170c1201EbFC69De4C8",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 39000,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 39000,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 39000,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787796324,
+    "reportedUsdc": 50794,
+    "transaction": {
+      "hash": "0xe8016f06dde19fdfb3e5379a3150f4f7946745cad1f049e085e146f0ac1034bc",
+      "status": "ok",
+      "timestamp": "2026-08-27T02:05:24.000000Z",
+      "blockNumber": 92727531,
+      "method": "handleOps",
+      "from": "0x256b3CC1e516d124B3027EcD083Aa5a940d1328e",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 50794,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 50794,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 50794,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787798188,
+    "reportedUsdc": 249858.778806,
+    "transaction": {
+      "hash": "0x31be7607aca7dba41b9dfd064659dcdaab34caae26a8c489ee742da7df24bc1a",
+      "status": "ok",
+      "timestamp": "2026-08-27T02:36:28.000000Z",
+      "blockNumber": 92728774,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 249858.778806,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 249858.778806,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 249858.778806,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  },
+  {
+    "type": "DEPOSIT",
+    "timestamp": 1787798305,
+    "reportedUsdc": 142.091208,
+    "transaction": {
+      "hash": "0x3baeca357d732b34989ad3d8e69fb97bc6ee9921e75fd1f4d47f85522a11775b",
+      "status": "ok",
+      "timestamp": "2026-08-27T02:38:25.000000Z",
+      "blockNumber": 92728852,
+      "method": "handleOps",
+      "from": "0x1d53960165188ee0c74a5705Ee6307fEa517C613",
+      "to": "0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108",
+      "tokenTransfers": [
+        {
+          "from": "0x8B2F31a32D033067538244E4a39b6C964Bb7510E",
+          "to": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 142.091208,
+          "type": "token_transfer"
+        },
+        {
+          "from": "0x0000000000000000000000000000000000000000",
+          "to": "0x6D20C35F65D9899B6d6B74f8466e824580F9a165",
+          "token": "PUSD",
+          "tokenAddress": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "value": 142.091208,
+          "type": "token_minting"
+        },
+        {
+          "from": "0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB",
+          "to": "0xC417fD8E9661c0d2120B64a04Bb3278C17E99DB1",
+          "token": "USDC.E",
+          "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+          "value": 142.091208,
+          "type": "token_transfer"
+        }
+      ]
+    }
+  }
+]

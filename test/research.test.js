@@ -18,9 +18,33 @@ const {
 const { aggregateCounterparties, PUSD } = require('../src/research/onchain');
 const deepAnalysis = require('../research/djdjdjekekek/deep_analysis.json');
 const edgeAnalysis = require('../research/djdjdjekekek/edge_analysis.json');
+const esportsState = require('../research/djdjdjekekek/esports_state_analysis.json');
+const dotaIndependent = require('../research/djdjdjekekek/dota_independent_backtest.json');
+const prospectiveAudit = require('../research/djdjdjekekek/prospective/prospective_audit.json');
+const liveProbeValidation = require('../research/djdjdjekekek/prospective/live_probe_validation.json');
+const sportsReaction = require('../research/djdjdjekekek/prospective/esports_reaction_analysis.json');
+const cs2Case = require('../research/djdjdjekekek/prospective/cs2_case_audit.json');
 const figureManifest = require('../research/djdjdjekekek/figures/manifest.json');
 const { renderHtml } = require('../src/research/plain_english_essay');
+const { clusterMakerBuys } = require('../src/research/cs2_case_audit');
 const { parseTriggerTransaction } = require('../src/research/trigger_transactions');
+const {
+    frozenCutoff,
+    onchainRejections,
+    signalRejections
+} = require('../src/research/prospective_audit');
+const {
+    analyzeSportsReactions,
+    BookStore,
+    DEFAULT_CONFIG,
+    PaperEngine,
+    discoverMarketsForGameId,
+    normalizeSportsMessage,
+    paperQuote,
+    replay,
+    scoreDeployedStateModel,
+    summarizeCapture
+} = require('../src/research/live_edge_probe');
 const {
     activeEventKeys,
     buildReplicatorConfig,
@@ -164,6 +188,32 @@ test('activity size corrects maker sub-fill without changing transaction identit
     assert.strictEqual(market._trades[0].activityReportedSize, 12_000);
 });
 
+test('maker BUY clustering separates outcomes, gaps, and liquidity roles', () => {
+    const market = {
+        conditionId: 'condition',
+        eventKey: 'event',
+        title: 'Counter-Strike: A vs B',
+        discipline: 'Counter-Strike',
+        marketType: 'series winner',
+        resolvedWinner: 'A',
+        _trades: [
+            trade({ timestamp: 1, transactionHash: '0x1', liquidityRole: 'MAKER', size: 100, price: 0.4, quoteNotional: 40 }),
+            trade({ timestamp: 3, transactionHash: '0x2', liquidityRole: 'MAKER', size: 50, price: 0.5, quoteNotional: 25 }),
+            trade({ timestamp: 4, transactionHash: '0x3', liquidityRole: 'TAKER', size: 1000, price: 0.5, quoteNotional: 500 }),
+            trade({ timestamp: 4, transactionHash: '0x4', liquidityRole: 'MAKER', outcome: 'B', size: 100, price: 0.6, quoteNotional: 60 }),
+            trade({ timestamp: 10, transactionHash: '0x5', liquidityRole: 'MAKER', size: 25, price: 0.4, quoteNotional: 10 })
+        ]
+    };
+    const clusters = clusterMakerBuys(market, 5);
+    assert.strictEqual(clusters.length, 3);
+    assert.deepStrictEqual(clusters.map((row) => [row.outcome, row.makerFills]), [
+        ['A', 2], ['B', 1], ['A', 1]
+    ]);
+    assert.strictEqual(clusters[0].makerBuyQuoteUsdc, 65);
+    assert.strictEqual(clusters[0].won, true);
+    assert.strictEqual(clusters[1].won, false);
+});
+
 test('deposit aggregation excludes the backing vault transfer and keeps direct deposits', () => {
     const wallet = '0x0000000000000000000000000000000000000001';
     const source = '0x0000000000000000000000000000000000000002';
@@ -305,6 +355,20 @@ test('committed atomic breadth edge is development-selected and held-out positiv
     assert.ok(atomic.thresholdSelection.marketNullSimulation.oneSidedPValue < 0.05);
 });
 
+test('esports mechanism artifacts preserve the independent failure and evidence limits', () => {
+    assert.strictEqual(edgeAnalysis.esportsMoatAudit.verdict, 'not_verified_as_unique_moat');
+    assert.ok(esportsState.independentStateModel.chronologicalTest.rocAuc > 0.8);
+    assert.strictEqual(esportsState.independentStateModel.trainingData.walletOutcomesUsed, false);
+    assert.strictEqual(dotaIndependent.window.chosenBeforeMarketOutcomesWereInspected, true);
+    assert.strictEqual(dotaIndependent.primary.bets, 9);
+    assert.ok(dotaIndependent.primary.roiPct < 0);
+    assert.strictEqual(prospectiveAudit.coverage.frozenBreadthEligibleSignals, 0);
+    assert.strictEqual(prospectiveAudit.status, 'insufficient_new_evidence');
+    assert.strictEqual(liveProbeValidation.mode, 'PAPER_ONLY');
+    assert.strictEqual(liveProbeValidation.dynamicGameJoin.dynamicAssetsObserved, 14);
+    assert.strictEqual(liveProbeValidation.dynamicGameJoin.observationCoveragePct, 100);
+});
+
 test('capacity and mechanism artifacts retain their scope and negative validation', () => {
     const capacity = edgeAnalysis.historicalTapeCapacity;
     const live = edgeAnalysis.liveLiquidityCapacity;
@@ -378,6 +442,15 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
     assert.match(html, /will not “just arm the wallet”/);
     assert.match(html, /0\.1-second bot and a 0\.5-second bot cannot be separated honestly/);
     assert.match(html, /p=0\.046/);
+    assert.match(html, /not verified as the wallet's exclusive source of alpha/i);
+    assert.match(html, /ROC-AUC 0\.851/);
+    assert.match(html, /pre-wallet Dota state model returned -6\.87%/);
+    assert.match(html, /receiving a book in 88 ms is not knowing fair value/);
+    assert.match(html, /public scoreboard was a delayed confirmation/);
+    assert.match(html, /The wallet-linked CS2 case reveals the mechanism/);
+    assert.match(html, /M80 9-6, round 16, bomb planted/);
+    assert.match(html, /Every tested counterparty cutoff from 10 through 30 was negative/);
+    assert.match(html, /zero that reached 18 makers/);
     for (const figure of [
         'blind_copy_funnel',
         'strategy_equity',
@@ -409,7 +482,16 @@ test('plain-English essay renders the key claim, caveat, and every chart', () =>
         'historical_size_projection',
         'capacity_reality_gap',
         'closing_line_validation',
-        'compact_fresh_mechanism'
+        'compact_fresh_mechanism',
+        'public_follower_lead_lag',
+        'esports_moat_audit',
+        'dota_live_telemetry_case',
+        'dota_state_model_validation',
+        'dota_independent_falsification',
+        'prospective_signal_audit',
+        'live_probe_latency',
+        'esports_public_feed_reaction',
+        'cs2_wallet_state_cases'
     ]) {
         assert.match(html, new RegExp(`figures/${figure}\\.svg`));
     }
@@ -528,4 +610,208 @@ test('post-only guard refuses a chased ask and otherwise stays below it', () => 
         asks: [{ price: '0.47', size: '100' }]
     }, 0.01);
     assert.strictEqual(rejected.reason, 'PRICE_RAN_AWAY');
+});
+
+test('prospective audit applies frozen universe and breadth rules without outcome leakage', () => {
+    const strategy = baseStrategy();
+    const signal = { triggerPrice: 0.55 };
+    assert.deepStrictEqual(signalRejections({
+        discipline: 'Dota 2',
+        marketType: 'series winner'
+    }, signal, strategy), []);
+    assert.deepStrictEqual(signalRejections({
+        discipline: 'MLB',
+        marketType: 'match winner'
+    }, signal, strategy), ['DISCIPLINE_EXCLUDED:MLB']);
+    assert.deepStrictEqual(onchainRejections({
+        takerIsTarget: true,
+        taker: { side: 'BUY', tokenMatchesSignal: true },
+        sweep: { uniqueMakers: 17 }
+    }), ['MAKER_BREADTH_BELOW_18']);
+    assert.strictEqual(frozenCutoff({
+        trades: [{ timestamp: 10 }],
+        activity: [{ timestamp: 12 }]
+    }), 12);
+});
+
+test('sports websocket normalizer supports the observed nested gameId payload', () => {
+    const event = normalizeSportsMessage({
+        gameId: 90121928,
+        leagueAbbreviation: 'bol1',
+        homeTeam: 'Club Blooming',
+        awayTeam: 'CDT Real Oruro',
+        status: 'InProgress',
+        eventState: { score: '0-0', elapsed: '34', period: '1H' }
+    }, 1_000);
+    assert.strictEqual(event.gameId, '90121928');
+    assert.strictEqual(event.rawShape, 'nested_event_state');
+    assert.strictEqual(event.live, true);
+    assert.strictEqual(event.score, '0-0');
+});
+
+test('sports gameId discovery maps Gamma moneyline tokens for dynamic subscription', async () => {
+    let query = null;
+    const assets = await discoverMarketsForGameId('1650516', async (url, params) => {
+        query = { url, params };
+        return [{
+            acceptingOrders: true,
+            enableOrderBook: true,
+            sportsMarketType: 'moneyline',
+            gameId: 1650516,
+            conditionId: 'condition',
+            question: 'Marsborne vs Iowa Stormboars',
+            clobTokenIds: '["yes-token","no-token"]',
+            outcomes: '["Marsborne","Iowa Stormboars"]',
+            volume24hr: 123,
+            events: [{ slug: 'cs2-marsborne-iowa' }]
+        }];
+    });
+    assert.strictEqual(query.params.game_id, '1650516');
+    assert.ok(query.url.endsWith('/markets'));
+    assert.deepStrictEqual(assets.map((asset) => asset.assetId), ['yes-token', 'no-token']);
+    assert.deepStrictEqual(assets.map((asset) => asset.gameId), ['1650516', '1650516']);
+});
+
+test('live capture summary measures dynamic join through first book observation', () => {
+    const summary = summarizeCapture([
+        { type: 'capture_start', timestampMs: 1_000, assets: 2 },
+        { type: 'sports_state', gameId: 'game', receivedAtMs: 2_000 },
+        {
+            type: 'sports_market_join', gameId: 'game', sportsReceivedAtMs: 2_000,
+            completedAtMs: 2_050, queryLatencyMs: 50, discoveredAssets: 2,
+            newAssetIds: ['yes', 'no'], marketMetadata: [{ question: 'A vs B' }]
+        },
+        {
+            type: 'book', asset_id: 'yes', receivedAtMs: 2_090,
+            bids: [], asks: []
+        },
+        {
+            type: 'price_change', receivedAtMs: 2_100,
+            price_changes: [{ asset_id: 'no', side: 'BUY', price: 0.4, size: 10 }]
+        },
+        { type: 'capture_end', timestampMs: 3_000 }
+    ]);
+    assert.strictEqual(summary.dynamicGameJoin.dynamicAssetsObserved, 2);
+    assert.strictEqual(summary.dynamicGameJoin.observationCoveragePct, 100);
+    assert.strictEqual(summary.dynamicGameJoin.queryLatencyMs.median, 50);
+    assert.strictEqual(summary.dynamicGameJoin.sportsToFirstBookMs.median, 90);
+});
+
+test('CS2 reaction audit bounds a one-round move with the immediately preceding poll', () => {
+    const summary = analyzeSportsReactions([
+        {
+            type: 'sports_market_join', gameId: 'game', marketMetadata: [{
+                assetId: 'home-token', outcome: 'Home Team', question: 'Home Team vs Away Team'
+            }, {
+                assetId: 'away-token', outcome: 'Away Team', question: 'Home Team vs Away Team'
+            }]
+        },
+        {
+            type: 'book', asset_id: 'home-token', receivedAtMs: 1_500, timestampMs: 1_490,
+            bids: [{ price: 0.40, size: 100 }], asks: [{ price: 0.42, size: 100 }]
+        },
+        {
+            type: 'sports_state', league: 'cs2', gameId: 'game', receivedAtMs: 2_000,
+            homeTeam: 'Home Team', awayTeam: 'Away Team', score: '0-0|0-0|Bo3'
+        },
+        {
+            type: 'price_change', receivedAtMs: 20_000, timestampMs: 19_990,
+            price_changes: [{
+                asset_id: 'home-token', side: 'BUY', price: 0.42, size: 100
+            }]
+        },
+        {
+            type: 'sports_state', league: 'cs2', gameId: 'game', receivedAtMs: 22_000,
+            homeTeam: 'Home Team', awayTeam: 'Away Team', score: '1-0|0-0|Bo3'
+        }
+    ]);
+    assert.strictEqual(summary.coverage.directionalRoundTransitions, 1);
+    assert.strictEqual(summary.headline.beneficialAtMinusOneSecond, 1);
+    assert.strictEqual(
+        summary.transitions[0].finalHalfCentBeneficialRegimeStartedRelativeToFeedMs, -2_000
+    );
+    assert.strictEqual(summary.headline.incrementalMeanMoveFromFeedToPlusOneCents, 0);
+});
+
+test('committed CS2 reaction evidence remains explicitly small and pre-feed', () => {
+    assert.ok(sportsReaction.coverage.transitionsWithBaselineAndOneSecondQuote >= 5);
+    assert.strictEqual(
+        sportsReaction.finalHalfCentBeneficialRegime.startedBeforePublicUpdate,
+        sportsReaction.finalHalfCentBeneficialRegime.observedAtPublicUpdate
+    );
+    assert.ok(sportsReaction.headline.beneficialAtMinusOneSecond >= 4);
+    assert.match(sportsReaction.interpretation, /does not identify/i);
+});
+
+test('wallet-linked CS2 audit preserves state evidence and negative controls', () => {
+    const { m80, g2M80, nemesis } = cs2Case.cases;
+    assert.strictEqual(m80.firstFillBroadcastState.score, 'M80 9-6 Natus Vincere');
+    assert.strictEqual(m80.firstFillBroadcastState.bomb, 'planted_by_M80');
+    assert.strictEqual(m80.firstFillBroadcastState.m80PlayersAlive, 5);
+    assert.strictEqual(m80.firstFillBroadcastState.natusVincerePlayersAlive, 3);
+    assert.strictEqual(m80.passiveCluster.uniqueTakerCounterparties, 19);
+    assert.ok(m80.passiveCluster.makerBuyQuoteUsdc > 49_000);
+    assert.ok(m80.realizedPnlUsdc > 18_000);
+
+    assert.strictEqual(g2M80.clusterStartBroadcastState.score, 'G2 12-11 M80');
+    assert.strictEqual(g2M80.clusterStartBroadcastState.bomb, 'not_planted');
+    assert.strictEqual(g2M80.passiveCluster.uniqueTakerCounterparties, 18);
+    assert.ok(g2M80.realizedPnlUsdc < -83_000);
+
+    assert.strictEqual(nemesis.resolvedFiftyFifty, true);
+    assert.match(nemesis.marketRule, /resolve 50-50/);
+    assert.ok(nemesis.realizedPnlUsdc < 0);
+
+    assert.strictEqual(cs2Case.populationAudit.candidatesWithCompleteCounterpartyJoin, 11);
+    assert.strictEqual(cs2Case.populationAudit.all.resolvedSignals, 9);
+    assert.strictEqual(cs2Case.populationAudit.all.wins, 4);
+    assert.ok(cs2Case.populationAudit.all.roiPct < -70);
+    assert.ok(cs2Case.populationAudit.thresholdSensitivity.every((row) => row.roiPct < 0));
+});
+
+test('paper quote performs a capacity-capped FOK depth walk', () => {
+    const books = new BookStore();
+    books.apply({
+        type: 'book', asset_id: 'yes', timestampMs: 1,
+        bids: [{ price: '0.39', size: '100' }],
+        asks: [{ price: '0.40', size: '100' }, { price: '0.41', size: '1000' }]
+    });
+    const quote = paperQuote(books.get('yes'), 0.60, {
+        ...DEFAULT_CONFIG,
+        maximumDisplayedDepthParticipationPct: 100
+    });
+    assert.strictEqual(quote.eligible, true);
+    assert.strictEqual(quote.notionalUsdc, 50);
+    assert.ok(quote.vwap > 0.40 && quote.vwap < 0.41);
+    assert.ok(quote.probabilityEdge >= 0.05);
+});
+
+test('paper replay waits one second, never signs, and settles modeled PnL', () => {
+    const summary = replay([
+        {
+            type: 'book', asset_id: 'yes', timestampMs: 0,
+            bids: [{ price: 0.39, size: 100 }], asks: [{ price: 0.40, size: 2_000 }]
+        },
+        {
+            type: 'fair_probability', assetId: 'yes', gameId: 'game',
+            source: 'test', probability: 0.65, timestampMs: 1_000
+        },
+        {
+            type: 'price_change', timestampMs: 2_100,
+            price_changes: [{ asset_id: 'yes', side: 'SELL', price: 0.41, size: 2_000 }]
+        },
+        { type: 'settlement', assetId: 'yes', won: true, timestampMs: 3_000 }
+    ]);
+    assert.strictEqual(summary.mode, 'PAPER_ONLY');
+    assert.strictEqual(summary.intents, 1);
+    assert.strictEqual(summary.paperIntents[0].actualLatencyMs, 1_100);
+    assert.ok(summary.profitUsdc > 0);
+});
+
+test('JavaScript Dota scorer reproduces the committed deployment model', () => {
+    const probability = scoreDeployedStateModel(
+        require('../research/djdjdjekekek/esports_state_analysis.json').independentStateModel,
+        { targetGoldAdvantage: 13_433, targetXpAdvantage: 10_921, gameMinute: 61 }
+    );
+    assert.ok(probability > 0.65 && probability < 0.68);
 });

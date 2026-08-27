@@ -1,0 +1,137 @@
+{
+  "generatedAt": "2026-08-27T02:09:01.107Z",
+  "mode": "PAPER_ONLY",
+  "capture": {
+    "startedAt": "2026-08-27T02:08:31.105Z",
+    "endedAt": "2026-08-27T02:09:01.107Z",
+    "durationMs": 30002,
+    "lines": 11887,
+    "initialAssets": 20,
+    "eventCounts": {
+      "capture_start": 1,
+      "market_subscription": 8,
+      "book": 148,
+      "price_change": 11336,
+      "best_bid_ask": 286,
+      "new_market": 9,
+      "last_trade_price": 54,
+      "sports_state": 25,
+      "sports_market_join_miss": 12,
+      "sports_market_join": 7,
+      "capture_end": 1
+    }
+  },
+  "dynamicGameJoin": {
+    "gameIdsQueried": 19,
+    "hits": 7,
+    "misses": 12,
+    "errors": 0,
+    "dynamicAssets": 14,
+    "dynamicAssetsObserved": 14,
+    "observationCoveragePct": 100,
+    "queryLatencyMs": {
+      "minimum": 45,
+      "median": 51,
+      "p95": 66.99999999999999,
+      "maximum": 73
+    },
+    "sportsToFirstBookMs": {
+      "minimum": 84,
+      "median": 88,
+      "p95": 105.49999999999999,
+      "maximum": 110
+    },
+    "games": [
+      {
+        "gameId": "1650517",
+        "questions": [
+          "Counter-Strike: EMPIRE vs Chicken Coop Esports (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 51,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 44,
+        "sportsToFirstBookMs": 95
+      },
+      {
+        "gameId": "1650516",
+        "questions": [
+          "Counter-Strike: Marsborne vs Iowa Stormboar (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 51,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 37,
+        "sportsToFirstBookMs": 88
+      },
+      {
+        "gameId": "1650523",
+        "questions": [
+          "Counter-Strike: Villainous vs Detonate (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 45,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 39,
+        "sportsToFirstBookMs": 84
+      },
+      {
+        "gameId": "1650514",
+        "questions": [
+          "Counter-Strike: Voca vs FarmVille (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 50,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 38,
+        "sportsToFirstBookMs": 88
+      },
+      {
+        "gameId": "1650515",
+        "questions": [
+          "Counter-Strike: Overtake vs NuTorious (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 73,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 37,
+        "sportsToFirstBookMs": 110
+      },
+      {
+        "gameId": "1650525",
+        "questions": [
+          "Counter-Strike: Zomblers vs Incognito (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 53,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 37,
+        "sportsToFirstBookMs": 90
+      },
+      {
+        "gameId": "1650524",
+        "questions": [
+          "Counter-Strike: Elusive vs shimmer (BO3) - ESL Challenger League North America Cup #1 Playoffs"
+        ],
+        "queryLatencyMs": 48,
+        "discoveredAssets": 2,
+        "newAssets": 2,
+        "observedNewAssets": 2,
+        "joinToFirstBookMs": 37,
+        "sportsToFirstBookMs": 85
+      }
+    ]
+  },
+  "interpretation": "The capture verifies a public gameId-to-market-to-book path with measured sub-second local observation. It does not establish fair value, profitable entry, or parity with the target wallet's upstream data and execution.",
+  "source": {
+    "file": "research/djdjdjekekek/prospective/live_probe_validation.ndjson.gz",
+    "bytes": 863576,
+    "sha256": "56b6db66801b6b16424699e886274bf273a72fc056ae62e9d40cd5f61fb46da7"
+  }
+}

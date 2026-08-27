@@ -17,6 +17,13 @@ The account is a two-layer automated operation: 92.8% of fills are maker executi
 | Compact-fresh breadth held out | 7 bets, 6 wins, +63.17% ROI; cluster interval -8.7% to +110.4% |
 | Current +1c FOK coverage | 94.7% at $100; 46.1% at $10,000 |
 | Broad pregame closing-line value | Median -0.67c; 4/12 positive |
+| Esports wallet deployment | $33.01M cost basis; +$2.81M; +8.51% ROI |
+| Dota state model / independent trade test | ROC-AUC 0.851 on 1,499 later matches; -6.87% across 9 market-wide paper fills |
+| Frozen prospective breadth window | 0 qualifying signals from 875 new trades; no ROI observation |
+| Live public sports-to-book probe | 7 active joins, 14/14 new tokens observed, 88 ms median local latency |
+| Live CS2 public-feed event study | 11/18 beneficiary books already moved by -1s; 0.03c mean incremental move from receipt to +1s |
+| Wallet-linked CS2 state case | M80 9-6, planted bomb, 5-v-3 at first fill; $50.0K then filled passively at 78c |
+| Passive reverse-breadth falsification | 4/9 wins, -$813.4K, -73.46% ROI; every 10-30 counterparty cutoff negative |
 | Breadth composition control | +28.0 pp across 63 comparable bets; one-sided `p=0.0064` |
 | Original-classifier BO1 counterfactual | 84 bets, +5.27% all / +14.09% later |
 | Chronological final period | 24 bets, +26.36% ROI; day-cluster interval -15.9% to +55.8% |
@@ -38,12 +45,13 @@ The type-3 Deposit Wallet resolves to controller EOA `0xC332040b7ed35DeB84488bEE
 
 ## Read In Order
 
-1. [Illustrated plain-English essay](./plain_english_essay.pdf): literal alpha and mechanism definitions, 6,244 execution-and-capacity scenarios, 31 charts, closing-line falsification, risk diagnostics, and caveats without requiring code.
-2. [Breakthrough audit](./breakthrough_report.md): atomic-breadth signal, falsification tests, and promotion criteria.
-3. [Replication report](./replication_report.md): the earlier monitor and its exact execution assumptions.
-4. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.
-5. [Onchain report](./onchain_report.md): controller proof, funding graph and cash reconciliation.
+1. [Illustrated plain-English essay](./plain_english_essay.pdf): literal alpha boundary, esports telemetry, wallet-linked state reconstruction, independent falsification, 6,244 execution-and-capacity scenarios, and 40 charts without requiring code.
+2. [Esports edge audit](./esports_edge_report.md): CS2 state cases, passive-rule falsification, Dota state model, failed market-wide replay, and exact remaining hypotheses.
+3. [Breakthrough audit](./breakthrough_report.md): atomic-breadth signal, falsification tests, and promotion criteria.
+4. [Replication report](./replication_report.md): the earlier monitor and its exact execution assumptions.
+5. [Deep trader report](./trader_report.md): fill reconstruction, timing, case studies and statistical attribution.
+6. [Onchain report](./onchain_report.md): controller proof, funding graph and cash reconciliation.
 
 ## Bottom Line
 
-The strongest observable edge is informed-looking liquidity demand: one target transaction taking dense, fresh liquidity from many maker accounts without crossing many price levels. The frozen 18-maker rule survives chronology and controls; the sharper compact-fresh lead is only 6/7 held out, and broad pregame CLV is negative. Size also sharply reduces FOK coverage. The source of information remains unknown, so the repository runs a capacity-aware paper monitor and intentionally provides no live-money signing path.
+The strongest observable target-taker footprint remains dense, fresh liquidity consumption. The wallet-linked CS2 case adds a second mechanism: state-aware aggressive entry followed by passive deployment at a chosen fair-value boundary. But generic Dota state lost -6.87%, passive reverse breadth lost -73.46%, and the same-team G2 control lost. The missing layer is the target's event/context selection and fair-value model, potentially using faster telemetry. Broad pregame CLV is negative, the prospective breadth evidence remains sparse, and size reduces FOK coverage. The repository therefore remains paper-only.

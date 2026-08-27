@@ -31,6 +31,9 @@ ONCHAIN_BREADTH_CANDIDATES = tuple(range(5, 31))
 CORE_DISCIPLINES = {
     "Tennis", "Soccer", "Dota 2", "Counter-Strike", "League of Legends", "Valorant"
 }
+ESPORTS_DISCIPLINES = {
+    "Dota 2", "Counter-Strike", "League of Legends", "Valorant"
+}
 EXCLUDED_MARKET_TYPES = {"single-game/map", "short-horizon binary"}
 LAGS = (0, 1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 300)
 EXECUTION_SLIPPAGE_CENTS = (
@@ -1027,6 +1030,191 @@ def markout_analysis(base: pd.DataFrame) -> dict:
             "atMostOneCentAdversePct": finite(np.mean(values <= 0.01) * 100) if len(values) else None,
         }
     return output
+
+
+def day_cluster_mean_bootstrap(
+    frame: pd.DataFrame, column: str, seed_offset: int, draws: int = BOOTSTRAP_DRAWS
+) -> dict:
+    valid = frame[np.isfinite(frame[column])].copy()
+    if valid.empty:
+        return {"events": 0, "dayClusters": 0}
+    valid["day"] = pd.to_datetime(valid["signalTime"], utc=True).dt.date
+    clusters = valid.groupby("day")[column].agg(["sum", "count"])
+    rng = np.random.default_rng(SEED + seed_offset)
+    indexes = rng.integers(0, len(clusters), size=(draws, len(clusters)))
+    sampled_sum = clusters["sum"].to_numpy(dtype=float)[indexes].sum(axis=1)
+    sampled_count = clusters["count"].to_numpy(dtype=float)[indexes].sum(axis=1)
+    sampled_mean = sampled_sum / sampled_count
+    return {
+        "events": int(len(valid)),
+        "dayClusters": int(len(clusters)),
+        "meanCents": finite(valid[column].mean() * 100),
+        "medianCents": finite(valid[column].median() * 100),
+        "ci95LowCents": finite(np.quantile(sampled_mean, 0.025) * 100),
+        "ci95HighCents": finite(np.quantile(sampled_mean, 0.975) * 100),
+        "probabilityPositivePct": finite(np.mean(sampled_mean > 0) * 100),
+    }
+
+
+def lead_lag_analysis(base: pd.DataFrame) -> dict:
+    """Outcome-free test of whether public aligned buyers follow the target signal."""
+    decoded = base[np.isfinite(base["onchainUniqueMakers"])].copy()
+    broad = decoded["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD
+    compact = (
+        broad
+        & (decoded["onchainPriceLevels"] <= 3)
+        & (decoded["onchainRestingAgeMedianSeconds"] <= 300)
+    )
+    groups = {
+        "compactFreshBreadth": decoded[compact],
+        "otherBroad": decoded[broad & ~compact],
+        "belowBreadthThreshold": decoded[~broad],
+    }
+
+    output_groups = {}
+    for group_index, (name, rows) in enumerate(groups.items()):
+        lag_rows = []
+        for lag_index, lag in enumerate(LAGS):
+            aligned_column = f"alignedExecutionMark{lag}"
+            neutral_column = f"executionMark{lag}"
+            working = rows.copy()
+            working["alignedLeadLagMove"] = working[aligned_column] - working["triggerPrice"]
+            working["neutralLeadLagMove"] = working[neutral_column] - working["triggerPrice"]
+            aligned = day_cluster_mean_bootstrap(
+                working, "alignedLeadLagMove", 1_000 + group_index * 100 + lag_index
+            )
+            neutral = day_cluster_mean_bootstrap(
+                working, "neutralLeadLagMove", 2_000 + group_index * 100 + lag_index
+            )
+            lag_rows.append({
+                "lagSeconds": lag,
+                "eligibleSignals": int(len(rows)),
+                "alignedBuyPrintCoveragePct": finite(
+                    np.isfinite(working[aligned_column]).mean() * 100
+                ) if len(working) else None,
+                "directionNeutralPrintCoveragePct": finite(
+                    np.isfinite(working[neutral_column]).mean() * 100
+                ) if len(working) else None,
+                "alignedBuyMove": aligned,
+                "directionNeutralMove": neutral,
+            })
+        output_groups[name] = {
+            "signals": int(len(rows)),
+            "inPlayByPolymarketStartPct": finite((rows["pregame"] == 0).mean() * 100)
+            if len(rows) else None,
+            "esportsPct": finite(rows["discipline"].isin(ESPORTS_DISCIPLINES).mean() * 100)
+            if len(rows) else None,
+            "preSignalMomentum60Cents": quantiles(
+                (rows["preMomentum60"].dropna() * 100).tolist()
+            ),
+            "preSignalMomentum300Cents": quantiles(
+                (rows["preMomentum300"].dropna() * 100).tolist()
+            ),
+            "lags": lag_rows,
+        }
+
+    compact_rows = output_groups["compactFreshBreadth"]["lags"]
+    other_rows = output_groups["otherBroad"]["lags"]
+    contrasts = []
+    for compact_row, other_row in zip(compact_rows, other_rows):
+        compact_mean = compact_row["alignedBuyMove"].get("meanCents")
+        other_mean = other_row["alignedBuyMove"].get("meanCents")
+        contrasts.append({
+            "lagSeconds": compact_row["lagSeconds"],
+            "compactMinusOtherBroadAlignedMoveCents": finite(compact_mean - other_mean)
+            if compact_mean is not None and other_mean is not None else None,
+        })
+
+    return {
+        "question": "After an observable target trigger, do unrelated public BUY prints aligned with the target move in the same direction?",
+        "status": "mechanism_evidence_not_profit_proof",
+        "outcomeLabelsUsed": False,
+        "groups": output_groups,
+        "compactMinusOtherBroad": contrasts,
+        "interpretation": (
+            "Positive aligned-BUY markouts after compact-fresh sweeps are consistent with the "
+            "target reaching the market before some aligned public buyers. They do not identify "
+            "the target's upstream information source and do not prove that a follower can buy "
+            "before the move or cover fees."
+        ),
+        "warnings": [
+            "These are transaction-print markouts, not contemporaneous executable ask quotes.",
+            "Integer-second historical timestamps cannot order target and peer prints inside the same second.",
+            "The compact-fresh definition was selected retrospectively and contains only 12 signals.",
+            "Polymarket gameStartTime is used for the timing split; it is not a point-by-point sports feed.",
+        ],
+    }
+
+
+def esports_moat_audit(base: pd.DataFrame, analysis: dict) -> dict:
+    fixed = prepare_bets(base, 60, 5).sort_values("signalTimestamp")
+    broad = fixed[fixed["onchainUniqueMakers"] >= ONCHAIN_BREADTH_THRESHOLD]
+    compact = broad[
+        (broad["onchainPriceLevels"] <= 3)
+        & (broad["onchainRestingAgeMedianSeconds"] <= 300)
+    ]
+    esports_broad = broad[broad["discipline"].isin(ESPORTS_DISCIPLINES)]
+    sports_broad = broad[~broad["discipline"].isin(ESPORTS_DISCIPLINES)]
+    performance = analysis["performance"]["byDiscipline"]
+    wallet_esports = [row for row in performance if row["key"] in ESPORTS_DISCIPLINES]
+    wallet_total_cost = sum(float(row.get("costBasisUsdc") or 0) for row in performance)
+    wallet_total_pnl = sum(float(row.get("realizedPnlUsdc") or 0) for row in performance)
+    esports_cost = sum(float(row.get("costBasisUsdc") or 0) for row in wallet_esports)
+    esports_pnl = sum(float(row.get("realizedPnlUsdc") or 0) for row in wallet_esports)
+
+    by_discipline = []
+    for discipline, rows in broad.groupby("discipline", sort=True):
+        by_discipline.append({
+            "discipline": discipline,
+            "category": "esports" if discipline in ESPORTS_DISCIPLINES else "traditional_sport",
+            **summarize_bets(rows),
+            "calibration": calibration_summary(rows),
+            "compactFreshSignals": int(len(compact[compact["discipline"] == discipline])),
+        })
+
+    return {
+        "question": "Is esports the wallet's unique moat?",
+        "verdict": "not_verified_as_unique_moat",
+        "walletDeployment": {
+            "esportsDisciplines": sorted(ESPORTS_DISCIPLINES),
+            "markets": int(sum(row.get("markets", 0) for row in wallet_esports)),
+            "costBasisUsdc": finite(esports_cost),
+            "realizedPnlUsdc": finite(esports_pnl),
+            "roiPct": finite(safe_div(esports_pnl, esports_cost) * 100),
+            "shareOfWalletCostBasisPct": finite(safe_div(esports_cost, wallet_total_cost) * 100),
+            "shareOfWalletRealizedPnlPct": finite(safe_div(esports_pnl, wallet_total_pnl) * 100),
+            "byDiscipline": wallet_esports,
+        },
+        "frozenBreadthSignals": {
+            "esports": {
+                **summarize_bets(esports_broad),
+                "calibration": calibration_summary(esports_broad),
+                "compactFreshSignals": int(len(compact[
+                    compact["discipline"].isin(ESPORTS_DISCIPLINES)
+                ])),
+            },
+            "traditionalSports": {
+                **summarize_bets(sports_broad),
+                "calibration": calibration_summary(sports_broad),
+                "compactFreshSignals": int(len(compact[
+                    ~compact["discipline"].isin(ESPORTS_DISCIPLINES)
+                ])),
+            },
+            "byDiscipline": by_discipline,
+        },
+        "interpretation": (
+            "Esports is the largest deployed capital pool and contributes substantial profit. "
+            "The frozen broad-sweep signal is also strong in esports, especially Dota 2, but "
+            "traditional sports contribute independently and the compact-fresh subset contains "
+            "too few esports observations to establish a category-specific moat."
+        ),
+        "whatWouldVerifyIt": [
+            "Chronologically matched point/map telemetry available before each target order.",
+            "A frozen esports state model that prices the target outcome independently of Polymarket.",
+            "Prospective paper fills showing positive net value after depth, delay, and fees.",
+            "Enough events to distinguish esports from tennis and soccer without post-hoc category selection.",
+        ],
+    }
 
 
 def subgroup_table(base: pd.DataFrame) -> dict:
@@ -2503,6 +2691,8 @@ def main() -> None:
             ),
         },
         "marketResponse": markout_analysis(base),
+        "publicFollowerLeadLag": lead_lag_analysis(base),
+        "esportsMoatAudit": esports_moat_audit(base, analysis),
         "subgroups": subgroup_table(base),
         "subgroupChronology": subgroup_chronology(base),
         "leaders": leader_analysis(leader_events, base),

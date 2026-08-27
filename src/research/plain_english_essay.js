@@ -47,7 +47,16 @@ function isoDate(value) {
     });
 }
 
-function renderHtml(analysis, edge) {
+function renderHtml(
+    analysis,
+    edge,
+    stateAudit = readJson('esports_state_analysis.json'),
+    dotaBacktest = readJson('dota_independent_backtest.json'),
+    prospective = readJson('prospective/prospective_audit.json'),
+    liveProbe = readJson('prospective/live_probe_validation.json'),
+    sportsReaction = readJson('prospective/esports_reaction_analysis.json'),
+    cs2Case = readJson('prospective/cs2_case_audit.json')
+) {
     const blind = edge.blindCopyCounterfactual;
     const urgencyChronology = edge.subgroupChronology;
     const format = analysis.performance.formatAudit;
@@ -101,6 +110,30 @@ function renderHtml(analysis, edge) {
     const closing = edge.closingLineAudit;
     const compact = edge.compactFreshMechanism;
     const alternatives = compact.alternativeMechanisms;
+    const moat = edge.esportsMoatAudit;
+    const esportsDeployment = moat.walletDeployment;
+    const esportsBreadth = moat.frozenBreadthSignals.esports;
+    const traditionalBreadth = moat.frozenBreadthSignals.traditionalSports;
+    const leadLag = edge.publicFollowerLeadLag;
+    const compactLeadLag = leadLag.groups.compactFreshBreadth;
+    const leadAt = (seconds) => compactLeadLag.lags.find((row) => row.lagSeconds === seconds);
+    const stateModel = stateAudit.independentStateModel;
+    const stateTest = stateModel.chronologicalTest;
+    const stateWallet = stateAudit.stateModelWalletAudit;
+    const spotlight = stateAudit.spotlight;
+    const independentDota = dotaBacktest.primary;
+    const prospectiveCoverage = prospective.coverage;
+    const prospectiveBroadOutside = prospective.observedBroadOutsideFrozenUniverse;
+    const liveJoin = liveProbe.dynamicGameJoin;
+    const reactionCoverage = sportsReaction.coverage;
+    const reactionHeadline = sportsReaction.headline;
+    const reactionRegime = sportsReaction.finalHalfCentBeneficialRegime;
+    const reactionBootstrap = sportsReaction.gameClusterBootstrap;
+    const m80Case = cs2Case.cases.m80;
+    const g2M80Case = cs2Case.cases.g2M80;
+    const nemesisCase = cs2Case.cases.nemesis;
+    const reverseBreadth = cs2Case.populationAudit;
+    const figureCount = readJson('figures/manifest.json').files.length / 2;
     const totalExecutionCells = atlasCells + capacity.scenarioCount;
     const historicalCapacityCell = (stake, window, proxy = 'allPrints', participation = 100) =>
         capacity.grid.find((row) =>
@@ -133,8 +166,8 @@ function renderHtml(analysis, edge) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A detailed, illustrated investigation of a Polymarket trader's atomic liquidity-sweep alpha across broad copy-trading execution parameters.">
-<title>Inside the Whale's Alpha: Copying Loses, Atomic Breadth Wins</title>
+<meta name="description" content="A detailed, illustrated investigation of a Polymarket trader's copyability, esports activity, live-state timing, execution footprint, and independently tested Dota hypothesis.">
+<title>Inside the Whale's Alpha: What Copies, What Fails, and the Esports Lead</title>
 <style>
     :root {
         --ink: #172026;
@@ -367,7 +400,7 @@ function renderHtml(analysis, edge) {
         @page { size: A4; margin: 14mm 13mm 15mm; }
         body { font-size: 11pt; line-height: 1.48; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         p, li { orphans: 3; widows: 3; }
-        h2, h3 { break-after: avoid; page-break-after: avoid; }
+        h2, h3 { break-after: avoid; page-break-after: avoid; break-inside: avoid; page-break-inside: avoid; }
         .page { width: 100%; }
         .masthead { padding: 18mm 0 8mm; }
         h1 { font-size: 39pt; }
@@ -381,6 +414,8 @@ function renderHtml(analysis, edge) {
         .bottom-line, .warning, .finding, .plain-language, .alpha-definition, .parameter-summary, .verdict { break-inside: avoid; page-break-inside: avoid; }
         .rule { break-inside: auto; page-break-inside: auto; }
         .rule .steps li { break-inside: avoid; page-break-inside: avoid; }
+        .fact-list li, .confidence-row { break-inside: avoid; page-break-inside: avoid; }
+        .keep-together { break-inside: avoid; page-break-inside: avoid; }
         figure img { max-height: 178mm; object-fit: contain; }
         a { color: inherit; }
         .sources { font-size: 9pt; line-height: 1.32; }
@@ -396,13 +431,13 @@ function renderHtml(analysis, edge) {
 <header class="masthead">
     <div class="page">
         <p class="kicker">Plain-English alpha and execution dossier</p>
-        <h1>Inside the whale's alpha: copying loses, atomic breadth wins.</h1>
-        <p class="dek">A transaction-level investigation, ${number(totalExecutionCells)} execution-and-capacity scenarios, and the closest public fingerprint of the trader's hidden decision process that the evidence can support.</p>
-        <p class="dateline">Public-data study covering ${isoDate(analysis.coverage.firstTrade)} to ${isoDate(analysis.coverage.lastTrade)}. Analysis generated ${isoDate(edge.generatedAt)}.</p>
+        <h1>Inside the whale's alpha: what copies, what fails, and the esports lead.</h1>
+        <p class="dek">A transaction-level investigation, ${number(totalExecutionCells)} execution-and-capacity scenarios, live esports telemetry, wallet-aligned CS2 video evidence, and independent tests that separate the trader's mechanism from a tradable rule.</p>
+        <p class="dateline">Base backtest wallet sample covering ${isoDate(analysis.coverage.firstTrade)} to ${isoDate(analysis.coverage.lastTrade)}. Prospective wallet, market, and live-match evidence updated ${isoDate(cs2Case.generatedAt)}.</p>
         <div class="headline-facts" aria-label="Headline findings">
             <div class="headline-fact"><strong class="negative">${pct(blind.all.roiPct, 2)}</strong><span>return from blindly copying all ${number(blind.all.bets)} large signals</span></div>
-            <div class="headline-fact"><strong class="positive">${pct(breadth.roiPct, 2)}</strong><span>return when one trigger matched at least 18 maker accounts</span></div>
-            <div class="headline-fact"><strong class="neutral">${pct(heldOut.roiPct, 2)}</strong><span>return from those signals after the threshold was selected</span></div>
+            <div class="headline-fact"><strong class="positive">${pct(breadth.roiPct, 2)}</strong><span>retrospective return when one trigger matched at least 18 maker accounts</span></div>
+            <div class="headline-fact"><strong class="negative">${pct(reverseBreadth.all.roiPct, 2)}</strong><span>return from blindly mirroring large passive clusters with 18+ counterparties</span></div>
         </div>
     </div>
 </header>
@@ -417,25 +452,34 @@ function renderHtml(analysis, edge) {
         <a href="#discovery">The discovery</a>
         <a href="#speed">Copy speed</a>
         <a href="#alpha">His alpha</a>
+        <a href="#esports">Esports audit</a>
+        <a href="#cs2-case">CS2 case</a>
+        <a href="#live-probe">Live probe</a>
         <a href="#mechanism">The mechanism</a>
         <a href="#closing">Closing line</a>
         <a href="#algorithm">The rule</a>
         <a href="#tests">Stress tests</a>
         <a href="#risk">Risk</a>
+        <a href="#prospective">Prospective</a>
         <a href="#verdict">Verdict</a>
     </nav>
 
     <section id="answer">
         <h2>The answer in thirty seconds</h2>
-        <p class="lead">His observable edge is <strong>selective, informed-looking liquidity consumption</strong>. The strongest trades are broad, compact, and fresh: one mined BUY consumes offers from many makers, stays within only a few price levels, and takes recently signed liquidity.</p>
-        <div class="bottom-line"><strong>Bottom line:</strong> at least <strong>18 distinct maker accounts</strong> is the frozen first-stage signal: 23 wins from 30 and ${pct(breadth.roiPct, 1)} after the original stress, versus ${pct(narrow.roiPct, 1)} below 18. The closest second-stage mechanism is <strong>18+ makers, no more than three price levels, and median maker age no more than five minutes</strong>: it went 6/7 and returned ${pct(compact.heldOut.roiPct, 1)} held out. But that seven-trade refinement is post-hoc, and closing prices did not validate the broad signals. The private source of the trader's judgment is not cracked.</div>
+        <p class="lead">The wallet has two observable execution modes: <strong>it aggressively consumes dense liquidity when conviction is high, and it sometimes posts size around a live state that it believes is mispriced.</strong> The CS2 reconstruction identifies the second mode directly. It does not turn it into an automatic strategy.</p>
+        <div class="bottom-line"><strong>Bottom line:</strong> during M80-NAVI, the wallet first bought at 74 cents while the broadcast showed M80 leading 9-6 with a planted bomb and a 5-v-3 advantage, then absorbed ${money(m80Case.passiveCluster.makerBuyQuoteUsdc)} at 78 cents from ${number(m80Case.passiveCluster.uniqueTakerCounterparties)} counterparties after M80 made it 10-6. It earned ${money(m80Case.realizedPnlUsdc)}. But the same-team G2-M80 control used almost the same passive mechanism at 12-11, 3-v-3, no bomb, and lost ${money(Math.abs(g2M80Case.realizedPnlUsdc))}. Across all qualifying passive clusters, the mechanical rule returned <strong>${pct(reverseBreadth.all.roiPct, 2)}</strong>. <strong>The best-supported mechanism is match-state valuation plus selective context and passive execution; the exact event-selection and fair-value model remain unrecovered.</strong></div>
         <ol class="steps">
             <li><strong>The headline is misleading.</strong> The wallet made ${money(analysis.performance.realizedPnlUsdc)}, but its top five winners produced ${plainPct(analysis.concentration.top5ContributionPct, 0)} of net profit. Removing those five makes the wallet negative.</li>
             <li><strong>Blind copying is not the edge.</strong> ${number(blind.all.bets)} delayed ${money(100)} copies lost ${money(Math.abs(blind.all.profitUsdc), 2)}. The later sample also lost ${pct(blind.later.roiPct, 2)}.</li>
             <li><strong>The public trade feed hides structure.</strong> We decoded all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions. Every one was a successful V2 <code>matchOrders</code> call with the target as the BUY taker.</li>
             <li><strong>Breadth separated signal from noise.</strong> Broad sweeps beat the market price by ${pp(breadthCalibration.calibrationGapPctPoints, 1)}; narrower transactions missed it by ${pp(narrowCalibration.calibrationGapPctPoints, 1)}.</li>
+            <li><strong>Esports is important, but not uniquely proven.</strong> It carried ${plainPct(esportsDeployment.shareOfWalletCostBasisPct, 1)} of wallet cost basis and ${money(esportsDeployment.realizedPnlUsdc)} of realized P&amp;L. Frozen broad sweeps returned ${pct(esportsBreadth.roiPct, 1)} in esports and ${pct(traditionalBreadth.roiPct, 1)} in traditional sports.</li>
+            <li><strong>A wallet-linked CS2 decision is now reconstructed to the round.</strong> The first M80 fill preceded the broadcast's 10-6 update by about 7.5 seconds, but it did not precede the favorable state: viewers could already see the bomb planted and M80 ahead 5-v-3.</li>
+            <li><strong>Copying the passive footprint is decisively wrong.</strong> A fixed ${number(cs2Case.passiveRule.minimumUniqueTakerCounterparties)}-counterparty mirror found ${number(reverseBreadth.all.wins)} wins from ${number(reverseBreadth.all.resolvedSignals)} and lost ${plainPct(Math.abs(reverseBreadth.all.roiPct), 2)}; every tested cutoff from 10 to 30 counterparties was negative.</li>
+            <li><strong>A valid Dota model did not become a valid trading strategy.</strong> It reached ROC-AUC ${number(stateTest.rocAuc, 3)} on ${number(stateTest.matches)} later professional matches, then lost ${plainPct(Math.abs(independentDota.roiPct), 2)} in the separate market-wide replay.</li>
             <li><strong>Size changes copyability.</strong> At +1 cent, a current liquid-market snapshot could fully fill ${plainPct(liveCapacityCell(100).fillRatePct, 1)} of ${money(100)} FOK orders but only ${plainPct(liveCapacityCell(25000).fillRatePct, 1)} at ${money(25000)}. One second after the historical broad sweeps, even an optimistic all-print ceiling covered only ${plainPct(historicalCapacityCell(100, 1).fillRatePct, 1)} of ${money(100)} requests.</li>
             <li><strong>The market did not confirm the story before play.</strong> Broad pregame signals had median closing-line value of ${number(closing.breadthPregame.medianClosingLineValueCents, 2)} cents, with only ${number(closing.breadthPregame.positiveClosingLineEvents)} of ${number(closing.breadthPregame.events)} positive.</li>
+            <li><strong>The first frozen prospective audit has no bet to score.</strong> ${number(prospectiveCoverage.postCutoffTrades)} new wallet trades produced ${number(prospectiveCoverage.rawThresholdSignals)} raw threshold signals, ${number(prospectiveCoverage.frozenBaseEligibleSignals)} in the frozen universe, and zero that reached 18 makers.</li>
         </ol>
     </section>
 
@@ -646,7 +690,7 @@ function renderHtml(analysis, edge) {
 
     <section id="alpha">
         <h2>His alpha, literally</h2>
-        <p class="lead"><strong>The recoverable alpha is a conditional probability error:</strong> public prices understate how often the target's side wins when one eligible BUY transaction consumes liquidity from at least 18 distinct maker accounts.</p>
+        <p class="lead"><strong>The strongest historical target-taker footprint is a conditional probability residual:</strong> public execution prices understated how often the target's side eventually won when one eligible BUY consumed liquidity from at least 18 distinct maker accounts. That is a fingerprint of conviction after the directional decision, not the forecasting model that made the decision.</p>
         <div class="alpha-definition">
             <h3>Observable alpha definition</h3>
             <div class="equation">B(tx) = count(distinct makerOrders[].maker)<br>
@@ -654,12 +698,115 @@ Eligible(tx) = first canonical event AND core discipline AND full-event market<b
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;AND concentration &gt;= 70% AND trigger price in [0.30, 0.85]<br>
 Signal(tx) = Eligible(tx) AND target is BUY taker AND B(tx) &gt;= 18<br>
 Probability alpha = realized outcome - public execution-proxy probability</div>
-            <p><strong>Measured probability alpha:</strong> ${pp(breadthCalibration.calibrationGapPctPoints, 2)} over all 30 broad sweeps and ${pp(heldOutCalibration.calibrationGapPctPoints, 2)} over the 21 signals after development selection. Below 18 makers, the corresponding gap was ${pp(narrowCalibration.calibrationGapPctPoints, 2)}.</p>
-            <p><strong>Measured economic alpha:</strong> ${pct(breadth.roiPct, 2)} under the original 60-second plus five-cent stress; ${pct(heldOut.roiPct, 2)} in the post-selection half; ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 2)} under the realistic one-second plus one-cent scenario.</p>
+            <p><strong>Measured historical probability residual:</strong> ${pp(breadthCalibration.calibrationGapPctPoints, 2)} over all 30 broad sweeps and ${pp(heldOutCalibration.calibrationGapPctPoints, 2)} over the 21 signals after development selection. Below 18 makers, the corresponding gap was ${pp(narrowCalibration.calibrationGapPctPoints, 2)}.</p>
+            <p><strong>Measured historical economic residual:</strong> ${pct(breadth.roiPct, 2)} under the original 60-second plus five-cent stress; ${pct(heldOut.roiPct, 2)} in the post-selection half; ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 2)} under the one-second plus one-cent price proxy.</p>
         </div>
-        <div class="plain-language"><b>In ordinary words:</b> most large buys are not special. The special-looking ones are single decisions that clear offers from many signed accounts at once. That is the public footprint of conviction. The private model, information, or judgment that produced the conviction is still hidden.</div>
-        <p>This distinction matters. We did not reverse-engineer his sports model or prove private information. We recovered an <strong>observable gating variable</strong> that identifies when his action historically contained information beyond the market price. That is the most literal alpha statement public evidence supports.</p>
+        <div class="plain-language"><b>In ordinary words:</b> most large buys are not special. The special-looking ones are single decisions that clear offers from many signed accounts at once. That tells us when the trader was unusually convinced. It still does not tell us why he chose that team.</div>
+        <p>The wallet-linked CS2 cases sharpen the distinction. In the M80 win, the target acted in an already favorable but unresolved round state, then supplied most of its size passively after the round. In the G2 loss, it supplied similar M80 liquidity from a far worse state and lost. Across the complete reverse-breadth population, counterparty count had no edge. The unresolved alpha is therefore the <strong>selection and valuation residual</strong>: team strength, roster, map, economy, series context, event quality, better telemetry, human judgment, or another input that says what each live state is actually worth.</p>
     </section>
+
+    <section id="esports">
+        <h2>Is esports his moat?</h2>
+        <p class="lead"><strong>It is a major specialization, but the available evidence does not prove it is unique.</strong> Esports represents ${number(esportsDeployment.markets)} markets, ${money(esportsDeployment.costBasisUsdc)} of cost basis, ${money(esportsDeployment.realizedPnlUsdc)} of realized P&amp;L, and ${pct(esportsDeployment.roiPct, 2)} ROI. That is ${plainPct(esportsDeployment.shareOfWalletCostBasisPct, 1)} of all deployed cost basis.</p>
+        <p>The frozen broad-sweep result is strong in esports: ${number(esportsBreadth.wins)}/${number(esportsBreadth.bets)} wins and ${pct(esportsBreadth.roiPct, 2)} ROI. Dota is the strongest esports subgroup at 6/7 and ${pct(moat.frozenBreadthSignals.byDiscipline.find((row) => row.discipline === 'Dota 2').roiPct, 2)}. But traditional sports independently produced ${number(traditionalBreadth.wins)}/${number(traditionalBreadth.bets)} and ${pct(traditionalBreadth.roiPct, 2)}. The compact-fresh subset contains only ${number(esportsBreadth.compactFreshSignals)} esports observations, versus ${number(traditionalBreadth.compactFreshSignals)} in tennis and soccer.</p>
+        <div class="finding"><strong>Verified answer:</strong> esports is probably an operational specialty and Dota is the best mechanism laboratory because detailed game state exists. It is not verified as the wallet's exclusive source of alpha. Calling it the moat would ignore equally strong traditional-sports results and tiny category samples.</div>
+    </section>
+
+    <figure>
+        <img src="figures/esports_moat_audit.svg" alt="Three-panel audit comparing esports wallet deployment, broad-sweep results, and discipline-level returns with traditional sports.">
+        <figcaption>Esports dominates deployed capital, but not the frozen signal's return. Soccer and tennis contribute independently, while Dota's 7-bet result is too small to establish a unique category moat.</figcaption>
+    </figure>
+
+    <section>
+        <h2>A live CS2 test found where the public feed loses the race</h2>
+        <p>We recorded the public Polymarket sports and market WebSockets in the same process and reconstructed series-winner best bids, asks, and midpoints around one-round CS2 score changes. The capture contained ${number(reactionCoverage.directionalRoundTransitions)} directional round updates. ${number(reactionCoverage.transitionsWithBaselineAndOneSecondQuote)} had a usable book at both the preceding poll and one second after the changed score, across ${number(reactionCoverage.targetAssetsWithQuotes)} beneficiary outcome tokens.</p>
+        <p>The public score observations were roughly ${number(sportsReaction.publicSportsCadenceMs.medianDistinctStateInterval / 1000, 1)} seconds apart. Of the ${number(reactionHeadline.analyzableTransitions)} analyzable changes, ${number(reactionHeadline.beneficialAtMinusOneSecond)} had already moved at least half a cent toward the round winner one second before the changed score arrived. The same ${number(reactionHeadline.beneficialAtPublicUpdate)} had moved by receipt. Their mean beneficiary midpoint move was ${number(reactionHeadline.meanMoveAlreadyPresentOneSecondBeforeFeedCents, 2)} cents at -1 second and ${number(reactionHeadline.meanMoveOneSecondAfterFeedCents, 2)} cents at +1 second. Resampling the four games as clusters put the -1-second mean between ${number(reactionBootstrap.moveAtMinusOneSecond.ci95LowCents, 3)} and ${number(reactionBootstrap.moveAtMinusOneSecond.ci95HighCents, 3)} cents. From receipt through +1 second, the incremental mean was only ${number(reactionHeadline.incrementalMeanMoveFromFeedToPlusOneCents, 3)} cents, with a game-cluster interval from ${number(reactionBootstrap.incrementalMoveFromFeedToPlusOneSecond.ci95LowCents, 3)} to ${number(reactionBootstrap.incrementalMoveFromFeedToPlusOneSecond.ci95HighCents, 3)}.</p>
+        <div class="finding"><strong>The sharper discovery:</strong> in this small live sample, the public scoreboard was a delayed confirmation, not an alpha source. In ${number(reactionHeadline.beneficialAtMinusOneSecond)} of ${number(reactionHeadline.analyzableTransitions)} analyzable transitions, a bot reacting 0.1 seconds after that message would already have missed at least a half-cent move. A bot copying the wallet after on-chain publication starts later still: it sees the decision only after the trader selected the event, obtained the information, and executed.</div>
+        <div class="warning"><strong>What remains unproved:</strong> the feed does not expose an authoritative round timestamp, the sample is only ${number(reactionHeadline.analyzableTransitions)} analyzable updates across ${number(new Set(sportsReaction.transitions.filter((row) => row.baselineAtPreviousState).map((row) => row.gameId)).size)} games, and the wallet did not trade those specific games. The result verifies public-feed staleness relative to the CLOB. It does not prove who repriced it, name a private vendor, or establish that the target owns a faster feed.</div>
+    </section>
+
+    <figure>
+        <img src="figures/esports_public_feed_reaction.svg" alt="Event study showing CS2 series-winner midpoint moves before and after public score updates, plus the timing of persistent repricing.">
+        <figcaption>Every persistent half-cent beneficiary move in the analyzable sample started before the changed public score arrived; the median start was ${number(Math.abs(reactionRegime.medianStartRelativeToPublicUpdateMs) / 1000, 2)} seconds earlier. Most of the apparent lead is bounded by the feed's polling interval, so the chart diagnoses stale public telemetry rather than measuring the true event-to-market latency.</figcaption>
+    </figure>
+
+    <section id="cs2-case">
+        <h2>The wallet-linked CS2 case reveals the mechanism</h2>
+        <p class="lead"><strong>This is the closest verified view of what the target was doing inside a live esports market.</strong> It is a mechanism reconstruction, not a profitable strategy claim.</p>
+        <h3>The winning M80-NAVI trade</h3>
+        <p>The target bought M80 in ${number(m80Case.fills)} fills over 23 seconds, deploying ${money(m80Case.quoteNotionalUsdc)}. At the first fill, the timestamp-aligned broadcast showed <strong>M80 9-6, round 16, bomb planted, five M80 players alive against three NAVI players</strong>. The target paid ${number(m80Case.targetFills[0].price, 2)} before the broadcast first displayed M80's 10-6 round win about 7.5 seconds later. This was an early read of a visible high-probability state, not evidence of advance knowledge.</p>
+        <p>After the round, the execution mode changed. ${plainPct(m80Case.makerNotionalPct, 1)} of total quote notional was passive. From ${m80Case.passiveCluster.startTime.slice(11, 19)} to ${m80Case.passiveCluster.endTime.slice(11, 19)} UTC, ${number(m80Case.passiveCluster.uniqueTakerCounterparties)} public taker wallets bought NAVI against ${number(m80Case.passiveCluster.makerFills)} target maker fills. That gave the target ${money(m80Case.passiveCluster.makerBuyQuoteUsdc)} of M80 exposure at a ${number(m80Case.passiveCluster.makerVwap, 2)} VWAP in three seconds. The full market earned ${money(m80Case.realizedPnlUsdc)} before maker rebates.</p>
+        <div class="plain-language"><b>What that means:</b> the target was not chasing its own published transaction. It first crossed the book while the round was strongly favorable, then waited at a price and let other traders supply the opposite side. A copier cannot recreate those passive fills merely by being 0.1 seconds fast; it would need the same fair value, a timely quote, queue position, and incoming opposite flow.</div>
+
+        <h3>The controls that stop a false breakthrough</h3>
+        <p><strong>Same team, same passive shape, opposite result:</strong> against G2, the target bought ${money(g2M80Case.quoteNotionalUsdc)} of M80 and ${plainPct(g2M80Case.makerNotionalPct, 1)} was passive. Its key ${money(g2M80Case.passiveCluster.makerBuyQuoteUsdc)} cluster filled against ${number(g2M80Case.passiveCluster.uniqueTakerCounterparties)} counterparties. The aligned broadcast showed G2 12-11 M80 with 19 seconds left, no bomb planted, and a 3-v-3. M80 needed the round for overtime, lost it, and the target's full market result was ${money(g2M80Case.realizedPnlUsdc)}.</p>
+        <p><strong>A rule-sensitive loss:</strong> the target also bought ${money(nemesisCase.quoteNotionalUsdc)} of 1WIN Map 2 exposure, mostly aggressively, before technical problems ended the map at Nemesis 7-12 1WIN. Polymarket's committed rule resolved an unfinished Map 2 at 50-50. The target later sold near 50 cents and realized ${money(nemesisCase.realizedPnlUsdc)}. The wallet is neither always right nor protected from market-specific resolution rules.</p>
+        <p class="keep-together"><strong>The broad test fails:</strong> across ${number(reverseBreadth.markets)} merged wallet markets, the fixed passive rule found ${number(reverseBreadth.all.resolvedSignals)} resolved clusters with at least ${money(cs2Case.passiveRule.minimumMakerBuyQuoteUsdc)}, ${number(cs2Case.passiveRule.minimumMakerFills)} maker fills, and ${number(cs2Case.passiveRule.minimumUniqueTakerCounterparties)} unique public taker counterparties. It won ${number(reverseBreadth.all.wins)}, lost ${money(Math.abs(reverseBreadth.all.profitUsdc))}, and returned ${pct(reverseBreadth.all.roiPct, 2)}. Counter-Strike alone was ${number(reverseBreadth.byDiscipline.find((row) => row.discipline === 'Counter-Strike').wins)}/${number(reverseBreadth.byDiscipline.find((row) => row.discipline === 'Counter-Strike').resolvedSignals)} at ${pct(reverseBreadth.byDiscipline.find((row) => row.discipline === 'Counter-Strike').roiPct, 2)}. Every tested counterparty cutoff from 10 through 30 was negative.</p>
+        <div class="finding"><strong>Best current alpha hypothesis:</strong> a low-latency match-state probability model, filtered by event and team context, with selective aggressive entry and passive quoting when the book is wrong. <strong>Verified:</strong> the state, timestamps, execution roles, counterparties, and outcomes in these cases. <strong>Not recovered:</strong> the target's exact fair-value calculation, upstream data source, queue logic, or a prospective rule that makes money.</div>
+    </section>
+
+    <figure>
+        <img src="figures/cs2_wallet_state_cases.svg" alt="Wallet-linked CS2 timeline, winning and losing M80 state comparison, deployment curve, and reverse-breadth threshold falsification.">
+        <figcaption>The M80-NAVI winner is real, but the G2-M80 control and the full passive-cluster population reject blind imitation. The useful discovery is the state-dependent execution mechanism; the state-selection model still has to be identified prospectively.</figcaption>
+    </figure>
+
+    <section>
+        <h2>One Dota trade is now tied to the game itself</h2>
+        <p>We matched ${number(stateAudit.coverage.matchedSignals)} of ${number(stateAudit.coverage.dotaThresholdSignals)} Dota threshold signals to professional matches in OpenDota. Of those, ${number(stateAudit.coverage.phaseCounts.in_game)} occurred during a map, ${number(stateAudit.coverage.phaseCounts.before_first_map)} before the first map, ${number(stateAudit.coverage.phaseCounts.between_maps)} between maps, and ${number(stateAudit.coverage.phaseCounts.unmatched)} could not be matched. Among the seven frozen broad Dota series signals, only one aligned to an in-game parsed state; five matched signals were before map one and one was unmatched.</p>
+        <p>The in-game broad case is specific. On ${isoDate(spotlight.signalTime)}, Team Liquid was ${number(spotlight.state.targetGoldAdvantage)} gold and ${number(spotlight.state.targetXpAdvantage)} XP ahead of Team Falcons, with a 38–32 kill lead. Liquid destroyed the top tier-two tower seven seconds before the target bought at ${number(spotlight.triggerPrice, 3)} across ${number(spotlight.uniqueMakers)} makers; the top tier-three fell twelve seconds after. The independent state model estimated ${plainPct(spotlight.stateModel.fairWinProbability * 100, 1)} for Liquid against a modeled all-in follower price of ${plainPct(spotlight.stateModel.allInPrice * 100, 1)}.</p>
+        <div class="warning"><strong>What this proves and does not prove:</strong> the transaction was consistent with live Dota state and followed a concrete objective. It proves one state-aware decision. OpenDota's parsed replay is historical verification, not a low-latency live feed, and one beautiful case cannot explain six other broad Dota series signals.</div>
+    </section>
+
+    <figure>
+        <img src="figures/dota_live_telemetry_case.svg" alt="Timeline of Team Liquid's gold advantage, nearby tower objectives, target sweep, public Polymarket prints, and independent state-model fair value.">
+        <figcaption>The strongest case-level link: a 30-maker Liquid sweep landed seven seconds after a tier-two tower fell while Liquid held a large state advantage. The lower panel deliberately labels later BUY prints as sparse execution observations rather than a continuous price.</figcaption>
+    </figure>
+
+    <section>
+        <h2>We built the obvious state model, then tried to break it</h2>
+        <p>A logistic model was trained on ${number(stateModel.trainingData.matches)} professional Dota matches strictly before the earliest wallet Dota signal. It uses gold advantage, XP advantage, game minute, and time interactions, with one deterministic sampled minute per match and side-symmetry augmentation. Wallet outcomes were not used to fit it.</p>
+        <p>On a later chronological test of ${number(stateTest.matches)} matches and ${number(stateTest.observations)} side observations, it achieved Brier score ${number(stateTest.brierScore, 3)} versus ${number(stateTest.coinFlipBrierScore, 2)} for a coin flip, ROC-AUC ${number(stateTest.rocAuc, 3)}, and well-tracked calibration bins. This establishes that the model reads ordinary Dota game state. It does not establish that Polymarket misprices that state.</p>
+        <p>Conditioned on the wallet's twelve mapped in-game signals, the natural nonnegative model-edge split contained all five winners; the five model-negative bets all lost. A five-point paper gate found ${number(stateWallet.fivePointGateAllFormats.bets)} bets, ${number(stateWallet.fivePointGateAllFormats.wins)} winners, and ${pct(stateWallet.fivePointGateAllFormats.roiPct, 1)} ROI after a one-second public-print proxy, one adverse cent, and a 3% fee. But this was inspected after wallet outcomes, had only four day clusters, and its cluster interval ran from ${pct(stateWallet.fivePointGateAllFormats.dayClusterCi95LowPct, 1)} to ${pct(stateWallet.fivePointGateAllFormats.dayClusterCi95HighPct, 1)}.</p>
+    </section>
+
+    <figure>
+        <img src="figures/dota_state_model_validation.svg" alt="Independent Dota state-model calibration, Brier score comparison, and post-outcome wallet edge-sign split.">
+        <figcaption>The game-state model is genuinely predictive out of sample. The wallet-conditioned split is striking but tiny and retrospective, so it was treated as a hypothesis generator rather than a result.</figcaption>
+    </figure>
+
+    <section>
+        <h2>The independent Dota test failed</h2>
+        <p>The five-point gate was then detached from the target wallet and run across every mapped Dota child-moneyline market in a fixed later window, ${isoDate(dotaBacktest.window.startTime)} through ${isoDate(dotaBacktest.window.endTime)}. It required the first model divergence from minute five onward, then the first unrelated public print at least one second later, one adverse cent, the fee curve, and no fallback if no print arrived within sixty seconds.</p>
+        <p>The scan covered ${number(dotaBacktest.coverage.heldOutChildMarkets)} child markets with parsed state and public tape. It produced ${number(dotaBacktest.coverage.modelSignals)} signals and ${number(independentDota.bets)} conservative print-proxy fills. Six won. Net result: ${money(independentDota.profitUsdcAt100Each, 2)} at ${pct(independentDota.roiPct, 2)} ROI, with a median actual print delay of ${number(independentDota.medianActualLagSeconds)} seconds.</p>
+        <div class="warning"><strong>This is the decisive falsification:</strong> a calibrated state model plus apparent market disagreement is not enough. Faster 0–15 second assumptions stayed negative for the same nine-fill cohort. A 60-second row turned positive only because three additional markets became fillable, so it is a different cohort, not evidence that waiting helps.</div>
+        <p>All three losses first signaled in minutes five or six. Requiring minute eight would have produced 5/5 in this one-day sample, but that pattern was noticed after inspecting the losses and is heavily correlated by series. It is recorded as a future hypothesis, not promoted into the strategy.</p>
+    </section>
+
+    <figure>
+        <img src="figures/dota_independent_falsification.svg" alt="Comparison of the positive wallet-conditioned Dota lead with the negative independent result, execution-delay sensitivity, and individual returns by game minute.">
+        <figcaption>The chart puts the attractive retrospective lead beside the independent loss. The post-hoc minute-eight line is shown so future tests can freeze it, not so this report can claim it already worked.</figcaption>
+    </figure>
+
+    <section>
+        <h2>What the failure reveals about the hidden edge</h2>
+        <div class="alpha-definition">
+            <h3>Evidence-based alpha stack</h3>
+            <div class="equation">Observed wallet result<br>
+= upstream event / side selection that remains unrecovered<br>
++ live-state information that can partly be modeled<br>
++ decisive atomic execution visible as maker breadth<br>
+- price reaction, fees, depth, and delay paid by a follower</div>
+            <p><strong>Recovered:</strong> a calibrated Dota state scorer, the public sports-to-market data path, exact FOK depth walking, the wallet's broad-sweep execution fingerprint, direct evidence that the sampled public CS2 score feed trailed CLOB repricing, and one wallet-linked CS2 sequence showing aggressive entry from favorable live state followed by large passive quoting.</p>
+            <p><strong>Rejected:</strong> generic scoreboard value, indiscriminate reverse breadth, team loyalty, and blind speed. The target itself lost a similarly shaped M80 trade and a rule-sensitive 1WIN map trade.</p>
+            <p><strong>Not recovered:</strong> a profitable rule for choosing which team, match, and live state deserves the bet. Plausible missing inputs include team and player priors, economy, map, roster and lineup information, series context, a faster licensed telemetry source, or disciplined rejection of low-quality events. None is asserted as the wallet's secret without evidence.</p>
+        </div>
+        <p>This is a real narrowing of the search space. The wallet is not simply reading gold advantage and buying any contract that looks cheap. It applies another selection layer before expressing conviction. That layer, rather than reaction speed alone, is now the highest-value target for prospective research.</p>
+    </section>
+
+    <figure>
+        <img src="figures/public_follower_lead_lag.svg" alt="Lead-lag chart comparing aligned public BUY moves after compact-fresh sweeps with other broad sweeps and direction-neutral prints.">
+        <figcaption>Across 12 compact-fresh signals, aligned public BUY prices moved about ${number(leadAt(15).alignedBuyMove.meanCents, 2)} cents by 15 seconds; the day-cluster interval was ${number(leadAt(15).alignedBuyMove.ci95LowCents, 2)} to ${number(leadAt(15).alignedBuyMove.ci95HighCents, 2)} cents. The target appears before part of the reaction, which is useful mechanism evidence and an extra cost for a copier.</figcaption>
+    </figure>
 
     <section id="mechanism">
         <h2>The closest answer to “what is his secret?”</h2>
@@ -726,10 +873,10 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     </figure>
 
     <section id="algorithm">
-        <h2>The algorithm: atomic-breadth-18, paper only</h2>
-        <p class="lead">This is the frozen discovery translated into a capacity-aware prospective monitor. It is ready to observe and emit paper intents; it is intentionally not armed with wallet keys or order submission.</p>
+        <h2>What can actually run now: paper only</h2>
+        <p class="lead">There are two auditable prototypes: the frozen atomic-breadth monitor and a live sports-to-book state probe. Both can emit paper decisions. Neither contains wallet keys, signing, approvals, or order submission.</p>
         <div class="rule">
-            <h3>Paper-trading specification</h3>
+            <h3>Prototype A: atomic-breadth-18</h3>
             <ol class="steps">
                 <li>Keep only the first signal for the real underlying event in core tennis, soccer, and esports.</li>
                 <li>Reject individual maps, single-game fragments, and short-horizon side markets.</li>
@@ -744,8 +891,18 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             </ol>
         </div>
         <p>The one-cent FOK buffer is a prospective paper convention, not a claim that historical depth existed. The replay's one-second plus one-cent price-only cell returned ${pct(heldOutScenarioRoi(breadthOneSecondOneCent), 1)} in the held-out half, but only ${plainPct(historicalCapacityCell(100, 1).fillRatePct, 1)} had ${money(100)} of optimistic one-second all-print capacity. The original 60-second plus five-cent case remains the registered comparison. No live orders, private keys, approvals, martingale, inferred eventual whale size, discretionary exits, or threshold changes after a bad result are implemented.</p>
+        <h3 id="live-probe">Prototype B: live state and exact book depth</h3>
+        <p>The recorder consumes Polymarket's public sports WebSocket, normalizes both observed payload shapes, extracts <code>gameId</code>, queries Gamma for the active moneyline, and dynamically subscribes the discovered token IDs on the market WebSocket. The paper engine waits one second after an external fair-value event, walks every eligible ask level, limits participation to 10% of displayed depth, charges the 3% fee model, requires at least five probability points after costs, and uses fill-or-kill semantics.</p>
+        <p>In a fresh 30-second local capture, ${number(liveJoin.gameIdsQueried)} sports game IDs produced ${number(liveJoin.hits)} active-market joins and ${number(liveJoin.dynamicAssets)} newly discovered outcome tokens. Every one of those tokens produced a market event. Gamma lookup latency was ${number(liveJoin.queryLatencyMs.median)} ms median; median sports-message-to-first-book observation was ${number(liveJoin.sportsToFirstBookMs.median)} ms, with a range of ${number(liveJoin.sportsToFirstBookMs.minimum)} to ${number(liveJoin.sportsToFirstBookMs.maximum)} ms.</p>
+        <div class="plain-language"><b>What changed:</b> the old historical tape cannot distinguish 0.1 seconds from 0.5 seconds, but the prospective collector can now measure both at millisecond resolution. <b>What did not change:</b> receiving a book in 88 ms is not knowing fair value, obtaining a fill, or earning profit. The capture validated plumbing, not a strategy.</div>
+        <p>The longer CS2 event study also changes the engineering priority. Optimizing this public-score path from one second to 100 ms does not recover the observed lead when the score itself arrives after the market. The next paper prototype needs an independently timestamped event source and must compare source-to-book latency, not merely message-to-order latency.</p>
         <div class="warning"><strong>Why the repository will not “just arm the wallet”:</strong> the closing-line test is negative, the compact-fresh held-out sample is seven, and post-sweep FOK depth is unknown. Connecting signing and submission now would convert unresolved research risk into unattended financial risk without adding evidence.</div>
     </section>
+
+    <figure>
+        <img src="figures/live_probe_latency.svg" alt="Measured latency from live Polymarket sports messages through Gamma market discovery and dynamic market-book subscription.">
+        <figcaption>The public path joined seven active CS2 games to fourteen token books in 84–110 ms. This makes sub-second prospective measurement feasible; it does not close the missing fair-value and fill-quality gap.</figcaption>
+    </figure>
 
     <section id="tests">
         <h2>Could this just be luck, sport mix, or bet size?</h2>
@@ -850,6 +1007,18 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
         </ul>
     </section>
 
+    <section id="prospective">
+        <h2>The first frozen prospective window produced no eligible bet</h2>
+        <p>After the historical cutoff, the refreshed wallet snapshot contained ${number(prospectiveCoverage.postCutoffTrades)} trades across ${number(prospectiveCoverage.markets)} markets. ${number(prospectiveCoverage.rawThresholdSignals)} crossed the raw ${money(prospective.frozenRule.thresholdUsdc)} / ${plainPct(prospective.frozenRule.minimumConcentration * 100, 0)} trigger. ${number(prospectiveCoverage.frozenBaseEligibleSignals)} remained in the frozen sport, format, and price universe. Neither reached ${number(prospective.frozenRule.minimumUniqueMakers)} makers.</p>
+        <p>${number(prospectiveCoverage.rawBroadSweepsBeforeUniverseGuards)} post-cutoff transactions did consume at least ${number(prospective.frozenRule.minimumUniqueMakers)} makers, but both were MLB, a discipline excluded before the window. Dodgers–Braves consumed ${number(prospectiveBroadOutside[0].uniqueMakers)} makers with median maker age ${number(prospectiveBroadOutside[0].medianMakerAgeSeconds, 0)} seconds. The newer Twins–Athletics sweep consumed ${number(prospectiveBroadOutside.at(-1).uniqueMakers)} makers at one price level with median maker age only ${number(prospectiveBroadOutside.at(-1).medianMakerAgeSeconds, 1)} seconds. That second trade prospectively repeats the compact, fresh transaction geometry, but it is unresolved and outside the frozen universe, so it is not a scored strategy observation.</p>
+        <div class="warning"><strong>Zero eligible signals is not a zero-return backtest.</strong> There was no frozen breadth bet to win or lose. The window provides exposure information only; assigning it 0% ROI or treating the excluded MLB sweep as validation would manufacture evidence.</div>
+    </section>
+
+    <figure>
+        <img src="figures/prospective_signal_audit.svg" alt="Prospective frozen-rule funnel and candidate scatter by trigger price and maker breadth.">
+        <figcaption>All ${number(prospectiveCoverage.rawThresholdSignals)} raw post-cutoff candidates are shown. Both points at or above 18 makers are outside the predeclared discipline universe; the ${number(prospectiveCoverage.frozenBaseEligibleSignals)} in-universe candidates stop below the breadth threshold.</figcaption>
+    </figure>
+
     <section>
         <h2>The honest reasons for doubt</h2>
         <ul class="fact-list">
@@ -864,6 +1033,8 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             <li><strong>The held-out result is winner-concentrated.</strong> Removing its five most profitable winners changes held-out ROI to ${pct(heldOutRisk.roiWithoutTopWinnersPct['5'], 1)}.</li>
             <li><strong>Execution is still a proxy.</strong> Public prints show activity, not guaranteed historical ask depth, queue position, partial fills, or API publication latency.</li>
             <li><strong>Closing-line value is negative.</strong> The pregame market did not independently confirm the broad-sweep side before play.</li>
+            <li><strong>The generic Dota mechanism failed independently.</strong> A calibrated game-state model returned ${pct(independentDota.roiPct, 2)} in the later market-wide replay.</li>
+            <li><strong>The prospective breadth audit has zero qualifying signals.</strong> It adds no new return observation in either direction.</li>
         </ul>
         <div class="warning"><strong>Correct conclusion:</strong> this is a real, testable discovery in the available sample, not proof of future profit. It earns a frozen prospective paper test. It does not earn live capital yet.</div>
     </section>
@@ -877,12 +1048,20 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
                 <tr><td>All trigger transactions made the wallet the BUY taker.</td><td><strong class="positive">On-chain fact</strong></td><td>${number(edge.coverage.targetAsDecodedTaker)} of ${number(edge.coverage.decodedTriggerTransactions)} decoded V2 transactions.</td></tr>
                 <tr><td>Sweeps across 18 or more makers carried the edge.</td><td><strong class="positive">Observed in sample</strong></td><td>23 wins from 30, ${pct(breadth.roiPct, 1)} ROI, with a positive held-out half.</td></tr>
                 <tr><td>Compact, fresh breadth is the closest observable mechanism.</td><td><strong class="positive">Exploratory lead</strong></td><td>6/7 held out, but selected post-hoc and the day-cluster interval includes losses.</td></tr>
+                <tr><td>Esports is the wallet's unique moat.</td><td><strong class="negative">Not established</strong></td><td>Esports carried ${plainPct(esportsDeployment.shareOfWalletCostBasisPct, 1)} of cost, but frozen broad-sweep ROI was ${pct(esportsBreadth.roiPct, 1)} versus ${pct(traditionalBreadth.roiPct, 1)} in traditional sports.</td></tr>
+                <tr><td>The target sometimes trades from live Dota state.</td><td><strong class="positive">Verified in one case</strong></td><td>The Falcons–Liquid sweep followed a target-benefiting tier-two tower by seven seconds with Liquid +13.4k gold.</td></tr>
+                <tr><td>A generic gold/XP/time value strategy reproduces his Dota alpha.</td><td><strong class="negative">Falsified in first independent window</strong></td><td>${number(independentDota.bets)} conservative fills returned ${pct(independentDota.roiPct, 2)} despite a calibrated state model.</td></tr>
+                <tr><td>The public esports-to-book path can be observed below one second.</td><td><strong class="positive">Measured plumbing fact</strong></td><td>Median local sports-message-to-book observation was ${number(liveJoin.sportsToFirstBookMs.median)} ms across ${number(liveJoin.hits)} active joins; no order fill or alpha is implied.</td></tr>
+                <tr><td>The M80-NAVI buy anticipated a hidden round result.</td><td><strong class="negative">Not supported</strong></td><td>At the first fill, the aligned broadcast already showed M80 9-6 with a planted bomb and a 5-v-3. The result remained unresolved, but the favorable state was public.</td></tr>
+                <tr><td>The target's passive CS2 fill breadth can be copied mechanically.</td><td><strong class="negative">Falsified historically</strong></td><td>${number(reverseBreadth.all.wins)}/${number(reverseBreadth.all.resolvedSignals)} qualifying reverse-breadth clusters returned ${pct(reverseBreadth.all.roiPct, 2)}; all tested 10-30 counterparty cutoffs were negative.</td></tr>
+                <tr><td>The target is consistently correct in late CS2 states.</td><td><strong class="negative">False</strong></td><td>The G2-M80 passive control lost ${money(Math.abs(g2M80Case.realizedPnlUsdc))}; the unfinished Nemesis-1WIN map resolved 50-50 and cost ${money(Math.abs(nemesisCase.realizedPnlUsdc))}.</td></tr>
                 <tr><td>Blind copy bots must be under one second.</td><td><strong class="negative">Not supported</strong></td><td>No sub-minute latency cliff appeared; roughly two cents of adverse price erased the blind-copy margin.</td></tr>
                 <tr><td>A ${money(10000)} copy fills like a ${money(100)} copy.</td><td><strong class="negative">False</strong></td><td>Current +1c FOK coverage fell from ${plainPct(liveCapacityCell(100).fillRatePct, 1)} at ${money(100)} to ${plainPct(liveCapacityCell(10000).fillRatePct, 1)} at ${money(10000)} even in a favorable liquid-market sample.</td></tr>
                 <tr><td>Breadth is only a disguise for dollar size.</td><td><strong class="negative">Not supported</strong></td><td>Notional was null after breadth, urgency, and period controls: p=${number(notionalCoefficient.robustPValue, 3)}.</td></tr>
                 <tr><td>Closing prices confirm the broad-sweep information.</td><td><strong class="negative">Not supported</strong></td><td>Median broad pregame CLV was ${number(closing.breadthPregame.medianClosingLineValueCents, 2)}c; only ${number(closing.breadthPregame.positiveClosingLineEvents)}/${number(closing.breadthPregame.events)} were positive.</td></tr>
                 <tr><td>The trader has private information.</td><td><strong class="negative">Not established</strong></td><td>Behavior is consistent with informed trading, but public data cannot identify the source.</td></tr>
-                <tr><td>The algorithm is ready for live money.</td><td><strong class="negative">No</strong></td><td>Short history, 21 post-selection bets, and proxy execution still leave material uncertainty.</td></tr>
+                <tr><td>The first prospective audit validates atomic breadth.</td><td><strong class="negative">No observation</strong></td><td>Zero post-cutoff signals passed every frozen guard, so no return can be scored.</td></tr>
+                <tr><td>The algorithm is ready for live money.</td><td><strong class="negative">No</strong></td><td>State-only Dota lost independently, breadth has no prospective qualifying bet, and historical execution still relies on print proxies.</td></tr>
             </tbody>
         </table>
     </section>
@@ -890,10 +1069,11 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
     <section id="verdict" class="verdict">
         <h2>The honest verdict</h2>
         <p><strong>The discovery is not &ldquo;copy this whale.&rdquo;</strong> That strategy lost.</p>
-        <p><strong>His edge, as far as public evidence can reveal it, is knowing when to accept a dense block of fresh liquidity from many counterparties without chasing far through price levels.</strong> Broad, compact, fresh atomic sweeps are the closest observable footprint. The hidden model, feed, information, or judgment that causes him to act remains private.</p>
+        <p><strong>His edge, as far as public evidence can reveal it, has three layers:</strong> estimate fair probability from live match state and prior context, select only the events where that estimate is trustworthy, and execute aggressively or passively according to price and available liquidity. The M80-NAVI reconstruction directly exposes all three layers except the fair-value formula itself. The losing controls prove that state and execution shape alone are insufficient.</p>
         <p>The frozen algorithm is <strong>atomic-breadth-18</strong>. Historical result: ${number(breadth.wins)} wins from ${number(breadth.bets)}, ${pct(breadth.roiPct, 2)} after the original stressed costs. Post-selection result: ${number(heldOut.wins)} wins from ${number(heldOut.bets)}, ${pct(heldOut.roiPct, 2)}.</p>
+        <p>The strongest esports result is now a paired finding. Positively, the M80-NAVI timestamps show state-aware entry and deliberate passive deployment. Negatively, a pre-wallet Dota state model returned ${pct(independentDota.roiPct, 2)}, generic reverse breadth returned ${pct(reverseBreadth.all.roiPct, 2)}, and the same-team G2 control lost. <strong>The moat is most consistent with selective state valuation, not raw score, maker/taker count, team loyalty, or copy speed.</strong></p>
         <p>For an indiscriminate bot, the historical break-even execution allowance at one second was only ${number(blindOneSecondBreakEven.allMaxAdverseCents, 2)} cents. Size adds a second failure mode: the order can be completely rejected. The lesson is not &ldquo;buy a faster server.&rdquo; It is &ldquo;reject weak signals, cap depth participation, and control the paid price.&rdquo;</p>
-        <p><strong>Decision:</strong> run the capacity-aware monitor for at least 200 new eligible paper signals without changing the 18-maker rule. Shadow-score compact-fresh geometry. Record decoded transaction shape, actual book depth, FOK rejection, VWAP, end-to-end latency, closing line, and resolution. Capital waits until a genuinely unseen sample has positive CLV and remains profitable after real fill constraints and after removing its biggest winners.</p>
+        <p><strong>Decision:</strong> this evidence does not justify arming a live wallet. Continue the unchanged 18-maker taker rule until it accumulates a genuinely unseen sample, but reject passive reverse breadth as a strategy. Build the CS2 prototype as a paper market maker with independently timestamped round, economy, roster, map, and series features; record quote placement, queue assumptions, fills, cancels, adverse selection, and resolution rules. Capital waits for positive multi-day prospective P&amp;L after exact fill constraints and after removing the largest winners.</p>
     </section>
 
     <section>
@@ -927,6 +1107,13 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             <li><a href="trigger_transactions.json">trigger_transactions.json</a>: decoded <code>matchOrders</code> calldata and derived fill anatomy for all ${number(edge.coverage.decodedTriggerTransactions)} trigger transactions.</li>
             <li><a href="deep_analysis.json">deep_analysis.json</a>: wallet-level execution, market format, profit, fee, and concentration facts.</li>
             <li><a href="market_tape.json">market_tape.json</a>: ${number(edge.coverage.publicTakerPrints)} unrelated public prints used for execution proxies and market response.</li>
+            <li><a href="esports_state_analysis.json">esports_state_analysis.json</a>: deterministic Dota-to-OpenDota joins, replay state at each target signal, the 10,000-match pre-wallet model, and its chronological test.</li>
+            <li><a href="dota_independent_backtest.json">dota_independent_backtest.json</a>: the target-independent August 25–26 Dota replay, every primary bet, and execution sensitivity.</li>
+            <li><a href="prospective/prospective_audit.json">prospective_audit.json</a>: every post-cutoff candidate and every frozen-rule rejection.</li>
+            <li><a href="prospective/live_probe_validation.json">live_probe_validation.json</a>: event counts, dynamic game-to-market joins, measured local latency, and the SHA-256 digest of the compressed raw capture.</li>
+            <li><a href="prospective/esports_reaction_analysis.json">esports_reaction_analysis.json</a>: every qualifying CS2 score transition, local receive-time quote path, feed cadence, persistent-crossing timing, and the SHA-256 digest of the filtered raw trace.</li>
+            <li><a href="prospective/cs2_case_audit.json">cs2_case_audit.json</a>: wallet fill roles, exact public-tape counterparties, the M80 and control cases, and the complete reverse-breadth threshold audit.</li>
+            <li><a href="prospective/cs2_external_evidence.json">cs2_external_evidence.json</a>: source URLs, page and video hashes, official map times, timestamp-aligned broadcast observations, and explicit evidence limits.</li>
         </ul>
         <p>External context:</p>
         <ul>
@@ -936,6 +1123,10 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
             <li><a href="https://docs.polymarket.com/concepts/order-lifecycle">Official FOK lifecycle documentation</a>: a fill-or-kill order must execute completely or reject.</li>
             <li><a href="https://docs.polymarket.com/trading/fees">Official Polymarket fee documentation</a>, including the probability-dependent fee formula used in the paper calculations.</li>
             <li><a href="https://docs.polymarket.com/api-reference/wss/market">Official public market WebSocket</a>, documenting millisecond-stamped book and trade events available prospectively but absent from this historical second-resolution tape.</li>
+            <li><a href="https://docs.polymarket.com/api-reference/wss/sports">Official Polymarket sports WebSocket</a>, the live <code>gameId</code> and state source used by the paper recorder.</li>
+            <li><a href="https://github.com/odota/core">OpenDota's open-source parser</a>, plus the <a href="https://api.opendota.com/api/proMatches">professional-match index</a> and parsed match endpoint used to verify Dota state. Replay-derived availability is not represented as a low-latency feed.</li>
+            <li><a href="https://blast.tv/cs/tournaments/open-2026-season-2/match/4da07aca/navi-m80">Official BLAST NAVI-M80 match record</a>, the <a href="https://www.hltv.org/matches/2396925/natus-vincere-vs-m80-blast-open-porto-2026">HLTV NAVI-M80 match page</a>, and the <a href="https://www.twitch.tv/videos/2856775537">timestamp-aligned broadcast VOD</a> used for the winning state reconstruction.</li>
+            <li><a href="https://www.hltv.org/matches/2396561/g2-vs-m80-esports-world-cup-2026">HLTV G2-M80 match page</a> and its <a href="https://www.twitch.tv/videos/2844017976">timestamp-aligned broadcast VOD</a>, plus the <a href="https://www.hltv.org/matches/2397043/nemesis-vs-1win-gluck-moscow-cyber-games-2026-closed-qualifier">HLTV Nemesis-1WIN record</a> used for the losing controls.</li>
             <li><a href="https://arxiv.org/abs/2604.24366">Dubach, The Anatomy of a Decentralized Prediction Market</a>, supporting use of authoritative on-chain direction rather than potentially ambiguous public labels.</li>
             <li><a href="https://doi.org/10.1016/0304-405X(87)90029-8">Easley and O'Hara, Price, Trade Size, and Information in Securities Markets</a>, classic context for why aggressive trade structure can contain information.</li>
             <li><a href="https://arxiv.org/abs/2605.00864">Cheng, Yang, and Zou, Arbitrage Analysis in Polymarket NBA Markets</a>, independent order-book evidence that executable opportunities can be sharply bounded by shallow depth. It is microstructure context, not validation of this wallet strategy.</li>
@@ -946,7 +1137,7 @@ Probability alpha = realized outcome - public execution-proxy probability</div>
 </main>
 
 <footer>
-    <div class="page">Polymarket trader investigation &middot; 31-figure alpha, capacity, and execution dossier &middot; Generated from committed evidence</div>
+    <div class="page">Polymarket trader investigation &middot; ${number(figureCount)}-figure alpha, esports, capacity, and execution dossier &middot; Generated from committed evidence</div>
 </footer>
 </body>
 </html>`;
@@ -989,7 +1180,20 @@ function renderPdf() {
 function main() {
     const analysis = readJson('deep_analysis.json');
     const edge = readJson('edge_analysis.json');
-    fs.writeFileSync(OUTPUT_HTML, `${renderHtml(analysis, edge)}\n`, 'utf8');
+    const stateAudit = readJson('esports_state_analysis.json');
+    const dotaBacktest = readJson('dota_independent_backtest.json');
+    const prospective = readJson('prospective/prospective_audit.json');
+    const liveProbe = readJson('prospective/live_probe_validation.json');
+    const sportsReaction = readJson('prospective/esports_reaction_analysis.json');
+    const cs2Case = readJson('prospective/cs2_case_audit.json');
+    fs.writeFileSync(
+        OUTPUT_HTML,
+        `${renderHtml(
+            analysis, edge, stateAudit, dotaBacktest, prospective, liveProbe, sportsReaction,
+            cs2Case
+        )}\n`,
+        'utf8'
+    );
     if (process.argv.includes('--pdf')) renderPdf();
     const outputs = [path.relative(ROOT, OUTPUT_HTML)];
     if (process.argv.includes('--pdf')) outputs.push(path.relative(ROOT, OUTPUT_PDF));

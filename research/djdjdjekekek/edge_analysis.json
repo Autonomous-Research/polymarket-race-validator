@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T20:19:42.882017+00:00",
+  "generatedAt": "2026-08-27T02:29:02.832215+00:00",
   "methodology": {
     "signal": "Exact target taker crossing of $25,000 gross BUY flow at >=70% net directional concentration.",
     "atomicBreadth": "Decode the mined CTF Exchange V2 matchOrders calldata at the trigger and count distinct maker addresses in the transaction's makerOrders array.",
@@ -213,6 +213,1584 @@
       "positivePct": 44.303797468354425,
       "atMostOneCentAdversePct": 64.55696202531645
     }
+  },
+  "publicFollowerLeadLag": {
+    "question": "After an observable target trigger, do unrelated public BUY prints aligned with the target move in the same direction?",
+    "status": "mechanism_evidence_not_profit_proof",
+    "outcomeLabelsUsed": false,
+    "groups": {
+      "compactFreshBreadth": {
+        "signals": 12,
+        "inPlayByPolymarketStartPct": 91.66666666666666,
+        "esportsPct": 16.666666666666664,
+        "preSignalMomentum60Cents": {
+          "count": 12,
+          "mean": 0.7083335683333312,
+          "median": 0.2499999650000001,
+          "p10": -0.999999479,
+          "p25": -0.2499999725000035,
+          "p75": 1.1250002724999972,
+          "p90": 3.750000144999998
+        },
+        "preSignalMomentum300Cents": {
+          "count": 12,
+          "mean": 1.2162527787499973,
+          "median": 1.5000002099999965,
+          "p10": -1.8904968610000017,
+          "p25": -0.22624305249999976,
+          "p75": 4.125003824999997,
+          "p90": 5.999999999999995
+        },
+        "lags": [
+          {
+            "lagSeconds": 0,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.4441123008333339,
+              "medianCents": 0.3421254700000015,
+              "ci95LowCents": -0.269408837649999,
+              "ci95HighCents": 1.1942689508333335,
+              "probabilityPositivePct": 89.03999999999999
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.5558838541666676,
+              "medianCents": -3.7500000049650595e-07,
+              "ci95LowCents": -1.176303779515152,
+              "ci95HighCents": -0.09165594636363956,
+              "probabilityPositivePct": 0.8049999999999999
+            }
+          },
+          {
+            "lagSeconds": 1,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.6107788483333338,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": -0.04276672249999974,
+              "ci95HighCents": 1.3560659488888898,
+              "probabilityPositivePct": 96.44
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.5558841979166673,
+              "medianCents": 0.0,
+              "ci95LowCents": -1.181382410500002,
+              "ci95HighCents": -0.09506525909091008,
+              "probabilityPositivePct": 0.88
+            }
+          },
+          {
+            "lagSeconds": 2,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.6107787058333342,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": -0.0423614312833325,
+              "ci95HighCents": 1.345169907272728,
+              "probabilityPositivePct": 96.495
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.6392151187500005,
+              "medianCents": 0.0,
+              "ci95LowCents": -1.3572410737992435,
+              "ci95HighCents": -0.12594094874999784,
+              "probabilityPositivePct": 0.8200000000000001
+            }
+          },
+          {
+            "lagSeconds": 3,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.6107787016666676,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": -0.03457544416666607,
+              "ci95HighCents": 1.370713212000001,
+              "probabilityPositivePct": 96.78
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.7225480783333336,
+              "medianCents": -0.4999916900000012,
+              "ci95LowCents": -1.397743143805558,
+              "ci95HighCents": -0.16403724833333466,
+              "probabilityPositivePct": 0.7000000000000001
+            }
+          },
+          {
+            "lagSeconds": 5,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.694111814166667,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": -0.009113078279166624,
+              "ci95HighCents": 1.49150169,
+              "probabilityPositivePct": 97.41499999999999
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.5837422070833338,
+              "medianCents": -0.41031334500000183,
+              "ci95LowCents": -1.1786199154545458,
+              "ci95HighCents": -0.06802510367692617,
+              "probabilityPositivePct": 1.3
+            }
+          },
+          {
+            "lagSeconds": 10,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.6941125375,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": 0.09329980223409179,
+              "ci95HighCents": 1.4029413055624986,
+              "probabilityPositivePct": 98.705
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.1524463762499993,
+              "medianCents": -0.03089211500000022,
+              "ci95LowCents": -0.572201751000001,
+              "ci95HighCents": 1.0959483899999976,
+              "probabilityPositivePct": 62.71
+            }
+          },
+          {
+            "lagSeconds": 15,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.9441121608333334,
+              "medianCents": 0.8421254700000019,
+              "ci95LowCents": 0.10631678174242332,
+              "ci95HighCents": 2.284906926,
+              "probabilityPositivePct": 98.89
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.11078178999999928,
+              "medianCents": 0.0033496850000008793,
+              "ci95LowCents": -0.7954163707250005,
+              "ci95HighCents": 1.335214171620452,
+              "probabilityPositivePct": 55.125
+            }
+          },
+          {
+            "lagSeconds": 20,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.6107782575000008,
+              "medianCents": 0.4318121250000001,
+              "ci95LowCents": -0.5484123678333339,
+              "ci95HighCents": 1.9876529502045444,
+              "probabilityPositivePct": 84.55
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.3058855333333355,
+              "medianCents": -0.9103108900000045,
+              "ci95LowCents": -1.3684679148055572,
+              "ci95HighCents": 0.9915041739999954,
+              "probabilityPositivePct": 27.16
+            }
+          },
+          {
+            "lagSeconds": 30,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.5274453100000007,
+              "medianCents": 0.0896829049999992,
+              "ci95LowCents": -0.6127096867380931,
+              "ci95HighCents": 2.3405405589166635,
+              "probabilityPositivePct": 73.885
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.19411448625000122,
+              "medianCents": -0.5681878299999998,
+              "ci95LowCents": -0.9974579572361073,
+              "ci95HighCents": 1.8024973573333314,
+              "probabilityPositivePct": 57.995
+            }
+          },
+          {
+            "lagSeconds": 45,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.2774448058333337,
+              "medianCents": 0.0896829049999992,
+              "ci95LowCents": -1.300506093017857,
+              "ci95HighCents": 1.5840535802694424,
+              "probabilityPositivePct": 66.07499999999999
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.05588657291666632,
+              "medianCents": -0.9103133449999995,
+              "ci95LowCents": -1.928446140076135,
+              "ci95HighCents": 1.8997260778958216,
+              "probabilityPositivePct": 46.04
+            }
+          },
+          {
+            "lagSeconds": 60,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.05588757666666749,
+              "medianCents": -0.3643980650000017,
+              "ci95LowCents": -1.6755197430625004,
+              "ci95HighCents": 1.4200968174999973,
+              "probabilityPositivePct": 46.88
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.732365376666666,
+              "medianCents": -0.9103131300000011,
+              "ci95LowCents": -2.134224511317856,
+              "ci95HighCents": 0.5037520890714272,
+              "probabilityPositivePct": 13.639999999999999
+            }
+          },
+          {
+            "lagSeconds": 90,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 1.027444887916667,
+              "medianCents": -0.36439806499999894,
+              "ci95LowCents": -1.6103897435340901,
+              "ci95HighCents": 4.496946605437499,
+              "probabilityPositivePct": 74.46000000000001
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.9024479145833333,
+              "medianCents": -0.7747108650000001,
+              "ci95LowCents": -1.7029869024999995,
+              "ci95HighCents": 4.393978253283329,
+              "probabilityPositivePct": 71.08
+            }
+          },
+          {
+            "lagSeconds": 120,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 1.2245891279166665,
+              "medianCents": 0.29409071999999814,
+              "ci95LowCents": -1.4644807594488618,
+              "ci95HighCents": 3.6261997796428567,
+              "probabilityPositivePct": 80.755
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.8797906758333329,
+              "medianCents": -0.7747102500000019,
+              "ci95LowCents": -1.924672945,
+              "ci95HighCents": 3.4348145336363634,
+              "probabilityPositivePct": 71.93
+            }
+          },
+          {
+            "lagSeconds": 180,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 100.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 0.35307829291666754,
+              "medianCents": 0.21235684500000018,
+              "ci95LowCents": -4.204122235579167,
+              "ci95HighCents": 3.82969149100577,
+              "probabilityPositivePct": 55.335
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": -0.0030799408333337386,
+              "medianCents": -0.2747106050000031,
+              "ci95LowCents": -4.7979938139875,
+              "ci95HighCents": 3.4270315728651872,
+              "probabilityPositivePct": 48.265
+            }
+          },
+          {
+            "lagSeconds": 300,
+            "eligibleSignals": 12,
+            "alignedBuyPrintCoveragePct": 91.66666666666666,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 11,
+              "dayClusters": 8,
+              "meanCents": 1.8182091027272727,
+              "medianCents": 0.9999985300000014,
+              "ci95LowCents": -4.7850769799999995,
+              "ci95HighCents": 5.7244149675000005,
+              "probabilityPositivePct": 75.045
+            },
+            "directionNeutralMove": {
+              "events": 12,
+              "dayClusters": 9,
+              "meanCents": 2.3191143654166653,
+              "medianCents": 0.5033500100000005,
+              "ci95LowCents": -3.7839732474204553,
+              "ci95HighCents": 6.267347620874995,
+              "probabilityPositivePct": 80.67
+            }
+          }
+        ]
+      },
+      "otherBroad": {
+        "signals": 18,
+        "inPlayByPolymarketStartPct": 38.88888888888889,
+        "esportsPct": 72.22222222222221,
+        "preSignalMomentum60Cents": {
+          "count": 18,
+          "mean": 0.41805252111111135,
+          "median": 1.5500000172252726e-07,
+          "p10": -1.599999824999999,
+          "p25": -0.3750007087500007,
+          "p75": 1.7499991224999956,
+          "p90": 3.1513637170000064
+        },
+        "preSignalMomentum300Cents": {
+          "count": 18,
+          "mean": 0.6923344666666669,
+          "median": 0.749995819999999,
+          "p10": -6.900293692999995,
+          "p25": -0.7499995999999981,
+          "p75": 1.7499998550000007,
+          "p90": 7.19999859700001
+        },
+        "lags": [
+          {
+            "lagSeconds": 0,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -0.36737004705882403,
+              "medianCents": -0.10197081999999691,
+              "ci95LowCents": -1.061968715882354,
+              "ci95HighCents": 0.2610043490924364,
+              "probabilityPositivePct": 13.285
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -0.827499710833333,
+              "medianCents": -0.9406883099999985,
+              "ci95LowCents": -1.6041372716645852,
+              "ci95HighCents": -0.13194133599264715,
+              "probabilityPositivePct": 0.905
+            }
+          },
+          {
+            "lagSeconds": 1,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -0.33387095941176426,
+              "medianCents": -0.4677322900000003,
+              "ci95LowCents": -0.8188431395989596,
+              "ci95HighCents": 0.1769264912931988,
+              "probabilityPositivePct": 9.915000000000001
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": 0.030521310555555983,
+              "medianCents": 2.7755575615628914e-15,
+              "ci95LowCents": -0.6735968251343732,
+              "ci95HighCents": 0.8306413058161759,
+              "probabilityPositivePct": 52.01
+            }
+          },
+          {
+            "lagSeconds": 2,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -0.5509036614705874,
+              "medianCents": -0.8813746999999927,
+              "ci95LowCents": -1.0100632497445168,
+              "ci95HighCents": -0.07026761981944396,
+              "probabilityPositivePct": 1.405
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -0.653629909166667,
+              "medianCents": -1.0000000000000036,
+              "ci95LowCents": -1.1579095811061588,
+              "ci95HighCents": -0.01709582244444495,
+              "probabilityPositivePct": 2.255
+            }
+          },
+          {
+            "lagSeconds": 3,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -0.3285172297058818,
+              "medianCents": -0.4677322900000003,
+              "ci95LowCents": -0.7599522609091277,
+              "ci95HighCents": 0.17689321300416672,
+              "probabilityPositivePct": 9.565
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -0.6935981080555564,
+              "medianCents": -0.940687619999997,
+              "ci95LowCents": -1.1524365628246542,
+              "ci95HighCents": -0.17415475571691202,
+              "probabilityPositivePct": 0.655
+            }
+          },
+          {
+            "lagSeconds": 5,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -0.42757325470588226,
+              "medianCents": -0.4677322900000003,
+              "ci95LowCents": -0.8979896170530302,
+              "ci95HighCents": 0.13695164894642942,
+              "probabilityPositivePct": 6.404999999999999
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -1.0502265966666666,
+              "medianCents": -0.9406873499999996,
+              "ci95LowCents": -2.0454815243134674,
+              "ci95HighCents": -0.22026073514285777,
+              "probabilityPositivePct": 0.445
+            }
+          },
+          {
+            "lagSeconds": 10,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -1.4762081376470586,
+              "medianCents": -0.4677322900000003,
+              "ci95LowCents": -3.5202706837736923,
+              "ci95HighCents": 0.02534639246666726,
+              "probabilityPositivePct": 2.955
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -1.0417266199999997,
+              "medianCents": -0.9999996250000004,
+              "ci95LowCents": -1.9465663532118063,
+              "ci95HighCents": -0.23380241035539256,
+              "probabilityPositivePct": 0.54
+            }
+          },
+          {
+            "lagSeconds": 15,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 88.88888888888889,
+            "directionNeutralPrintCoveragePct": 94.44444444444444,
+            "alignedBuyMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -1.7094413112500002,
+              "medianCents": -0.23386847499999863,
+              "ci95LowCents": -4.099096107119195,
+              "ci95HighCents": 0.202689692424097,
+              "probabilityPositivePct": 5.165
+            },
+            "directionNeutralMove": {
+              "events": 17,
+              "dayClusters": 11,
+              "meanCents": -1.263905541764705,
+              "medianCents": -0.9999992499999943,
+              "ci95LowCents": -2.405678010140624,
+              "ci95HighCents": -0.2047956666302097,
+              "probabilityPositivePct": 0.96
+            }
+          },
+          {
+            "lagSeconds": 20,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -1.375558422352941,
+              "medianCents": -4.65999999699207e-06,
+              "ci95LowCents": -3.699684158340557,
+              "ci95HighCents": 0.5828943154333336,
+              "probabilityPositivePct": 11.225
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -0.9730955566666659,
+              "medianCents": -0.9880089950000004,
+              "ci95LowCents": -2.1458478848319436,
+              "ci95HighCents": 0.22212258416176117,
+              "probabilityPositivePct": 5.655
+            }
+          },
+          {
+            "lagSeconds": 30,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -1.2459791458823526,
+              "medianCents": -4.65999999699207e-06,
+              "ci95LowCents": -3.665143711602941,
+              "ci95HighCents": 0.7873651055736591,
+              "probabilityPositivePct": 14.915000000000001
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -0.7534939461111106,
+              "medianCents": -2.329999998496035e-06,
+              "ci95LowCents": -1.7665261450235286,
+              "ci95HighCents": 0.2626314787810451,
+              "probabilityPositivePct": 7.034999999999999
+            }
+          },
+          {
+            "lagSeconds": 45,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 94.44444444444444,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 17,
+              "dayClusters": 12,
+              "meanCents": -1.5832333947058825,
+              "medianCents": -0.38058249999999294,
+              "ci95LowCents": -3.4057808268943015,
+              "ci95HighCents": 0.19098772457647178,
+              "probabilityPositivePct": 4.06
+            },
+            "directionNeutralMove": {
+              "events": 18,
+              "dayClusters": 12,
+              "meanCents": -2.0609128413888884,
+              "medianCents": -0.7380157949999994,
+              "ci95LowCents": -3.9683158931993034,
+              "ci95HighCents": -0.25709152917647204,
+              "probabilityPositivePct": 1.2
+            }
+          },
+          {
+            "lagSeconds": 60,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 88.88888888888889,
+            "directionNeutralPrintCoveragePct": 94.44444444444444,
+            "alignedBuyMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -0.8156366693750003,
+              "medianCents": -2.7755575615628914e-15,
+              "ci95LowCents": -2.699657276266668,
+              "ci95HighCents": 0.7388744862500012,
+              "probabilityPositivePct": 16.835
+            },
+            "directionNeutralMove": {
+              "events": 17,
+              "dayClusters": 11,
+              "meanCents": -0.7718211479411763,
+              "medianCents": -0.8241638800000006,
+              "ci95LowCents": -1.8733862612730277,
+              "ci95HighCents": 0.34998997849317215,
+              "probabilityPositivePct": 8.77
+            }
+          },
+          {
+            "lagSeconds": 90,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 88.88888888888889,
+            "directionNeutralPrintCoveragePct": 88.88888888888889,
+            "alignedBuyMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -1.5302918706250006,
+              "medianCents": 0.07130031500000023,
+              "ci95LowCents": -4.468434077914284,
+              "ci95HighCents": 0.5503945609411723,
+              "probabilityPositivePct": 9.504999999999999
+            },
+            "directionNeutralMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -2.1177911153125,
+              "medianCents": -0.9286976300000027,
+              "ci95LowCents": -5.096722345313237,
+              "ci95HighCents": 0.03709331867857219,
+              "probabilityPositivePct": 2.74
+            }
+          },
+          {
+            "lagSeconds": 120,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 88.88888888888889,
+            "directionNeutralPrintCoveragePct": 88.88888888888889,
+            "alignedBuyMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -1.7386272387500006,
+              "medianCents": 0.013176584999999297,
+              "ci95LowCents": -5.053016866360121,
+              "ci95HighCents": 0.6711888446764696,
+              "probabilityPositivePct": 10.145
+            },
+            "directionNeutralMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -2.0781909425,
+              "medianCents": 0.033677214999996985,
+              "ci95LowCents": -5.452903604875,
+              "ci95HighCents": 0.3340173319374974,
+              "probabilityPositivePct": 5.52
+            }
+          },
+          {
+            "lagSeconds": 180,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 83.33333333333334,
+            "directionNeutralPrintCoveragePct": 88.88888888888889,
+            "alignedBuyMove": {
+              "events": 15,
+              "dayClusters": 10,
+              "meanCents": -1.1187925573333333,
+              "medianCents": 0.9999998499999996,
+              "ci95LowCents": -4.762649741734375,
+              "ci95HighCents": 1.7558507642437489,
+              "probabilityPositivePct": 28.244999999999997
+            },
+            "directionNeutralMove": {
+              "events": 16,
+              "dayClusters": 10,
+              "meanCents": -1.5185782887500006,
+              "medianCents": 0.021690250000000466,
+              "ci95LowCents": -5.1179112935156255,
+              "ci95HighCents": 1.2692904936160991,
+              "probabilityPositivePct": 17.64
+            }
+          },
+          {
+            "lagSeconds": 300,
+            "eligibleSignals": 18,
+            "alignedBuyPrintCoveragePct": 88.88888888888889,
+            "directionNeutralPrintCoveragePct": 94.44444444444444,
+            "alignedBuyMove": {
+              "events": 16,
+              "dayClusters": 11,
+              "meanCents": -0.09199664593749976,
+              "medianCents": 0.5189426199999986,
+              "ci95LowCents": -2.014973963270589,
+              "ci95HighCents": 1.5022908423004206,
+              "probabilityPositivePct": 48.615
+            },
+            "directionNeutralMove": {
+              "events": 17,
+              "dayClusters": 11,
+              "meanCents": -0.7559444135294129,
+              "medianCents": -0.4677322900000003,
+              "ci95LowCents": -2.6749957749803928,
+              "ci95HighCents": 0.7417987499999997,
+              "probabilityPositivePct": 20.345
+            }
+          }
+        ]
+      },
+      "belowBreadthThreshold": {
+        "signals": 50,
+        "inPlayByPolymarketStartPct": 57.99999999999999,
+        "esportsPct": 44.0,
+        "preSignalMomentum60Cents": {
+          "count": 50,
+          "mean": 0.4728837200999998,
+          "median": 0.0,
+          "p10": -1.9999987489999982,
+          "p25": -0.2187499812500049,
+          "p75": 1.0000000000000009,
+          "p90": 3.009999938000003
+        },
+        "preSignalMomentum300Cents": {
+          "count": 50,
+          "mean": 1.668240620200001,
+          "median": 2.07249999939485e-06,
+          "p10": -4.492116991499998,
+          "p25": -3.7000000285836165e-07,
+          "p75": 3.043195787500003,
+          "p90": 11.549998098999996
+        },
+        "lags": [
+          {
+            "lagSeconds": 0,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 98.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 28,
+              "meanCents": 0.30379130772727403,
+              "medianCents": 0.0530871250000009,
+              "ci95LowCents": -0.07259828567906847,
+              "ci95HighCents": 0.6697525203639728,
+              "probabilityPositivePct": 94.47
+            },
+            "directionNeutralMove": {
+              "events": 49,
+              "dayClusters": 30,
+              "meanCents": -0.20824432132653167,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.44369631948990773,
+              "ci95HighCents": -0.019708233048668724,
+              "probabilityPositivePct": 1.425
+            }
+          },
+          {
+            "lagSeconds": 1,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 98.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 28,
+              "meanCents": 0.23501515727272834,
+              "medianCents": 5.551115123125783e-15,
+              "ci95LowCents": -0.13421792165269075,
+              "ci95HighCents": 0.6107588154809125,
+              "probabilityPositivePct": 89.3
+            },
+            "directionNeutralMove": {
+              "events": 49,
+              "dayClusters": 30,
+              "meanCents": -0.10278154346938918,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.3373105906945561,
+              "ci95HighCents": 0.11246621717100498,
+              "probabilityPositivePct": 17.495
+            }
+          },
+          {
+            "lagSeconds": 2,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 98.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 28,
+              "meanCents": 0.23046948102272855,
+              "medianCents": 5.551115123125783e-15,
+              "ci95LowCents": -0.13919126276266913,
+              "ci95HighCents": 0.6129362021691012,
+              "probabilityPositivePct": 88.73
+            },
+            "directionNeutralMove": {
+              "events": 49,
+              "dayClusters": 30,
+              "meanCents": -0.147614510612246,
+              "medianCents": -5.551115123125783e-15,
+              "ci95LowCents": -0.4152093569295472,
+              "ci95HighCents": 0.08215225558522643,
+              "probabilityPositivePct": 10.56
+            }
+          },
+          {
+            "lagSeconds": 3,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 90.0,
+            "directionNeutralPrintCoveragePct": 98.0,
+            "alignedBuyMove": {
+              "events": 45,
+              "dayClusters": 28,
+              "meanCents": 0.22908294677777874,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.13394366510511266,
+              "ci95HighCents": 0.5935653767137271,
+              "probabilityPositivePct": 89.17
+            },
+            "directionNeutralMove": {
+              "events": 49,
+              "dayClusters": 30,
+              "meanCents": -0.2076634531632659,
+              "medianCents": -5.551115123125783e-15,
+              "ci95LowCents": -0.49348050725000076,
+              "ci95HighCents": 0.03890776034928521,
+              "probabilityPositivePct": 4.995
+            }
+          },
+          {
+            "lagSeconds": 5,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 90.0,
+            "directionNeutralPrintCoveragePct": 96.0,
+            "alignedBuyMove": {
+              "events": 45,
+              "dayClusters": 28,
+              "meanCents": 0.15025169644444472,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.21604489413960948,
+              "ci95HighCents": 0.5329628271876986,
+              "probabilityPositivePct": 79.34
+            },
+            "directionNeutralMove": {
+              "events": 48,
+              "dayClusters": 30,
+              "meanCents": -0.2215045957291667,
+              "medianCents": -7.100000004589546e-07,
+              "ci95LowCents": -0.4763958960469086,
+              "ci95HighCents": 0.0023871473676474546,
+              "probabilityPositivePct": 2.64
+            }
+          },
+          {
+            "lagSeconds": 10,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 90.0,
+            "directionNeutralPrintCoveragePct": 96.0,
+            "alignedBuyMove": {
+              "events": 45,
+              "dayClusters": 28,
+              "meanCents": -0.014679434000000047,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.4210505888750003,
+              "ci95HighCents": 0.3839139604436729,
+              "probabilityPositivePct": 47.345
+            },
+            "directionNeutralMove": {
+              "events": 48,
+              "dayClusters": 30,
+              "meanCents": -0.3207165789583336,
+              "medianCents": -2.7755575615628914e-15,
+              "ci95LowCents": -0.6155335139659096,
+              "ci95HighCents": -0.0870302453514497,
+              "probabilityPositivePct": 0.19
+            }
+          },
+          {
+            "lagSeconds": 15,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 96.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 27,
+              "meanCents": -0.13829350204545426,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.7356027460469502,
+              "ci95HighCents": 0.41692307269432805,
+              "probabilityPositivePct": 31.295
+            },
+            "directionNeutralMove": {
+              "events": 48,
+              "dayClusters": 30,
+              "meanCents": -0.3398954713541671,
+              "medianCents": -1.5249999957278604e-06,
+              "ci95LowCents": -0.7598299533750003,
+              "ci95HighCents": 0.13348512412585717,
+              "probabilityPositivePct": 7.32
+            }
+          },
+          {
+            "lagSeconds": 20,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 96.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 27,
+              "meanCents": 0.01735158897727268,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.5664947435711813,
+              "ci95HighCents": 0.5907846702744565,
+              "probabilityPositivePct": 51.41
+            },
+            "directionNeutralMove": {
+              "events": 48,
+              "dayClusters": 30,
+              "meanCents": -0.2903087029166671,
+              "medianCents": -2.2999999682582484e-07,
+              "ci95LowCents": -0.7192640233968579,
+              "ci95HighCents": 0.14998264292314353,
+              "probabilityPositivePct": 8.795
+            }
+          },
+          {
+            "lagSeconds": 30,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 84.0,
+            "directionNeutralPrintCoveragePct": 92.0,
+            "alignedBuyMove": {
+              "events": 42,
+              "dayClusters": 26,
+              "meanCents": 0.48074133785714346,
+              "medianCents": 0.10000000000000564,
+              "ci95LowCents": -0.3374047540220582,
+              "ci95HighCents": 1.1424645834340694,
+              "probabilityPositivePct": 88.33
+            },
+            "directionNeutralMove": {
+              "events": 46,
+              "dayClusters": 29,
+              "meanCents": -0.11821197934782622,
+              "medianCents": -1.4500000089512355e-07,
+              "ci95LowCents": -0.852352928509759,
+              "ci95HighCents": 0.4786556780642227,
+              "probabilityPositivePct": 35.144999999999996
+            }
+          },
+          {
+            "lagSeconds": 45,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 84.0,
+            "directionNeutralPrintCoveragePct": 92.0,
+            "alignedBuyMove": {
+              "events": 42,
+              "dayClusters": 27,
+              "meanCents": 0.5343185928571432,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.3392808432910594,
+              "ci95HighCents": 1.311528312038653,
+              "probabilityPositivePct": 88.86500000000001
+            },
+            "directionNeutralMove": {
+              "events": 46,
+              "dayClusters": 29,
+              "meanCents": 0.1894991184782604,
+              "medianCents": -5.551115123125783e-15,
+              "ci95LowCents": -0.8698432609847231,
+              "ci95HighCents": 1.173639832019443,
+              "probabilityPositivePct": 62.614999999999995
+            }
+          },
+          {
+            "lagSeconds": 60,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 88.0,
+            "directionNeutralPrintCoveragePct": 96.0,
+            "alignedBuyMove": {
+              "events": 44,
+              "dayClusters": 28,
+              "meanCents": 0.47319369863636357,
+              "medianCents": 0.0030984999999983387,
+              "ci95LowCents": -0.6829087481769095,
+              "ci95HighCents": 1.658026132550652,
+              "probabilityPositivePct": 77.415
+            },
+            "directionNeutralMove": {
+              "events": 48,
+              "dayClusters": 31,
+              "meanCents": 0.29167392406249915,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.7100096742250267,
+              "ci95HighCents": 1.3150201071280911,
+              "probabilityPositivePct": 70.085
+            }
+          },
+          {
+            "lagSeconds": 90,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 84.0,
+            "directionNeutralPrintCoveragePct": 94.0,
+            "alignedBuyMove": {
+              "events": 42,
+              "dayClusters": 28,
+              "meanCents": 0.5779706507142858,
+              "medianCents": 0.2675372050000041,
+              "ci95LowCents": -0.842418079412163,
+              "ci95HighCents": 2.0969163884758553,
+              "probabilityPositivePct": 76.255
+            },
+            "directionNeutralMove": {
+              "events": 47,
+              "dayClusters": 31,
+              "meanCents": 0.40725544191489266,
+              "medianCents": 0.0,
+              "ci95LowCents": -0.7803177959590304,
+              "ci95HighCents": 1.7642597714387742,
+              "probabilityPositivePct": 71.015
+            }
+          },
+          {
+            "lagSeconds": 120,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 82.0,
+            "directionNeutralPrintCoveragePct": 92.0,
+            "alignedBuyMove": {
+              "events": 41,
+              "dayClusters": 27,
+              "meanCents": 0.7274468960975611,
+              "medianCents": 0.006174250000001713,
+              "ci95LowCents": -0.537459156691348,
+              "ci95HighCents": 1.9858576932131273,
+              "probabilityPositivePct": 86.53
+            },
+            "directionNeutralMove": {
+              "events": 46,
+              "dayClusters": 30,
+              "meanCents": 0.18572326978260828,
+              "medianCents": -2.999999693109601e-08,
+              "ci95LowCents": -0.8820145201325763,
+              "ci95HighCents": 1.2683572257690963,
+              "probabilityPositivePct": 61.224999999999994
+            }
+          },
+          {
+            "lagSeconds": 180,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 78.0,
+            "directionNeutralPrintCoveragePct": 94.0,
+            "alignedBuyMove": {
+              "events": 39,
+              "dayClusters": 27,
+              "meanCents": 0.21444969153846236,
+              "medianCents": 0.20000000000001128,
+              "ci95LowCents": -1.6194989110435598,
+              "ci95HighCents": 1.773640581564294,
+              "probabilityPositivePct": 60.645
+            },
+            "directionNeutralMove": {
+              "events": 47,
+              "dayClusters": 29,
+              "meanCents": -0.5097626112765955,
+              "medianCents": 0.0,
+              "ci95LowCents": -1.954538186745832,
+              "ci95HighCents": 0.6371185073747035,
+              "probabilityPositivePct": 20.915
+            }
+          },
+          {
+            "lagSeconds": 300,
+            "eligibleSignals": 50,
+            "alignedBuyPrintCoveragePct": 90.0,
+            "directionNeutralPrintCoveragePct": 100.0,
+            "alignedBuyMove": {
+              "events": 45,
+              "dayClusters": 28,
+              "meanCents": -0.316814363,
+              "medianCents": 0.0,
+              "ci95LowCents": -2.344487962700893,
+              "ci95HighCents": 1.3203779393515616,
+              "probabilityPositivePct": 37.38
+            },
+            "directionNeutralMove": {
+              "events": 50,
+              "dayClusters": 31,
+              "meanCents": -0.6924603395999995,
+              "medianCents": 0.0,
+              "ci95LowCents": -2.5101248231461732,
+              "ci95HighCents": 0.7330590805821942,
+              "probabilityPositivePct": 19.91
+            }
+          }
+        ]
+      }
+    },
+    "compactMinusOtherBroad": [
+      {
+        "lagSeconds": 0,
+        "compactMinusOtherBroadAlignedMoveCents": 0.811482347892158
+      },
+      {
+        "lagSeconds": 1,
+        "compactMinusOtherBroadAlignedMoveCents": 0.9446498077450981
+      },
+      {
+        "lagSeconds": 2,
+        "compactMinusOtherBroadAlignedMoveCents": 1.1616823673039216
+      },
+      {
+        "lagSeconds": 3,
+        "compactMinusOtherBroadAlignedMoveCents": 0.9392959313725494
+      },
+      {
+        "lagSeconds": 5,
+        "compactMinusOtherBroadAlignedMoveCents": 1.1216850688725493
+      },
+      {
+        "lagSeconds": 10,
+        "compactMinusOtherBroadAlignedMoveCents": 2.1703206751470585
+      },
+      {
+        "lagSeconds": 15,
+        "compactMinusOtherBroadAlignedMoveCents": 2.653553472083334
+      },
+      {
+        "lagSeconds": 20,
+        "compactMinusOtherBroadAlignedMoveCents": 1.9863366798529416
+      },
+      {
+        "lagSeconds": 30,
+        "compactMinusOtherBroadAlignedMoveCents": 1.7734244558823533
+      },
+      {
+        "lagSeconds": 45,
+        "compactMinusOtherBroadAlignedMoveCents": 1.8606782005392162
+      },
+      {
+        "lagSeconds": 60,
+        "compactMinusOtherBroadAlignedMoveCents": 0.7597490927083328
+      },
+      {
+        "lagSeconds": 90,
+        "compactMinusOtherBroadAlignedMoveCents": 2.557736758541668
+      },
+      {
+        "lagSeconds": 120,
+        "compactMinusOtherBroadAlignedMoveCents": 2.963216366666667
+      },
+      {
+        "lagSeconds": 180,
+        "compactMinusOtherBroadAlignedMoveCents": 1.4718708502500009
+      },
+      {
+        "lagSeconds": 300,
+        "compactMinusOtherBroadAlignedMoveCents": 1.9102057486647723
+      }
+    ],
+    "interpretation": "Positive aligned-BUY markouts after compact-fresh sweeps are consistent with the target reaching the market before some aligned public buyers. They do not identify the target's upstream information source and do not prove that a follower can buy before the move or cover fees.",
+    "warnings": [
+      "These are transaction-print markouts, not contemporaneous executable ask quotes.",
+      "Integer-second historical timestamps cannot order target and peer prints inside the same second.",
+      "The compact-fresh definition was selected retrospectively and contains only 12 signals.",
+      "Polymarket gameStartTime is used for the timing split; it is not a point-by-point sports feed."
+    ]
+  },
+  "esportsMoatAudit": {
+    "question": "Is esports the wallet's unique moat?",
+    "verdict": "not_verified_as_unique_moat",
+    "walletDeployment": {
+      "esportsDisciplines": [
+        "Counter-Strike",
+        "Dota 2",
+        "League of Legends",
+        "Valorant"
+      ],
+      "markets": 204,
+      "costBasisUsdc": 33006312.00936505,
+      "realizedPnlUsdc": 2808250.1295999996,
+      "roiPct": 8.508221484433646,
+      "shareOfWalletCostBasisPct": 58.64964944389235,
+      "shareOfWalletRealizedPnlPct": 49.75358543719272,
+      "byDiscipline": [
+        {
+          "key": "Dota 2",
+          "markets": 107,
+          "resolvedMarkets": 106,
+          "costBasisUsdc": 20929009.620210487,
+          "realizedPnlUsdc": 1592213.3137,
+          "makerRebatesUsdc": 25559.930904000004,
+          "roiPct": 7.607685899109386,
+          "profitableMarkets": 34,
+          "dominantOutcomeHitRatePct": 32.075471698113205,
+          "profitFactor": 1.180806864754501,
+          "quoteNotionalUsdc": 25620341.02269217,
+          "takerNotionalPct": 76.90806896553718
+        },
+        {
+          "key": "Counter-Strike",
+          "markets": 76,
+          "resolvedMarkets": 76,
+          "costBasisUsdc": 9887335.403124383,
+          "realizedPnlUsdc": 935279.6225999998,
+          "makerRebatesUsdc": 8585.104514999999,
+          "roiPct": 9.459369834914803,
+          "profitableMarkets": 42,
+          "dominantOutcomeHitRatePct": 53.94736842105263,
+          "profitFactor": 1.2700530589317756,
+          "quoteNotionalUsdc": 14798895.990320588,
+          "takerNotionalPct": 79.91722208354201
+        },
+        {
+          "key": "League of Legends",
+          "markets": 14,
+          "resolvedMarkets": 14,
+          "costBasisUsdc": 2050925.5289171897,
+          "realizedPnlUsdc": 255847.5779,
+          "makerRebatesUsdc": 1106.893561,
+          "roiPct": 12.474737590061485,
+          "profitableMarkets": 7,
+          "dominantOutcomeHitRatePct": 50,
+          "profitFactor": 1.535562782855394,
+          "quoteNotionalUsdc": 3812980.814672461,
+          "takerNotionalPct": 89.04189706767232
+        },
+        {
+          "key": "Valorant",
+          "markets": 7,
+          "resolvedMarkets": 7,
+          "costBasisUsdc": 139041.45711299,
+          "realizedPnlUsdc": 24909.615400000002,
+          "makerRebatesUsdc": 333.767277,
+          "roiPct": 17.91524335059116,
+          "profitableMarkets": 5,
+          "dominantOutcomeHitRatePct": 71.42857142857143,
+          "profitFactor": 1.4432899669878414,
+          "quoteNotionalUsdc": 296581.5503142178,
+          "takerNotionalPct": 65.52244436255847
+        }
+      ]
+    },
+    "frozenBreadthSignals": {
+      "esports": {
+        "bets": 15,
+        "wins": 12,
+        "winRatePct": 80.0,
+        "stakeUsdc": 1500.0,
+        "profitUsdc": 602.0821467579729,
+        "roiPct": 40.13880978386486,
+        "profitFactor": 3.0069404891932425,
+        "maxDrawdownUsdc": 142.3495343929785,
+        "medianObservedPrice": 0.5598596612,
+        "medianAllInPrice": 0.6169975868452306,
+        "fallbackPrices": 1,
+        "roiWithoutTopWinnersPct": {
+          "1": 32.60733423338794,
+          "3": 17.527809355586875,
+          "5": -0.47473658690161075
+        },
+        "calibration": {
+          "bets": 15,
+          "wins": 12,
+          "expectedWinsFromExecutionProxy": 8.2203902997,
+          "excessWins": 3.7796097003,
+          "actualWinRatePct": 80.0,
+          "meanImpliedProbabilityPct": 54.802601998,
+          "calibrationGapPctPoints": 25.197398002000003,
+          "brierScore": 0.24059050712702412,
+          "poissonBinomialUpperTailPValue": 0.0339301939403265,
+          "fallbackPrices": 1
+        },
+        "compactFreshSignals": 2
+      },
+      "traditionalSports": {
+        "bets": 15,
+        "wins": 11,
+        "winRatePct": 73.33333333333333,
+        "stakeUsdc": 1500.0,
+        "profitUsdc": 656.2311968296049,
+        "roiPct": 43.74874645530699,
+        "profitFactor": 2.6405779920740122,
+        "maxDrawdownUsdc": 200.0,
+        "medianObservedPrice": 0.5300001081,
+        "medianAllInPrice": 0.5873081075811196,
+        "fallbackPrices": 0,
+        "roiWithoutTopWinnersPct": {
+          "1": 33.99869820314556,
+          "3": 14.117823336927406,
+          "5": -5.224966094164619
+        },
+        "calibration": {
+          "bets": 15,
+          "wins": 11,
+          "expectedWinsFromExecutionProxy": 7.816379799449999,
+          "excessWins": 3.183620200550001,
+          "actualWinRatePct": 73.33333333333333,
+          "meanImpliedProbabilityPct": 52.10919866299999,
+          "calibrationGapPctPoints": 21.224134670333335,
+          "brierScore": 0.31146830234004086,
+          "poissonBinomialUpperTailPValue": 0.0721997159885992,
+          "fallbackPrices": 0
+        },
+        "compactFreshSignals": 10
+      },
+      "byDiscipline": [
+        {
+          "discipline": "Counter-Strike",
+          "category": "esports",
+          "bets": 4,
+          "wins": 3,
+          "winRatePct": 75.0,
+          "stakeUsdc": 400.0,
+          "profitUsdc": 151.957842196223,
+          "roiPct": 37.98946054905575,
+          "profitFactor": 2.51957842196223,
+          "maxDrawdownUsdc": 100.0,
+          "medianObservedPrice": 0.4899298306,
+          "medianAllInPrice": 0.5472352934226153,
+          "fallbackPrices": 1,
+          "roiWithoutTopWinnersPct": {
+            "1": 9.768839700803568,
+            "3": -100.0,
+            "5": null
+          },
+          "calibration": {
+            "bets": 4,
+            "wins": 3,
+            "expectedWinsFromExecutionProxy": 2.1515942156,
+            "excessWins": 0.8484057844000001,
+            "actualWinRatePct": 75.0,
+            "meanImpliedProbabilityPct": 53.78985539,
+            "calibrationGapPctPoints": 21.21014461,
+            "brierScore": 0.2670574160128161,
+            "poissonBinomialUpperTailPValue": 0.3593777855708379,
+            "fallbackPrices": 1
+          },
+          "compactFreshSignals": 0
+        },
+        {
+          "discipline": "Dota 2",
+          "category": "esports",
+          "bets": 7,
+          "wins": 6,
+          "winRatePct": 85.71428571428571,
+          "stakeUsdc": 700.0,
+          "profitUsdc": 441.3660464365788,
+          "roiPct": 63.05229234808268,
+          "profitFactor": 5.413660464365788,
+          "maxDrawdownUsdc": 100.0,
+          "medianObservedPrice": 0.4287880304,
+          "medianAllInPrice": 0.4862745319703707,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": 49.29776315767288,
+            "3": 16.65594578082851,
+            "5": -32.510051372682696
+          },
+          "calibration": {
+            "bets": 7,
+            "wins": 6,
+            "expectedWinsFromExecutionProxy": 3.3137960921000005,
+            "excessWins": 2.6862039078999995,
+            "actualWinRatePct": 85.71428571428571,
+            "meanImpliedProbabilityPct": 47.33994417285715,
+            "calibrationGapPctPoints": 38.374341541428564,
+            "brierScore": 0.25138613425129963,
+            "poissonBinomialUpperTailPValue": 0.04181842417139569,
+            "fallbackPrices": 0
+          },
+          "compactFreshSignals": 1
+        },
+        {
+          "discipline": "League of Legends",
+          "category": "esports",
+          "bets": 3,
+          "wins": 3,
+          "winRatePct": 100.0,
+          "stakeUsdc": 300.0,
+          "profitUsdc": 108.75825812517107,
+          "roiPct": 36.252752708390354,
+          "profitFactor": null,
+          "maxDrawdownUsdc": 0.0,
+          "medianObservedPrice": 0.6300000043,
+          "medianAllInPrice": 0.6865280042535601,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": 28.825232803510737,
+            "3": null,
+            "5": null
+          },
+          "calibration": {
+            "bets": 3,
+            "wins": 3,
+            "expectedWinsFromExecutionProxy": 2.0749999936,
+            "excessWins": 0.9250000063999999,
+            "actualWinRatePct": 100.0,
+            "meanImpliedProbabilityPct": 69.16666645333333,
+            "calibrationGapPctPoints": 30.83333354666667,
+            "brierScore": 0.10617500175700005,
+            "poissonBinomialUpperTailPValue": 0.32016599652281996,
+            "fallbackPrices": 0
+          },
+          "compactFreshSignals": 1
+        },
+        {
+          "discipline": "Soccer",
+          "category": "traditional_sport",
+          "bets": 3,
+          "wins": 3,
+          "winRatePct": 100.0,
+          "stakeUsdc": 300.0,
+          "profitUsdc": 313.18117044718616,
+          "roiPct": 104.3937234823954,
+          "profitFactor": null,
+          "maxDrawdownUsdc": 0.0,
+          "medianObservedPrice": 0.44999999999999996,
+          "medianAllInPrice": 0.5075,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": 70.31823220178562,
+            "3": null,
+            "5": null
+          },
+          "calibration": {
+            "bets": 3,
+            "wins": 3,
+            "expectedWinsFromExecutionProxy": 1.4000002795,
+            "excessWins": 1.5999997205,
+            "actualWinRatePct": 100.0,
+            "meanImpliedProbabilityPct": 46.666675983333334,
+            "calibrationGapPctPoints": 53.33332401666667,
+            "brierScore": 0.30273320476335935,
+            "poissonBinomialUpperTailPValue": 0.08928008049599999,
+            "fallbackPrices": 0
+          },
+          "compactFreshSignals": 2
+        },
+        {
+          "discipline": "Tennis",
+          "category": "traditional_sport",
+          "bets": 12,
+          "wins": 8,
+          "winRatePct": 66.66666666666666,
+          "stakeUsdc": 1200.0,
+          "profitUsdc": 343.05002638241865,
+          "roiPct": 28.587502198534885,
+          "profitFactor": 1.8576250659560467,
+          "maxDrawdownUsdc": 200.0,
+          "medianObservedPrice": 0.5400000504,
+          "medianAllInPrice": 0.5972540501624598,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": 14.800054945168316,
+            "3": -9.981961985528978,
+            "5": -37.59350075418837
+          },
+          "calibration": {
+            "bets": 12,
+            "wins": 8,
+            "expectedWinsFromExecutionProxy": 6.416379519949999,
+            "excessWins": 1.5836204800500013,
+            "actualWinRatePct": 66.66666666666666,
+            "meanImpliedProbabilityPct": 53.46982933291665,
+            "calibrationGapPctPoints": 13.196837333750002,
+            "brierScore": 0.3136520767342112,
+            "poissonBinomialUpperTailPValue": 0.2583148872595681,
+            "fallbackPrices": 0
+          },
+          "compactFreshSignals": 8
+        },
+        {
+          "discipline": "Valorant",
+          "category": "esports",
+          "bets": 1,
+          "wins": 0,
+          "winRatePct": 0.0,
+          "stakeUsdc": 100.0,
+          "profitUsdc": -100.0,
+          "roiPct": -100.0,
+          "profitFactor": 0.0,
+          "maxDrawdownUsdc": 100.0,
+          "medianObservedPrice": 0.6799999984,
+          "medianAllInPrice": 0.73591299842208,
+          "fallbackPrices": 0,
+          "roiWithoutTopWinnersPct": {
+            "1": null,
+            "3": null,
+            "5": null
+          },
+          "calibration": {
+            "bets": 1,
+            "wins": 0,
+            "expectedWinsFromExecutionProxy": 0.6799999984,
+            "excessWins": -0.6799999984,
+            "actualWinRatePct": 0.0,
+            "meanImpliedProbabilityPct": 67.99999984,
+            "calibrationGapPctPoints": -67.99999984,
+            "brierScore": 0.46239999782400004,
+            "poissonBinomialUpperTailPValue": 1.0,
+            "fallbackPrices": 0
+          },
+          "compactFreshSignals": 0
+        }
+      ]
+    },
+    "interpretation": "Esports is the largest deployed capital pool and contributes substantial profit. The frozen broad-sweep signal is also strong in esports, especially Dota 2, but traditional sports contribute independently and the compact-fresh subset contains too few esports observations to establish a category-specific moat.",
+    "whatWouldVerifyIt": [
+      "Chronologically matched point/map telemetry available before each target order.",
+      "A frozen esports state model that prices the target outcome independently of Polymarket.",
+      "Prospective paper fills showing positive net value after depth, delay, and fees.",
+      "Enough events to distinguish esports from tennis and soccer without post-hoc category selection."
+    ]
   },
   "subgroups": {
     "oneShotSweep": {

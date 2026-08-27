@@ -1,22 +1,23 @@
 # Polymarket Trader Research: `@djdjdjekekek`
 
-Transaction-level investigation of a high-volume Polymarket account. The repository reconstructs wallet control, cash flows, maker/taker roles, decoded trigger calldata, market outcomes, realistic copy-execution surfaces, peer activity, and a leakage-controlled paper strategy.
+Transaction-level investigation of a high-volume Polymarket account. The repository reconstructs wallet control, cash flows, maker/taker roles, decoded trigger calldata, realistic copy execution and capacity, peer activity, live esports telemetry, wallet-aligned broadcast state, and leakage-controlled paper strategies.
 
 ## Start Here: No Code Required
 
 **[Read the illustrated plain-English essay (PDF)](research/djdjdjekekek/plain_english_essay.pdf)**
 
-The 31-figure vector PDF explains what blind copying would have done across 1,444 price/latency cells plus 4,800 size/capacity cells, the atomic-liquidity fingerprint that best identifies the trader's alpha, the sharper compact-fresh mechanism, closing-line falsification, exact paper-only controls, and why the evidence is still not strong enough for live money. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
+The 50-page, 40-figure vector PDF explains what blind copying would have done across 1,444 price/latency cells plus 4,800 size/capacity cells, reconstructs a wallet-linked CS2 decision to the round from timestamp-aligned broadcast video, tests the same-team losing control, falsifies passive copy breadth across the full population, and states exactly what is and is not known about the trader's alpha. A responsive [browser edition](research/djdjdjekekek/plain_english_essay.html) is included as well.
 
 Profile: [polymarket.com/@djdjdjekekek](https://polymarket.com/@djdjdjekekek)
 
 ## Read This First
 
-1. [Breakthrough audit](research/djdjdjekekek/breakthrough_report.md) - the discovery, falsification tests, failed hypotheses, and decision.
-2. [Replication report](research/djdjdjekekek/replication_report.md) - exact signal, execution assumptions, sensitivity, and paper monitor.
-3. [Deep trader report](research/djdjdjekekek/trader_report.md) - full execution reconstruction and case studies.
-4. [Onchain report](research/djdjdjekekek/onchain_report.md) - controller proof, funding graph, and cash reconciliation.
-5. [Executive summary](research/djdjdjekekek/report.md) - one-page synthesis.
+1. [Esports edge audit](research/djdjdjekekek/esports_edge_report.md) - the CS2 state reconstruction, losing controls, Dota independent test, and literal alpha boundary.
+2. [Executive summary](research/djdjdjekekek/report.md) - the shortest complete synthesis.
+3. [Breakthrough audit](research/djdjdjekekek/breakthrough_report.md) - atomic breadth, falsification tests, and promotion criteria.
+4. [Replication report](research/djdjdjekekek/replication_report.md) - exact signal, execution assumptions, sensitivity, and paper monitor.
+5. [Deep trader report](research/djdjdjekekek/trader_report.md) - full execution reconstruction and case studies.
+6. [Onchain report](research/djdjdjekekek/onchain_report.md) - controller proof, funding graph, and cash reconciliation.
 
 ## Discovery
 
@@ -44,8 +45,29 @@ The deeper finding is more specific: **one mined trigger transaction becomes unu
 | Current +1c FOK coverage | 94.66% at $100; 84.47% at $1K; 46.12% at $10K; 26.21% at $25K |
 | Historical post-sweep $100 capacity ceiling | 38.10% at 1s; 85.71% at 60s, using optimistic all-print turnover |
 | Broad pregame closing-line value | -0.67c median; 4/12 positive; one-sided sign `p=0.927` |
+| Independent Dota state strategy | 9 conservative fills, 6 wins, -6.87% ROI |
+| Public CS2 feed reaction study | 11/18 books moved by at least 0.5c before the update; +0.028c mean from receipt to +1s |
+| M80-NAVI wallet-linked case | $63,374 deployed; 78.9% passive; +$18,382 before rebates |
+| Passive reverse breadth, 18+ counterparties | 4/9 wins, -$813,357, -73.46% ROI |
 
 These are research results, not production evidence. The breadth cutoff was selected on the first half only; the combined held-out half returned +27.32%, with a day-clustered interval of +0.73% to +58.28%. The threshold-search null simulation gives one-sided `p=0.046`, but it does not correct wallet or feature-family selection.
+
+## Esports Breakthrough And Boundary
+
+The closest verified view of the esports mechanism is the August 26 NAVI-M80 series. At the wallet's first M80 fill, a Twitch HLS timestamp aligned to the immutable fill second showed M80 leading 9-6 in round 16, with the bomb planted and five M80 players alive against three NAVI players. The target bought at 74 cents before the broadcast displayed the 10-6 round result about 7.5 seconds later. The favorable state was already visible, so this is evidence of state-aware valuation, not advance knowledge.
+
+After the round, the target became predominantly passive. Twenty-seven exact maker fills supplied $49,990 of M80 exposure at 78 cents in three seconds while 19 public taker wallets bought the opposite NAVI outcome. The whole market earned $18,382 before rebates. A copier arriving after the target's on-chain publication cannot recreate this with speed alone: passive replication also needs the same fair value, an earlier quote, queue position, and incoming opposite flow.
+
+The controls prevent this one winner from becoming a manufactured secret:
+
+- Against G2, the same wallet bought $83,179 of M80, 84.5% passively. Its key 18-counterparty cluster began with G2 leading 12-11, 19 seconds left, no bomb, and a 3-v-3. M80 lost; the wallet lost $83,606.
+- In Nemesis-1WIN Map 2, technical problems caused a forfeit at 7-12. Polymarket's unfinished-map rule resolved 50-50, and the target lost $1,248 after exiting near 50 cents.
+- Across 405 merged historical and prospective wallet markets, the fixed passive reverse-breadth rule won 4 of 9 and returned -73.46%. Every tested threshold from 10 through 30 counterparties was negative.
+- A target-independent Dota gold/XP/time strategy lost 6.87% in its first registered later window even though its state model reached 0.851 ROC-AUC.
+
+**Best evidence-bounded alpha hypothesis:** low-latency match-state probability, filtered by team and event context, expressed through selective aggressive entry and passive quoting. The state and execution mechanism are now visible. The exact fair-value model, data source, event-selection rule, and a profitable prospective implementation are not. The repository remains paper-only.
+
+Primary case sources: [official BLAST NAVI-M80 record](https://blast.tv/cs/tournaments/open-2026-season-2/match/4da07aca/navi-m80), [HLTV NAVI-M80](https://www.hltv.org/matches/2396925/natus-vincere-vs-m80-blast-open-porto-2026), [HLTV G2-M80](https://www.hltv.org/matches/2396561/g2-vs-m80-esports-world-cup-2026), and [HLTV Nemesis-1WIN](https://www.hltv.org/matches/2397043/nemesis-vs-1win-gluck-moscow-cyber-games-2026-closed-qualifier). Source URLs, hashes, official map times, and video alignment details are committed in [`cs2_external_evidence.json`](research/djdjdjekekek/prospective/cs2_external_evidence.json).
 
 ## What Changed In The Deep Pass
 
@@ -150,6 +172,11 @@ Core pipeline:
 - `src/research/edge_analysis.py` - external execution, latency-cost surfaces, atomic-breadth tests, falsification, sizing, and modeling.
 - `src/research/capacity_data.py` - pregame closing marks and current official-CLOB depth collection.
 - `src/research/peer_analysis.py` - recurring-wallet and chronological leader audit.
+- `src/research/prospective_audit.js` - frozen-boundary wallet refresh and no-leakage signal audit.
+- `src/research/live_edge_probe.js` - paper-only sports/CLOB recorder, event study, and exact FOK replay.
+- `src/research/esports_state_analysis.py` - Dota/OpenDota state alignment and pre-wallet state model.
+- `src/research/dota_market_backtest.py` - target-independent Dota market replay in a registered later window.
+- `src/research/cs2_case_audit.js` - wallet-linked CS2 cases, exact counterparty joins, and reverse-breadth population test.
 - `src/research/report_graphics.py` - reproducible PNG/SVG figures from committed artifacts.
 - `src/research/replicator.js` - model-scored paper-intent state machine.
 - `src/research/report.js` - reproducible Markdown reports.
@@ -162,6 +189,10 @@ Primary evidence:
 - `edge_features.csv`, `edge_analysis.json`, and `edge_model.json` - signal table, tests, and frozen model.
 - `closing_lines.json` and `liquidity_capacity.json` - pregame closing marks and timestamped ask-ladder capacity evidence.
 - `peer_evidence.json` - recurring-wallet evidence and chronology test.
+- `esports_state_analysis.json` and `dota_independent_backtest.json` - state-model validation and independent trading falsification.
+- `prospective/cs2_external_evidence.json` and `prospective/cs2_case_audit.json` - timestamped source facts, wallet cases, and passive-rule population audit.
+- `prospective/esports_reaction_capture.ndjson.gz` and `prospective/esports_reaction_analysis.json` - raw live capture and CS2 public-feed event study.
+- `prospective/live_probe_validation.ndjson.gz` and `prospective/live_probe_validation.json` - raw public websocket capture and dynamic game-to-book validation.
 - `figures/` - strategy funnel, calibration, equity, threshold, and execution graphics.
 - `onchain_evidence.json` and `flow_transactions.json` - decoded chain evidence.
 - `replication_backtest.json`, `replicator_config.json`, and `replication_intents.json` - prototype audit and output.
@@ -188,9 +219,11 @@ PYTHON=.venv/bin/python npm run research:stats
 PYTHON=.venv/bin/python npm run research:edge
 PYTHON=.venv/bin/python npm run research:capacity-data
 PYTHON=.venv/bin/python npm run research:edge
+PYTHON=.venv/bin/python npm run research:esports-suite
 PYTHON=.venv/bin/python npm run research:graphics
 npm run research:replicate
 npm run research:report
+npm run research:essay:pdf
 ```
 
 `npm run research:peers` refreshes peer profiles and trades from the public API. A complete network refresh is:
@@ -208,6 +241,9 @@ npm run research:onchain
 npm run research:tape
 npm run research:triggers
 npm run research:peers
+npm run research:prospective-audit
+npm run research:sports-reaction
+npm run research:cs2-case
 npm run research:monitor
 ```
 

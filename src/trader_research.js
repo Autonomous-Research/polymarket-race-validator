@@ -200,16 +200,28 @@ async function monitorOnce() {
 }
 
 async function reportSaved() {
-    const [analysis, stats, onchain, paper, audit, edge, peers] = await Promise.all([
+    const [
+        analysis, stats, onchain, paper, audit, edge, peers,
+        state, dota, prospective, liveProbe, sportsReaction, cs2Case
+    ] = await Promise.all([
         readJson(outputPath('deep_analysis.json')),
         readJson(outputPath('statistical_analysis.json')),
         readJson(outputPath('onchain_evidence.json')),
         readJson(outputPath('replication_intents.json')),
         readJson(outputPath('replication_backtest.json')),
         readJson(outputPath('edge_analysis.json')),
-        readJson(outputPath('peer_evidence.json'))
+        readJson(outputPath('peer_evidence.json')),
+        readJson(outputPath('esports_state_analysis.json')),
+        readJson(outputPath('dota_independent_backtest.json')),
+        readJson(outputPath('prospective/prospective_audit.json')),
+        readJson(outputPath('prospective/live_probe_validation.json')),
+        readJson(outputPath('prospective/esports_reaction_analysis.json')),
+        readJson(outputPath('prospective/cs2_case_audit.json'))
     ]);
-    const names = await writeReports(OUT_DIR, { analysis, stats, onchain, paper, audit, edge, peers });
+    const names = await writeReports(OUT_DIR, {
+        analysis, stats, onchain, paper, audit, edge, peers,
+        state, dota, prospective, liveProbe, sportsReaction, cs2Case
+    });
     console.log(`Reports: ${names.join(', ')}`);
     return names;
 }

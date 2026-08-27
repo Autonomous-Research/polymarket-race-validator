@@ -1,0 +1,2348 @@
+{
+  "generatedAt": "2026-08-27T02:28:34.961259+00:00",
+  "status": "telemetry_aligned_case_not_general_strategy",
+  "question": "Do Dota signals align with independently reconstructed game state, especially immediate objectives?",
+  "sources": {
+    "proMatchIndex": "https://api.opendota.com/api/proMatches",
+    "parsedMatchEndpoint": "https://api.opendota.com/api/matches/<match_id>",
+    "openSourceParser": "https://github.com/odota/core"
+  },
+  "method": "Match market team names and scheduled windows to OpenDota professional matches, classify each signal as pre-map, between maps, in-game, or post-series, then inspect replay-derived gold, XP, kill logs, and objectives at the signal game-second.",
+  "coverage": {
+    "dotaThresholdSignals": 33,
+    "matchedSignals": 29,
+    "phaseCounts": {
+      "before_first_map": 13,
+      "in_game": 12,
+      "unmatched": 4,
+      "between_maps": 4
+    },
+    "parsedInGameStates": 12,
+    "frozenDotaBaseSignals": 18,
+    "frozenBroadDotaSignals": 7
+  },
+  "comparisons": {
+    "allDotaSignals": {
+      "signals": 33,
+      "matchedToOpenDotaSeries": 29,
+      "inGameSignals": 12,
+      "beforeFirstMapSignals": 13,
+      "betweenMapSignals": 4,
+      "recentObjectiveWithin15Seconds": 2,
+      "recentTargetObjectiveWithin30Seconds": 2,
+      "medianTargetGoldAdvantage": -87.5
+    },
+    "frozenBaseDotaSignals": {
+      "signals": 18,
+      "matchedToOpenDotaSeries": 14,
+      "inGameSignals": 3,
+      "beforeFirstMapSignals": 11,
+      "betweenMapSignals": 0,
+      "recentObjectiveWithin15Seconds": 1,
+      "recentTargetObjectiveWithin30Seconds": 1,
+      "medianTargetGoldAdvantage": 614.0
+    },
+    "frozenBroadDotaSignals": {
+      "signals": 7,
+      "matchedToOpenDotaSeries": 6,
+      "inGameSignals": 1,
+      "beforeFirstMapSignals": 5,
+      "betweenMapSignals": 0,
+      "recentObjectiveWithin15Seconds": 1,
+      "recentTargetObjectiveWithin30Seconds": 1,
+      "medianTargetGoldAdvantage": 13433.0
+    },
+    "otherDotaSignals": {
+      "signals": 26,
+      "matchedToOpenDotaSeries": 23,
+      "inGameSignals": 11,
+      "beforeFirstMapSignals": 8,
+      "betweenMapSignals": 4,
+      "recentObjectiveWithin15Seconds": 1,
+      "recentTargetObjectiveWithin30Seconds": 1,
+      "medianTargetGoldAdvantage": -610.0
+    }
+  },
+  "independentStateModel": {
+    "name": "pre-wallet-dota-state-logit",
+    "status": "chronological_external_test_passed",
+    "trainingData": {
+      "source": "https://api.opendota.com/api/explorer",
+      "matches": 10000,
+      "observationsIncludingSideSymmetry": 20000,
+      "oneDeterministicRandomMinutePerMatch": true,
+      "sideSymmetryAugmentation": true,
+      "latestPermittedMatchTime": "2026-06-26T13:56:12+00:00",
+      "walletOutcomesUsed": false
+    },
+    "selection": {
+      "developmentEnd": "2026-05-06T04:53:24+00:00",
+      "validationEnd": "2026-05-25T20:39:23.500000+00:00",
+      "criterion": "minimum validation Brier score",
+      "candidates": [
+        {
+          "regularizationC": 0.01,
+          "validationBrierScore": 0.16918411649301077,
+          "validationRocAuc": 0.8285732007323489
+        },
+        {
+          "regularizationC": 0.03,
+          "validationBrierScore": 0.16870252462122726,
+          "validationRocAuc": 0.8295990779153497
+        },
+        {
+          "regularizationC": 0.1,
+          "validationBrierScore": 0.16799070144886588,
+          "validationRocAuc": 0.8307766724720873
+        },
+        {
+          "regularizationC": 0.3,
+          "validationBrierScore": 0.16775151124208476,
+          "validationRocAuc": 0.8310992950050625
+        },
+        {
+          "regularizationC": 1,
+          "validationBrierScore": 0.16780147428932465,
+          "validationRocAuc": 0.8310198664976357
+        },
+        {
+          "regularizationC": 3,
+          "validationBrierScore": 0.1678472814288028,
+          "validationRocAuc": 0.8310939402742248
+        },
+        {
+          "regularizationC": 10,
+          "validationBrierScore": 0.1678692723244836,
+          "validationRocAuc": 0.8311341007555079
+        }
+      ],
+      "selectedRegularizationC": 0.3
+    },
+    "chronologicalTest": {
+      "observations": 2998,
+      "matches": 1499,
+      "brierScore": 0.15716742685002674,
+      "coinFlipBrierScore": 0.25,
+      "rocAuc": 0.851227035501987,
+      "logLoss": 0.47091109902554446,
+      "calibration": [
+        {
+          "range": "0.0-0.1",
+          "observations": 393,
+          "meanPrediction": 0.042332271088597564,
+          "actualWinRate": 0.03307888040712468
+        },
+        {
+          "range": "0.1-0.2",
+          "observations": 264,
+          "meanPrediction": 0.14827390939192478,
+          "actualWinRate": 0.14772727272727273
+        },
+        {
+          "range": "0.2-0.3",
+          "observations": 262,
+          "meanPrediction": 0.2504855712765853,
+          "actualWinRate": 0.26717557251908397
+        },
+        {
+          "range": "0.3-0.4",
+          "observations": 262,
+          "meanPrediction": 0.35300377481503736,
+          "actualWinRate": 0.3473282442748092
+        },
+        {
+          "range": "0.4-0.5",
+          "observations": 318,
+          "meanPrediction": 0.45268988839024316,
+          "actualWinRate": 0.48427672955974843
+        },
+        {
+          "range": "0.5-0.6",
+          "observations": 318,
+          "meanPrediction": 0.547311920995069,
+          "actualWinRate": 0.5157232704402516
+        },
+        {
+          "range": "0.6-0.7",
+          "observations": 262,
+          "meanPrediction": 0.6469978924468361,
+          "actualWinRate": 0.6526717557251909
+        },
+        {
+          "range": "0.7-0.8",
+          "observations": 262,
+          "meanPrediction": 0.7495157983581191,
+          "actualWinRate": 0.732824427480916
+        },
+        {
+          "range": "0.8-0.9",
+          "observations": 264,
+          "meanPrediction": 0.8517270099677106,
+          "actualWinRate": 0.8522727272727273
+        },
+        {
+          "range": "0.9-1.0",
+          "observations": 393,
+          "meanPrediction": 0.9576680193644596,
+          "actualWinRate": 0.9669211195928753
+        }
+      ]
+    },
+    "deployment": {
+      "featureNames": [
+        "goldAdvantageThousands",
+        "xpAdvantageThousands",
+        "goldBySqrtTime",
+        "xpBySqrtTime",
+        "signedLogGold",
+        "signedLogXp"
+      ],
+      "featureMean": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "featureScale": [
+        7.830383573183855,
+        11.669405066796983,
+        7.726710481677105,
+        11.999166192115002,
+        1.7134733276286729,
+        1.9303354306764633
+      ],
+      "coefficients": [
+        3.680929160121119,
+        1.7462714718952494,
+        -2.2501274748736306,
+        -1.3595093543785612,
+        0.03304068569935921,
+        0.00840136352780312
+      ],
+      "intercept": 3.663657724712256e-06
+    },
+    "warning": "The chronological test validates state-to-win calibration on unrelated professional Dota matches. It does not validate Polymarket execution or the five-point wallet-copy gate."
+  },
+  "stateModelWalletAudit": {
+    "strategy": {
+      "name": "dota-state-value-paper-v0",
+      "signal": "Existing target Dota threshold crossing during a mapped live game.",
+      "independentValueModel": "Pre-wallet OpenDota gold/XP/time logistic model.",
+      "entryGate": "Model fair probability exceeds one-second public-print proxy plus one adverse cent and the 3% fee curve by at least five probability points.",
+      "stake": "$100 equal stake; paper only.",
+      "outcomesUsedToChooseFivePointGate": false
+    },
+    "allMappedInGameSignalsWithoutValueGate": {
+      "bets": 12,
+      "wins": 5,
+      "winRatePct": 41.66666666666667,
+      "roiPct": -19.351814699422842,
+      "profitUsdcAt100Each": -232.2217763930741,
+      "meanModelEdgePctPoints": -3.8384681752516046,
+      "fallbackExecutionPrices": 0,
+      "dayClusters": 7,
+      "dayClusterCi95LowPct": -83.33496650661567,
+      "dayClusterCi95HighPct": 39.887355874503534,
+      "dayClusterProbabilityPositivePct": 26.31
+    },
+    "fivePointGateAllFormats": {
+      "bets": 6,
+      "wins": 5,
+      "winRatePct": 83.33333333333334,
+      "roiPct": 61.296370601154315,
+      "profitUsdcAt100Each": 367.7782236069259,
+      "meanModelEdgePctPoints": 11.383255319970797,
+      "fallbackExecutionPrices": 0,
+      "dayClusters": 4,
+      "dayClusterCi95LowPct": -42.83793640377452,
+      "dayClusterCi95HighPct": 108.98251614879115,
+      "dayClusterProbabilityPositivePct": 88.175
+    },
+    "fivePointGateFrozenBaseOnly": {
+      "bets": 2,
+      "wins": 2,
+      "winRatePct": 100.0,
+      "roiPct": 112.8462946801357,
+      "profitUsdcAt100Each": 225.6925893602714,
+      "meanModelEdgePctPoints": 15.933637232808383,
+      "fallbackExecutionPrices": 0,
+      "dayClusters": 2,
+      "dayClusterCi95LowPct": 97.04433497536948,
+      "dayClusterCi95HighPct": 128.64825438490192,
+      "dayClusterProbabilityPositivePct": 100.0
+    },
+    "fivePointGateSingleMapsNegativeControl": {
+      "bets": 4,
+      "wins": 3,
+      "winRatePct": 75.0,
+      "roiPct": 35.52140856166362,
+      "profitUsdcAt100Each": 142.08563424665448,
+      "meanModelEdgePctPoints": 9.108064363552005,
+      "fallbackExecutionPrices": 0,
+      "dayClusters": 3,
+      "dayClusterCi95LowPct": -100.0,
+      "dayClusterCi95HighPct": 96.05016640309783,
+      "dayClusterProbabilityPositivePct": 62.8
+    },
+    "fivePointGateBroadSweeps": {
+      "bets": 3,
+      "wins": 2,
+      "winRatePct": 66.66666666666666,
+      "roiPct": 37.10422174453154,
+      "profitUsdcAt100Each": 111.31266523359463,
+      "meanModelEdgePctPoints": 12.9308365293877,
+      "fallbackExecutionPrices": 0,
+      "dayClusters": 3,
+      "dayClusterCi95LowPct": -100.0,
+      "dayClusterCi95HighPct": 128.64825438490192,
+      "dayClusterProbabilityPositivePct": 74.2
+    },
+    "modelEdgeSignSeparation": {
+      "nonnegative": {
+        "bets": 7,
+        "wins": 5,
+        "winRatePct": 71.42857142857143,
+        "roiPct": 38.254031943846556,
+        "profitUsdcAt100Each": 267.7782236069259,
+        "meanModelEdgePctPoints": 10.36938939082373,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 5,
+        "dayClusterCi95LowPct": -70.00293971190823,
+        "dayClusterCi95HighPct": 98.39679397482143,
+        "dayClusterProbabilityPositivePct": 80.015
+      },
+      "negative": {
+        "bets": 5,
+        "wins": 0,
+        "winRatePct": 0.0,
+        "roiPct": -100.0,
+        "profitUsdcAt100Each": -500.0,
+        "meanModelEdgePctPoints": -23.729468767757076,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 4,
+        "dayClusterCi95LowPct": -100.0,
+        "dayClusterCi95HighPct": -100.0,
+        "dayClusterProbabilityPositivePct": 0.0
+      },
+      "fisherExactOneSidedPValue": 0.026515151515151516,
+      "oddsRatio": null,
+      "warning": "Natural zero-edge split, but inspected after wallet outcomes and based on only 12 signals."
+    },
+    "thresholdSensitivity": [
+      {
+        "minimumModelEdgePctPoints": 0,
+        "bets": 7,
+        "wins": 5,
+        "winRatePct": 71.42857142857143,
+        "roiPct": 38.254031943846556,
+        "profitUsdcAt100Each": 267.7782236069259,
+        "meanModelEdgePctPoints": 10.36938939082373,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 5,
+        "dayClusterCi95LowPct": -70.00293971190823,
+        "dayClusterCi95HighPct": 98.39679397482143,
+        "dayClusterProbabilityPositivePct": 80.015
+      },
+      {
+        "minimumModelEdgePctPoints": 2.5,
+        "bets": 7,
+        "wins": 5,
+        "winRatePct": 71.42857142857143,
+        "roiPct": 38.254031943846556,
+        "profitUsdcAt100Each": 267.7782236069259,
+        "meanModelEdgePctPoints": 10.36938939082373,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 5,
+        "dayClusterCi95LowPct": -70.00293971190823,
+        "dayClusterCi95HighPct": 98.39679397482143,
+        "dayClusterProbabilityPositivePct": 80.015
+      },
+      {
+        "minimumModelEdgePctPoints": 5.0,
+        "bets": 6,
+        "wins": 5,
+        "winRatePct": 83.33333333333334,
+        "roiPct": 61.296370601154315,
+        "profitUsdcAt100Each": 367.7782236069259,
+        "meanModelEdgePctPoints": 11.383255319970797,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 4,
+        "dayClusterCi95LowPct": -42.83793640377452,
+        "dayClusterCi95HighPct": 108.98251614879115,
+        "dayClusterProbabilityPositivePct": 88.175
+      },
+      {
+        "minimumModelEdgePctPoints": 7.5,
+        "bets": 4,
+        "wins": 3,
+        "winRatePct": 75.0,
+        "roiPct": 43.91947270018255,
+        "profitUsdcAt100Each": 175.6778908007302,
+        "meanModelEdgePctPoints": 13.947876222948635,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 4,
+        "dayClusterCi95LowPct": -50.73891625615763,
+        "dayClusterCi95HighPct": 112.8462946801357,
+        "dayClusterProbabilityPositivePct": 81.025
+      },
+      {
+        "minimumModelEdgePctPoints": 10.0,
+        "bets": 3,
+        "wins": 2,
+        "winRatePct": 66.66666666666666,
+        "roiPct": 26.211185275120254,
+        "profitUsdcAt100Each": 78.63355582536076,
+        "meanModelEdgePctPoints": 15.436092074175969,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 3,
+        "dayClusterCi95LowPct": -100.0,
+        "dayClusterCi95HighPct": 128.64825438490192,
+        "dayClusterProbabilityPositivePct": 62.8
+      },
+      {
+        "minimumModelEdgePctPoints": 12.5,
+        "bets": 2,
+        "wins": 2,
+        "winRatePct": 100.0,
+        "roiPct": 89.31677791268038,
+        "profitUsdcAt100Each": 178.63355582536076,
+        "meanModelEdgePctPoints": 17.69391974193478,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 2,
+        "dayClusterCi95LowPct": 49.98530144045883,
+        "dayClusterCi95HighPct": 128.64825438490192,
+        "dayClusterProbabilityPositivePct": 100.0
+      },
+      {
+        "minimumModelEdgePctPoints": 15.0,
+        "bets": 1,
+        "wins": 1,
+        "winRatePct": 100.0,
+        "roiPct": 128.64825438490192,
+        "profitUsdcAt100Each": 128.64825438490192,
+        "meanModelEdgePctPoints": 22.384045796350136,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 1,
+        "dayClusterCi95LowPct": 128.64825438490192,
+        "dayClusterCi95HighPct": 128.64825438490192,
+        "dayClusterProbabilityPositivePct": 100.0
+      },
+      {
+        "minimumModelEdgePctPoints": 20.0,
+        "bets": 1,
+        "wins": 1,
+        "winRatePct": 100.0,
+        "roiPct": 128.64825438490192,
+        "profitUsdcAt100Each": 128.64825438490192,
+        "meanModelEdgePctPoints": 22.384045796350136,
+        "fallbackExecutionPrices": 0,
+        "dayClusters": 1,
+        "dayClusterCi95LowPct": 128.64825438490192,
+        "dayClusterCi95HighPct": 128.64825438490192,
+        "dayClusterProbabilityPositivePct": 100.0
+      }
+    ],
+    "events": [
+      {
+        "signalTime": "2026-07-14T16:52:49+00:00",
+        "title": "Dota 2: LGD Gaming vs MOUZ (BO3) - Esports World Cup Survival",
+        "marketType": "series winner",
+        "uniqueMakers": 7.0,
+        "won": false,
+        "fairWinProbability": 0.1449855910108862,
+        "observedOneSecondPrice": 0.2699999681,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.28604796767892,
+        "modelEdge": -0.14106237666803378,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-07-16T14:32:19+00:00",
+        "title": "Dota 2: PARIVISION vs Rune Eaters - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 5.0,
+        "won": false,
+        "fairWinProbability": 0.27817493815941313,
+        "observedOneSecondPrice": 0.2199999999999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.23531299999999988,
+        "modelEdge": 0.04286193815941325,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-08-05T13:21:24+00:00",
+        "title": "Dota 2: Team Liquid vs 1win (BO3) - 1win Essence Playoffs",
+        "marketType": "series winner",
+        "uniqueMakers": 7.0,
+        "won": false,
+        "fairWinProbability": 0.4301274526566482,
+        "observedOneSecondPrice": 0.6400001022999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.6568251013792996,
+        "modelEdge": -0.2266976487226514,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-08-05T18:06:20+00:00",
+        "title": "Dota 2: Team Falcons vs Team Liquid (BO5) - 1win Essence Playoffs",
+        "marketType": "series winner",
+        "uniqueMakers": 30.0,
+        "won": true,
+        "fairWinProbability": 0.6611934579635014,
+        "observedOneSecondPrice": 0.42,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.437353,
+        "modelEdge": 0.22384045796350138,
+        "passesFivePointGate": true,
+        "paperReturnPct": 128.64825438490192
+      },
+      {
+        "signalTime": "2026-08-13T06:24:12+00:00",
+        "title": "Dota 2: Team Liquid vs Vici Gaming - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 5.0,
+        "won": false,
+        "fairWinProbability": 0.21413833105917007,
+        "observedOneSecondPrice": 0.41,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.42730799999999997,
+        "modelEdge": -0.2131696689408299,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-08-20T10:39:30+00:00",
+        "title": "Dota 2: Team Liquid vs Team Yandex (BO3) - The International Playoffs",
+        "marketType": "series winner",
+        "uniqueMakers": 16.0,
+        "won": true,
+        "fairWinProbability": 0.6023322866926663,
+        "observedOneSecondPrice": 0.49,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.5075,
+        "modelEdge": 0.0948322866926663,
+        "passesFivePointGate": true,
+        "paperReturnPct": 97.04433497536948
+      },
+      {
+        "signalTime": "2026-08-20T10:40:00+00:00",
+        "title": "Dota 2: Team Liquid vs Team Yandex - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 26.0,
+        "won": true,
+        "fairWinProbability": 0.6023322866926663,
+        "observedOneSecondPrice": 0.5300000162,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.54745201616112,
+        "modelEdge": 0.054880270531546205,
+        "passesFivePointGate": true,
+        "paperReturnPct": 82.66441084869271
+      },
+      {
+        "signalTime": "2026-08-20T12:04:06+00:00",
+        "title": "Dota 2: Team Liquid vs Team Yandex - Game 2 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 9.0,
+        "won": true,
+        "fairWinProbability": 0.5476730094662163,
+        "observedOneSecondPrice": 0.4600000097,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.47747300971746,
+        "modelEdge": 0.07019999974875635,
+        "passesFivePointGate": true,
+        "paperReturnPct": 109.43592195750296
+      },
+      {
+        "signalTime": "2026-08-21T06:32:42+00:00",
+        "title": "Dota 2: Team Liquid vs Team Falcons - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 16.0,
+        "won": false,
+        "fairWinProbability": 0.09823490764904594,
+        "observedOneSecondPrice": 0.52,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.537473,
+        "modelEdge": -0.439238092350954,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-08-21T08:11:48+00:00",
+        "title": "Dota 2: Team Liquid vs Team Falcons - Game 2 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 6.0,
+        "won": true,
+        "fairWinProbability": 0.7967699368751943,
+        "observedOneSecondPrice": 0.65,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.666732,
+        "modelEdge": 0.13003793687519427,
+        "passesFivePointGate": true,
+        "paperReturnPct": 49.98530144045883
+      },
+      {
+        "signalTime": "2026-08-21T10:36:06+00:00",
+        "title": "Dota 2: Team Spirit vs TEAM VISION - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 19.0,
+        "won": false,
+        "fairWinProbability": 0.3111673482946153,
+        "observedOneSecondPrice": 0.4599999999999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.4774729999999999,
+        "modelEdge": -0.16630565170538464,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      },
+      {
+        "signalTime": "2026-08-23T02:16:25+00:00",
+        "title": "Dota 2: Team Yandex vs Team Spirit - Game 1 Winner",
+        "marketType": "single-game/map",
+        "uniqueMakers": 19.0,
+        "won": false,
+        "fairWinProbability": 0.5465573505160234,
+        "observedOneSecondPrice": 0.4199999832,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.43735298312944,
+        "modelEdge": 0.1092043673865834,
+        "passesFivePointGate": true,
+        "paperReturnPct": -100
+      }
+    ],
+    "warning": "This wallet-conditioned audit contains only 12 in-game signals and only three frozen full-series signals. Positive ROI is a discovery lead, not prospective proof."
+  },
+  "spotlight": {
+    "conditionId": "0xba2acfcbd1998eba588db39af8e7549a36835cd64e1d7e25f5748744267d04d7",
+    "title": "Dota 2: Team Falcons vs Team Liquid (BO5) - 1win Essence Playoffs",
+    "signalTime": "2026-08-05T18:06:20+00:00",
+    "outcome": "Team Liquid",
+    "winner": "Team Liquid",
+    "triggerPrice": 0.4138443349,
+    "uniqueMakers": 30,
+    "priceLevels": 9,
+    "medianMakerAgeSeconds": 43.26600003242493,
+    "state": {
+      "matchId": 8930940469,
+      "gameStartTimestamp": 1785949465,
+      "gameStartTime": "2026-08-05T17:04:25+00:00",
+      "gameSecond": 3715,
+      "gameMinute": 61.916666666666664,
+      "targetSide": "dire",
+      "targetGoldAdvantage": 13433.0,
+      "targetXpAdvantage": 10921.0,
+      "targetKills": 38,
+      "opponentKills": 32,
+      "targetKillAdvantage": 6,
+      "previousObjective": {
+        "gameSecond": 3708,
+        "secondsBeforeSignal": 7,
+        "type": "building_kill",
+        "key": "npc_dota_goodguys_tower2_top",
+        "beneficiary": "dire",
+        "benefitedTarget": true
+      },
+      "previousTargetObjective": {
+        "gameSecond": 3708,
+        "secondsBeforeSignal": 7,
+        "type": "building_kill",
+        "key": "npc_dota_goodguys_tower2_top",
+        "beneficiary": "dire",
+        "benefitedTarget": true
+      },
+      "nextObjective": {
+        "gameSecond": 3727,
+        "secondsBeforeSignal": -12,
+        "type": "building_kill",
+        "key": "npc_dota_goodguys_tower3_top",
+        "beneficiary": "dire",
+        "benefitedTarget": true
+      }
+    },
+    "stateModel": {
+      "fairWinProbability": 0.6611934579635014,
+      "observedOneSecondPrice": 0.42,
+      "usedTriggerPriceFallback": false,
+      "modeledAdverseMoveCents": 1,
+      "modeledFeeRatePct": 3,
+      "allInPrice": 0.437353,
+      "modelEdge": 0.22384045796350138,
+      "passesFivePointGate": true,
+      "paperReturnPct": 128.64825438490192
+    },
+    "timeline": {
+      "gold": [
+        {
+          "gameMinute": 49,
+          "secondsFromSignal": -775,
+          "targetGoldAdvantage": 9769.0
+        },
+        {
+          "gameMinute": 50,
+          "secondsFromSignal": -715,
+          "targetGoldAdvantage": 9030.0
+        },
+        {
+          "gameMinute": 51,
+          "secondsFromSignal": -655,
+          "targetGoldAdvantage": 6461.0
+        },
+        {
+          "gameMinute": 52,
+          "secondsFromSignal": -595,
+          "targetGoldAdvantage": 4870.0
+        },
+        {
+          "gameMinute": 53,
+          "secondsFromSignal": -535,
+          "targetGoldAdvantage": 5442.0
+        },
+        {
+          "gameMinute": 54,
+          "secondsFromSignal": -475,
+          "targetGoldAdvantage": 4451.0
+        },
+        {
+          "gameMinute": 55,
+          "secondsFromSignal": -415,
+          "targetGoldAdvantage": 2445.0
+        },
+        {
+          "gameMinute": 56,
+          "secondsFromSignal": -355,
+          "targetGoldAdvantage": 2203.0
+        },
+        {
+          "gameMinute": 57,
+          "secondsFromSignal": -295,
+          "targetGoldAdvantage": 2470.0
+        },
+        {
+          "gameMinute": 58,
+          "secondsFromSignal": -235,
+          "targetGoldAdvantage": 9439.0
+        },
+        {
+          "gameMinute": 59,
+          "secondsFromSignal": -175,
+          "targetGoldAdvantage": 13638.0
+        },
+        {
+          "gameMinute": 60,
+          "secondsFromSignal": -115,
+          "targetGoldAdvantage": 13914.0
+        },
+        {
+          "gameMinute": 61,
+          "secondsFromSignal": -55,
+          "targetGoldAdvantage": 13433.0
+        },
+        {
+          "gameMinute": 62,
+          "secondsFromSignal": 5,
+          "targetGoldAdvantage": 19958.0
+        },
+        {
+          "gameMinute": 63,
+          "secondsFromSignal": 65,
+          "targetGoldAdvantage": 29153.0
+        },
+        {
+          "gameMinute": 64,
+          "secondsFromSignal": 125,
+          "targetGoldAdvantage": 27811.0
+        },
+        {
+          "gameMinute": 65,
+          "secondsFromSignal": 185,
+          "targetGoldAdvantage": 20760.0
+        },
+        {
+          "gameMinute": 66,
+          "secondsFromSignal": 245,
+          "targetGoldAdvantage": 17645.0
+        }
+      ],
+      "objectives": [
+        {
+          "gameSecond": 3708,
+          "secondsBeforeSignal": 7,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower2_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": -7
+        },
+        {
+          "gameSecond": 3727,
+          "secondsBeforeSignal": -12,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower3_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 12
+        },
+        {
+          "gameSecond": 3734,
+          "secondsBeforeSignal": -19,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_melee_rax_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 19
+        },
+        {
+          "gameSecond": 3735,
+          "secondsBeforeSignal": -20,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_range_rax_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 20
+        },
+        {
+          "gameSecond": 3743,
+          "secondsBeforeSignal": -28,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower3_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 28
+        },
+        {
+          "gameSecond": 3750,
+          "secondsBeforeSignal": -35,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_melee_rax_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 35
+        },
+        {
+          "gameSecond": 3751,
+          "secondsBeforeSignal": -36,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_range_rax_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 36
+        },
+        {
+          "gameSecond": 3762,
+          "secondsBeforeSignal": -47,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower4",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 47
+        },
+        {
+          "gameSecond": 3765,
+          "secondsBeforeSignal": -50,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower4",
+          "beneficiary": "dire",
+          "benefitedTarget": true,
+          "secondsFromSignal": 50
+        },
+        {
+          "gameSecond": 3839,
+          "secondsBeforeSignal": -124,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "radiant",
+          "benefitedTarget": false,
+          "secondsFromSignal": 124
+        }
+      ],
+      "polymarketMarks": [
+        {
+          "secondsFromSignal": 0,
+          "price": 0.4138443349,
+          "source": "target trigger"
+        },
+        {
+          "secondsFromSignal": 0,
+          "price": 0.43,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 1,
+          "price": 0.43,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 2,
+          "price": 0.43,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 3,
+          "price": 0.43,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 5,
+          "price": 0.43,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 10,
+          "price": 0.26,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 15,
+          "price": 0.26,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 30,
+          "price": 0.26,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 60,
+          "price": 0.3899999744,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 120,
+          "price": 0.41,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 180,
+          "price": 0.41,
+          "source": "first aligned public BUY print"
+        },
+        {
+          "secondsFromSignal": 300,
+          "price": 0.4189005225,
+          "source": "first aligned public BUY print"
+        }
+      ]
+    }
+  },
+  "events": [
+    {
+      "conditionId": "0x16c962f9ea2ceec16839546ce67597b758fae7cf3d43167e769b296712021a38",
+      "title": "Dota 2: Power Rangers vs Team Bald (BO3) - The International Europe Closed Qualifier Playoffs",
+      "signalTime": "2026-06-26T16:01:41+00:00",
+      "outcome": "Team Bald",
+      "winner": "Power Rangers",
+      "won": 0,
+      "triggerPrice": 0.4154830206,
+      "uniqueMakers": 17.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 0.98,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8867656896,
+        8867798521
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x6ff76d2e68a529135151ae20b96bd0656dea282c1653623f0c2ccfba7ec66fc2",
+      "title": "Dota 2: LGD Gaming vs MOUZ (BO3) - Esports World Cup Survival",
+      "signalTime": "2026-07-14T16:52:49+00:00",
+      "outcome": "MOUZ",
+      "winner": "LGD Gaming",
+      "won": 0,
+      "triggerPrice": 0.27,
+      "uniqueMakers": 7.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8896645659,
+        8896731473
+      ],
+      "state": {
+        "matchId": 8896645659,
+        "gameStartTimestamp": 1784047022,
+        "gameStartTime": "2026-07-14T16:37:02+00:00",
+        "gameSecond": 947,
+        "gameMinute": 15.783333333333333,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": -5224.0,
+        "targetXpAdvantage": -5054.0,
+        "targetKills": 4,
+        "opponentKills": 14,
+        "targetKillAdvantage": -10,
+        "previousObjective": {
+          "gameSecond": 608,
+          "secondsBeforeSignal": 339,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": {
+          "gameSecond": 568,
+          "secondsBeforeSignal": 379,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 983,
+          "secondsBeforeSignal": -36,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_mid",
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.1449855910108862,
+        "observedOneSecondPrice": 0.2699999681,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.28604796767892,
+        "modelEdge": -0.14106237666803378,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0x094b1336a84f9c76d798d8e0e5497c8d079950beb701ed55ecc117d6616890e0",
+      "title": "Game Handicap: TS (-1.5) vs Team Liquid (+1.5)",
+      "signalTime": "2026-07-15T10:32:52+00:00",
+      "outcome": "Team Liquid",
+      "winner": "Team Liquid",
+      "won": 1,
+      "triggerPrice": 0.56,
+      "uniqueMakers": 1.0,
+      "marketType": "match winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "unmatched",
+      "nameMatchScore": 0.0,
+      "seriesScoreAtSignal": null,
+      "matchIds": [],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xf9d5da40598baab5db5ab934a00cd8ff8892c7e70a05edc1e386db27b4bceb2e",
+      "title": "Game Handicap: PARI (-1.5) vs Rune Eaters (+1.5)",
+      "signalTime": "2026-07-16T13:59:41+00:00",
+      "outcome": "Rune Eaters",
+      "winner": "PARIVISION",
+      "won": 0,
+      "triggerPrice": 0.34,
+      "uniqueMakers": 11.0,
+      "marketType": "match winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "unmatched",
+      "nameMatchScore": 0.0,
+      "seriesScoreAtSignal": null,
+      "matchIds": [],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x19f32599479a7c9163d5b47c0baaa8e41b72c10ceed0051cd0700233e6560cc8",
+      "title": "Dota 2: PARIVISION vs Rune Eaters - Game 1 Winner",
+      "signalTime": "2026-07-16T14:32:19+00:00",
+      "outcome": "Rune Eaters",
+      "winner": "PARIVISION",
+      "won": 0,
+      "triggerPrice": 0.2299851697,
+      "uniqueMakers": 5.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 0.9117647058823529,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8899307453,
+        8899420575
+      ],
+      "state": {
+        "matchId": 8899307453,
+        "gameStartTimestamp": 1784211550,
+        "gameStartTime": "2026-07-16T14:19:10+00:00",
+        "gameSecond": 789,
+        "gameMinute": 13.15,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": -2331.0,
+        "targetXpAdvantage": -3660.0,
+        "targetKills": 8,
+        "opponentKills": 13,
+        "targetKillAdvantage": -5,
+        "previousObjective": {
+          "gameSecond": 755,
+          "secondsBeforeSignal": 34,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_mid",
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": null,
+        "nextObjective": {
+          "gameSecond": 807,
+          "secondsBeforeSignal": -18,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_top",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.27817493815941313,
+        "observedOneSecondPrice": 0.2199999999999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.23531299999999988,
+        "modelEdge": 0.04286193815941325,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0x6bc127390c4644267ced3fbf129d19ac2eef532bda2fe21dae841b6c11ea8f59",
+      "title": "Dota 2: BetBoom Team vs PARIVISION (BO5) - Esports World Cup Playoffs",
+      "signalTime": "2026-07-19T16:25:37+00:00",
+      "outcome": "BetBoom Team",
+      "winner": "PARIVISION",
+      "won": 0,
+      "triggerPrice": 0.4,
+      "uniqueMakers": 4.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "unmatched",
+      "nameMatchScore": 0.0,
+      "seriesScoreAtSignal": null,
+      "matchIds": [],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xf57902fb236a32a52a6230e8c7c46d0ecd13cd04b43fb48064007666b0ef1ce5",
+      "title": "Dota 2: 1win vs BetBoom Team (BO3) - 1win Essence Playoffs",
+      "signalTime": "2026-08-05T03:44:17+00:00",
+      "outcome": "1win",
+      "winner": "1win",
+      "won": 1,
+      "triggerPrice": 0.4995662173,
+      "uniqueMakers": 18.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "unmatched",
+      "nameMatchScore": 0.0,
+      "seriesScoreAtSignal": null,
+      "matchIds": [],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xa273f7c9d62be8001598e7cb675a7a60b1681b1d226af4e9fe2d6fd8f02434a6",
+      "title": "Dota 2: Team Liquid vs 1win (BO3) - 1win Essence Playoffs",
+      "signalTime": "2026-08-05T13:21:24+00:00",
+      "outcome": "1win",
+      "winner": "Team Liquid",
+      "won": 0,
+      "triggerPrice": 0.65,
+      "uniqueMakers": 7.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 0.98,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8930545836,
+        8930664368
+      ],
+      "state": {
+        "matchId": 8930545836,
+        "gameStartTimestamp": 1785935752,
+        "gameStartTime": "2026-08-05T13:15:52+00:00",
+        "gameSecond": 332,
+        "gameMinute": 5.533333333333333,
+        "targetSide": "dire",
+        "targetGoldAdvantage": -610.0,
+        "targetXpAdvantage": -542.0,
+        "targetKills": 2,
+        "opponentKills": 4,
+        "targetKillAdvantage": -2,
+        "previousObjective": {
+          "gameSecond": 150,
+          "secondsBeforeSignal": 182,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "previousTargetObjective": {
+          "gameSecond": 150,
+          "secondsBeforeSignal": 182,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 605,
+          "secondsBeforeSignal": -273,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_bot",
+          "beneficiary": "radiant",
+          "benefitedTarget": false
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.4301274526566482,
+        "observedOneSecondPrice": 0.6400001022999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.6568251013792996,
+        "modelEdge": -0.2266976487226514,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0xba2acfcbd1998eba588db39af8e7549a36835cd64e1d7e25f5748744267d04d7",
+      "title": "Dota 2: Team Falcons vs Team Liquid (BO5) - 1win Essence Playoffs",
+      "signalTime": "2026-08-05T18:06:20+00:00",
+      "outcome": "Team Liquid",
+      "winner": "Team Liquid",
+      "won": 1,
+      "triggerPrice": 0.4138443349,
+      "uniqueMakers": 30.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8930940469,
+        8931094863,
+        8931183918
+      ],
+      "state": {
+        "matchId": 8930940469,
+        "gameStartTimestamp": 1785949465,
+        "gameStartTime": "2026-08-05T17:04:25+00:00",
+        "gameSecond": 3715,
+        "gameMinute": 61.916666666666664,
+        "targetSide": "dire",
+        "targetGoldAdvantage": 13433.0,
+        "targetXpAdvantage": 10921.0,
+        "targetKills": 38,
+        "opponentKills": 32,
+        "targetKillAdvantage": 6,
+        "previousObjective": {
+          "gameSecond": 3708,
+          "secondsBeforeSignal": 7,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower2_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "previousTargetObjective": {
+          "gameSecond": 3708,
+          "secondsBeforeSignal": 7,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower2_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 3727,
+          "secondsBeforeSignal": -12,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower3_top",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.6611934579635014,
+        "observedOneSecondPrice": 0.42,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.437353,
+        "modelEdge": 0.22384045796350138,
+        "passesFivePointGate": true,
+        "paperReturnPct": 128.64825438490192
+      }
+    },
+    {
+      "conditionId": "0x54481855fff078ca7e1b9ef92c1d86cc9a133680169f3ee4dc2327121ca9046c",
+      "title": "Dota 2: BoomBoys vs OG (BO3) - The International Group Stage",
+      "signalTime": "2026-08-13T02:11:03+00:00",
+      "outcome": "OG",
+      "winner": "BoomBoys",
+      "won": 0,
+      "triggerPrice": 0.2899999994,
+      "uniqueMakers": 3.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8943013334,
+        8943055466
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x8ed08a43d2f45900b4a767a1a6ffb210897c76b3db2dc962283c1994ca7c0b1b",
+      "title": "Dota 2: Team Falcons vs LGD Gaming (BO3) - The International Group Stage",
+      "signalTime": "2026-08-13T02:39:00+00:00",
+      "outcome": "LGD Gaming",
+      "winner": "Team Falcons",
+      "won": 0,
+      "triggerPrice": 0.22,
+      "uniqueMakers": 11.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8942993144,
+        8943034557,
+        8943072784
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x56270a01cc2b77707caafe33e13370fef8510d588f932546f93aeddd42b5a044",
+      "title": "Dota 2: Team Liquid vs Vici Gaming - Game 1 Winner",
+      "signalTime": "2026-08-13T06:24:12+00:00",
+      "outcome": "Vici Gaming",
+      "winner": "Team Liquid",
+      "won": 0,
+      "triggerPrice": 0.3827239234,
+      "uniqueMakers": 5.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8943091110,
+        8943148045
+      ],
+      "state": {
+        "matchId": 8943091110,
+        "gameStartTimestamp": 1786600669,
+        "gameStartTime": "2026-08-13T05:57:49+00:00",
+        "gameSecond": 1583,
+        "gameMinute": 26.383333333333333,
+        "targetSide": "dire",
+        "targetGoldAdvantage": -4201.0,
+        "targetXpAdvantage": -9559.0,
+        "targetKills": 15,
+        "opponentKills": 16,
+        "targetKillAdvantage": -1,
+        "previousObjective": {
+          "gameSecond": 1557,
+          "secondsBeforeSignal": 26,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_top",
+          "beneficiary": "radiant",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": {
+          "gameSecond": 1210,
+          "secondsBeforeSignal": 373,
+          "type": "CHAT_MESSAGE_MINIBOSS_KILL",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 1714,
+          "secondsBeforeSignal": -131,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_mid",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.21413833105917007,
+        "observedOneSecondPrice": 0.41,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.42730799999999997,
+        "modelEdge": -0.2131696689408299,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0xa76c27f6f1529868acb88204c0f94b5126ac3987c125a8abda028fa0663aeb1f",
+      "title": "Dota 2: Team Spirit vs Xtreme Gaming (BO3) - The International Group Stage",
+      "signalTime": "2026-08-13T07:06:42+00:00",
+      "outcome": "Xtreme Gaming",
+      "winner": "Team Spirit",
+      "won": 0,
+      "triggerPrice": 0.38,
+      "uniqueMakers": 12.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8943143428,
+        8943200897
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xc9e8111cecbda922f2fd3e33a5b00e643b2cebeec0d83f2ff96086574ae4c674",
+      "title": "Dota 2: LGD Gaming vs Xtreme Gaming - Game 2 Winner",
+      "signalTime": "2026-08-15T03:27:37+00:00",
+      "outcome": "LGD Gaming",
+      "winner": "LGD Gaming",
+      "won": 1,
+      "triggerPrice": 0.4799984217,
+      "uniqueMakers": 4.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "between_maps",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 0,
+        "opponentMapWins": 1
+      },
+      "matchIds": [
+        8946161784,
+        8946231092,
+        8946288549
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xb2bdda2d35670342ce918bb65c4de65c40daab7d73afc76c28dbe035ea89f432",
+      "title": "Dota 2: TEAM VISION vs Team Spirit (BO3) - The International Group Stage",
+      "signalTime": "2026-08-15T03:32:57+00:00",
+      "outcome": "Team Spirit",
+      "winner": "TEAM VISION",
+      "won": 0,
+      "triggerPrice": 0.3999382575,
+      "uniqueMakers": 15.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8946351114,
+        8946428867
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xbb1682e49e0aba1d452eb672fcc6a4c3dea2ddd01edff310cfa569e46c8602a6",
+      "title": "Dota 2: Team Liquid vs Team Yandex (BO3) - The International Playoffs",
+      "signalTime": "2026-08-20T10:39:30+00:00",
+      "outcome": "Team Yandex",
+      "winner": "Team Yandex",
+      "won": 1,
+      "triggerPrice": 0.49,
+      "uniqueMakers": 16.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8955549026,
+        8955653541
+      ],
+      "state": {
+        "matchId": 8955549026,
+        "gameStartTimestamp": 1787221768,
+        "gameStartTime": "2026-08-20T10:29:28+00:00",
+        "gameSecond": 602,
+        "gameMinute": 10.033333333333333,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": 614.0,
+        "targetXpAdvantage": 2553.0,
+        "targetKills": 4,
+        "opponentKills": 3,
+        "targetKillAdvantage": 1,
+        "previousObjective": {
+          "gameSecond": 374,
+          "secondsBeforeSignal": 228,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": {
+          "gameSecond": 209,
+          "secondsBeforeSignal": 393,
+          "type": "CHAT_MESSAGE_FIRSTBLOOD",
+          "key": "8",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 680,
+          "secondsBeforeSignal": -78,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_bot",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.6023322866926663,
+        "observedOneSecondPrice": 0.49,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.5075,
+        "modelEdge": 0.0948322866926663,
+        "passesFivePointGate": true,
+        "paperReturnPct": 97.04433497536948
+      }
+    },
+    {
+      "conditionId": "0x25467665de6b5162d0ebb093914a9485ab3e43247398c3f948b79e2ee42f077d",
+      "title": "Dota 2: Team Liquid vs Team Yandex - Game 1 Winner",
+      "signalTime": "2026-08-20T10:40:00+00:00",
+      "outcome": "Team Yandex",
+      "winner": "Team Yandex",
+      "won": 1,
+      "triggerPrice": 0.5473097975,
+      "uniqueMakers": 26.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": true,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8955549026,
+        8955653541
+      ],
+      "state": {
+        "matchId": 8955549026,
+        "gameStartTimestamp": 1787221768,
+        "gameStartTime": "2026-08-20T10:29:28+00:00",
+        "gameSecond": 632,
+        "gameMinute": 10.533333333333333,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": 614.0,
+        "targetXpAdvantage": 2553.0,
+        "targetKills": 4,
+        "opponentKills": 3,
+        "targetKillAdvantage": 1,
+        "previousObjective": {
+          "gameSecond": 374,
+          "secondsBeforeSignal": 258,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": {
+          "gameSecond": 209,
+          "secondsBeforeSignal": 423,
+          "type": "CHAT_MESSAGE_FIRSTBLOOD",
+          "key": "8",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 680,
+          "secondsBeforeSignal": -48,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_bot",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.6023322866926663,
+        "observedOneSecondPrice": 0.5300000162,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.54745201616112,
+        "modelEdge": 0.054880270531546205,
+        "passesFivePointGate": true,
+        "paperReturnPct": 82.66441084869271
+      }
+    },
+    {
+      "conditionId": "0xf554e62dcd6e27af21057566bf371a9c29c6196a90e5548cf6c53f025f620631",
+      "title": "Dota 2: Team Liquid vs Team Yandex - Game 2 Winner",
+      "signalTime": "2026-08-20T12:04:06+00:00",
+      "outcome": "Team Yandex",
+      "winner": "Team Yandex",
+      "won": 1,
+      "triggerPrice": 0.47,
+      "uniqueMakers": 9.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 1,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8955549026,
+        8955653541
+      ],
+      "state": {
+        "matchId": 8955653541,
+        "gameStartTimestamp": 1787226963,
+        "gameStartTime": "2026-08-20T11:56:03+00:00",
+        "gameSecond": 483,
+        "gameMinute": 8.05,
+        "targetSide": "dire",
+        "targetGoldAdvantage": 592.0,
+        "targetXpAdvantage": -73.0,
+        "targetKills": 1,
+        "opponentKills": 0,
+        "targetKillAdvantage": 1,
+        "previousObjective": {
+          "gameSecond": 419,
+          "secondsBeforeSignal": 64,
+          "type": "CHAT_MESSAGE_FIRSTBLOOD",
+          "key": "4",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "previousTargetObjective": {
+          "gameSecond": 419,
+          "secondsBeforeSignal": 64,
+          "type": "CHAT_MESSAGE_FIRSTBLOOD",
+          "key": "4",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 598,
+          "secondsBeforeSignal": -115,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "radiant",
+          "benefitedTarget": false
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.5476730094662163,
+        "observedOneSecondPrice": 0.4600000097,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.47747300971746,
+        "modelEdge": 0.07019999974875635,
+        "passesFivePointGate": true,
+        "paperReturnPct": 109.43592195750296
+      }
+    },
+    {
+      "conditionId": "0x46fc250b2bf421953bddf6641ecb6c829461c72fef1b2de6718c7c5ba19fd29d",
+      "title": "Dota 2: Nigma Galaxy vs Team Falcons (BO3) - The International Playoffs",
+      "signalTime": "2026-08-20T12:57:42+00:00",
+      "outcome": "Nigma Galaxy",
+      "winner": "Nigma Galaxy",
+      "won": 1,
+      "triggerPrice": 0.3499329998,
+      "uniqueMakers": 24.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8955796155,
+        8955934230,
+        8956096810
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xbee7d58b8a5ca59c228423923d1025e808e1d91d1c1d126cc1c575234cd517aa",
+      "title": "Dota 2: Iron Wing vs BoomBoys (BO3) - The International Playoffs",
+      "signalTime": "2026-08-20T19:37:10+00:00",
+      "outcome": "BoomBoys",
+      "winner": "BoomBoys",
+      "won": 1,
+      "triggerPrice": 0.55,
+      "uniqueMakers": 16.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8956780728,
+        8956821666,
+        8956877335
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xc2c6815711d9c3e04754da74166a1d4869b5f78fc660f3275041bb082f3efbae",
+      "title": "Dota 2: Team Liquid vs Team Falcons (BO3) - The International Playoffs",
+      "signalTime": "2026-08-21T05:51:19+00:00",
+      "outcome": "Team Liquid",
+      "winner": "Team Liquid",
+      "won": 1,
+      "triggerPrice": 0.53,
+      "uniqueMakers": 13.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8956943534,
+        8957013760,
+        8957086928
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x24b29f470d936697df0e599b794761fbe5c6b2ad9b2cce40f7d50a1e6dd5617d",
+      "title": "Dota 2: Team Spirit vs TEAM VISION (BO3) - The International Playoffs",
+      "signalTime": "2026-08-21T06:12:09+00:00",
+      "outcome": "Team Spirit",
+      "winner": "TEAM VISION",
+      "won": 0,
+      "triggerPrice": 0.3551455649,
+      "uniqueMakers": 25.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8957180942,
+        8957272720,
+        8957364447
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x111c5a46eac20f1317cceb8fe958b6e19f50c1a643f179a6cc067f3806c29a7f",
+      "title": "Dota 2: Team Liquid vs Team Falcons - Game 1 Winner",
+      "signalTime": "2026-08-21T06:32:42+00:00",
+      "outcome": "Team Liquid",
+      "winner": "Team Falcons",
+      "won": 0,
+      "triggerPrice": 0.5376389018,
+      "uniqueMakers": 16.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8956943534,
+        8957013760,
+        8957086928
+      ],
+      "state": {
+        "matchId": 8956943534,
+        "gameStartTimestamp": 1787292976,
+        "gameStartTime": "2026-08-21T06:16:16+00:00",
+        "gameSecond": 986,
+        "gameMinute": 16.433333333333334,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": -6406.0,
+        "targetXpAdvantage": -7772.0,
+        "targetKills": 7,
+        "opponentKills": 7,
+        "targetKillAdvantage": 0,
+        "previousObjective": {
+          "gameSecond": 906,
+          "secondsBeforeSignal": 80,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_top",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        },
+        "previousTargetObjective": {
+          "gameSecond": 906,
+          "secondsBeforeSignal": 80,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_top",
+          "beneficiary": "radiant",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 1273,
+          "secondsBeforeSignal": -287,
+          "type": "CHAT_MESSAGE_MINIBOSS_KILL",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.09823490764904594,
+        "observedOneSecondPrice": 0.52,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.537473,
+        "modelEdge": -0.439238092350954,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0x8881d0df21cddb51a493cb7732a756c8a9ac395e503c890ff6032d1e65da1960",
+      "title": "Dota 2: Team Liquid vs Team Falcons - Game 2 Winner",
+      "signalTime": "2026-08-21T08:11:48+00:00",
+      "outcome": "Team Liquid",
+      "winner": "Team Liquid",
+      "won": 1,
+      "triggerPrice": 0.66,
+      "uniqueMakers": 6.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 0,
+        "opponentMapWins": 1
+      },
+      "matchIds": [
+        8956943534,
+        8957013760,
+        8957086928
+      ],
+      "state": {
+        "matchId": 8957013760,
+        "gameStartTimestamp": 1787298340,
+        "gameStartTime": "2026-08-21T07:45:40+00:00",
+        "gameSecond": 1568,
+        "gameMinute": 26.133333333333333,
+        "targetSide": "dire",
+        "targetGoldAdvantage": 4390.0,
+        "targetXpAdvantage": 10182.0,
+        "targetKills": 23,
+        "opponentKills": 9,
+        "targetKillAdvantage": 14,
+        "previousObjective": {
+          "gameSecond": 1566,
+          "secondsBeforeSignal": 2,
+          "type": "CHAT_MESSAGE_AEGIS",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "previousTargetObjective": {
+          "gameSecond": 1566,
+          "secondsBeforeSignal": 2,
+          "type": "CHAT_MESSAGE_AEGIS",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 1642,
+          "secondsBeforeSignal": -74,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower2_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.7967699368751943,
+        "observedOneSecondPrice": 0.65,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.666732,
+        "modelEdge": 0.13003793687519427,
+        "passesFivePointGate": true,
+        "paperReturnPct": 49.98530144045883
+      }
+    },
+    {
+      "conditionId": "0x6fcd2cd82f1b7b2773c93335bd95e5472a7c8341d5aa7bf4c4dba60ef8a58c6e",
+      "title": "Dota 2: Team Spirit vs TEAM VISION - Game 1 Winner",
+      "signalTime": "2026-08-21T10:36:06+00:00",
+      "outcome": "Team Spirit",
+      "winner": "TEAM VISION",
+      "won": 0,
+      "triggerPrice": 0.4895138979,
+      "uniqueMakers": 19.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": true,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8957180942,
+        8957272720,
+        8957364447
+      ],
+      "state": {
+        "matchId": 8957180942,
+        "gameStartTimestamp": 1787307607,
+        "gameStartTime": "2026-08-21T10:20:07+00:00",
+        "gameSecond": 959,
+        "gameMinute": 15.983333333333333,
+        "targetSide": "dire",
+        "targetGoldAdvantage": -2783.0,
+        "targetXpAdvantage": -463.0,
+        "targetKills": 7,
+        "opponentKills": 7,
+        "targetKillAdvantage": 0,
+        "previousObjective": {
+          "gameSecond": 713,
+          "secondsBeforeSignal": 246,
+          "type": "building_kill",
+          "key": "npc_dota_badguys_tower1_top",
+          "beneficiary": "radiant",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": {
+          "gameSecond": 497,
+          "secondsBeforeSignal": 462,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_bot",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        },
+        "nextObjective": {
+          "gameSecond": 1059,
+          "secondsBeforeSignal": -100,
+          "type": "building_kill",
+          "key": "npc_dota_goodguys_tower1_mid",
+          "beneficiary": "dire",
+          "benefitedTarget": true
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.3111673482946153,
+        "observedOneSecondPrice": 0.4599999999999999,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.4774729999999999,
+        "modelEdge": -0.16630565170538464,
+        "passesFivePointGate": false,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0xedeb21da344a601fc9c5fefa93657ef5ffcb97eed90c290254fd9574bd0b0a39",
+      "title": "Dota 2: Team Yandex vs Nigma Galaxy (BO3) - The International Playoffs",
+      "signalTime": "2026-08-21T13:52:43+00:00",
+      "outcome": "Nigma Galaxy",
+      "winner": "Team Yandex",
+      "won": 0,
+      "triggerPrice": 0.35,
+      "uniqueMakers": 6.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": false,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8957527957,
+        8957749452,
+        8957890399
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x9395d17548525858db6a29acefc0f2d9e1c4d4c0aa1e1f1653df624e09ebe871",
+      "title": "Dota 2: Team Spirit vs Team Liquid (BO3) - The International Playoffs",
+      "signalTime": "2026-08-21T20:58:37+00:00",
+      "outcome": "Team Spirit",
+      "winner": "Team Spirit",
+      "won": 1,
+      "triggerPrice": 0.6,
+      "uniqueMakers": 23.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8958478716,
+        8958538533
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x6b354e80ea28a57c40f01a78d2ff066d816e34c3a4f7985c523645b7105f158c",
+      "title": "Dota 2: TEAM VISION vs Team Yandex (BO3) - The International Playoffs",
+      "signalTime": "2026-08-22T09:45:16+00:00",
+      "outcome": "TEAM VISION",
+      "winner": "TEAM VISION",
+      "won": 1,
+      "triggerPrice": 0.88,
+      "uniqueMakers": 10.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "between_maps",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 1,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8958842370,
+        8958950792,
+        8959067169
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x042cca2d782c3764afd584202907651edd0f4dbdc91675135bce71cde5b5a510",
+      "title": "Dota 2: TEAM VISION vs Team Yandex - Game 2 Winner",
+      "signalTime": "2026-08-22T09:54:30+00:00",
+      "outcome": "TEAM VISION",
+      "winner": "Team Yandex",
+      "won": 0,
+      "triggerPrice": 0.67,
+      "uniqueMakers": 17.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": false,
+      "phase": "between_maps",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 1,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8958842370,
+        8958950792,
+        8959067169
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x321d3afb156d373bfe817fae985e178d89bee1c15ab40965fad373e1d7fa3134",
+      "title": "Dota 2: Team Yandex vs Team Spirit (BO3) - The International Playoffs",
+      "signalTime": "2026-08-23T00:29:43+00:00",
+      "outcome": "Team Spirit",
+      "winner": "Team Spirit",
+      "won": 1,
+      "triggerPrice": 0.688813747,
+      "uniqueMakers": 19.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8960365292,
+        8960411225
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0xe73c7a324d88c5040647fc72c66c3092aa9d0efd7479d23433781d13bb736456",
+      "title": "Dota 2: Team Yandex vs Team Spirit - Game 1 Winner",
+      "signalTime": "2026-08-23T02:16:25+00:00",
+      "outcome": "Team Yandex",
+      "winner": "Team Spirit",
+      "won": 0,
+      "triggerPrice": 0.41,
+      "uniqueMakers": 19.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": true,
+      "phase": "in_game",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8960365292,
+        8960411225
+      ],
+      "state": {
+        "matchId": 8960365292,
+        "gameStartTimestamp": 1787451068,
+        "gameStartTime": "2026-08-23T02:11:08+00:00",
+        "gameSecond": 317,
+        "gameMinute": 5.283333333333333,
+        "targetSide": "radiant",
+        "targetGoldAdvantage": 435.0,
+        "targetXpAdvantage": 252.0,
+        "targetKills": 2,
+        "opponentKills": 3,
+        "targetKillAdvantage": -1,
+        "previousObjective": {
+          "gameSecond": 225,
+          "secondsBeforeSignal": 92,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        },
+        "previousTargetObjective": null,
+        "nextObjective": {
+          "gameSecond": 428,
+          "secondsBeforeSignal": -111,
+          "type": "CHAT_MESSAGE_COURIER_LOST",
+          "key": null,
+          "beneficiary": "dire",
+          "benefitedTarget": false
+        }
+      },
+      "stateModel": {
+        "fairWinProbability": 0.5465573505160234,
+        "observedOneSecondPrice": 0.4199999832,
+        "usedTriggerPriceFallback": false,
+        "modeledAdverseMoveCents": 1,
+        "modeledFeeRatePct": 3,
+        "allInPrice": 0.43735298312944,
+        "modelEdge": 0.1092043673865834,
+        "passesFivePointGate": true,
+        "paperReturnPct": -100
+      }
+    },
+    {
+      "conditionId": "0x2b06aff495ed62b84e9c8da62e11b7bcd1eaedad4b290cb4fc6971deafed2642",
+      "title": "Dota 2: Team Yandex vs Team Spirit - Game 2 Winner",
+      "signalTime": "2026-08-23T03:08:04+00:00",
+      "outcome": "Team Yandex",
+      "winner": "Team Spirit",
+      "won": 0,
+      "triggerPrice": 0.4167487995,
+      "uniqueMakers": 20.0,
+      "marketType": "single-game/map",
+      "frozenBaseEligible": false,
+      "broadSweep": true,
+      "phase": "between_maps",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 1,
+        "targetMapWins": 0,
+        "opponentMapWins": 1
+      },
+      "matchIds": [
+        8960365292,
+        8960411225
+      ],
+      "state": null,
+      "stateModel": null
+    },
+    {
+      "conditionId": "0x0ba31a59ae7b92571ff0f2a6f5bf8843fa88d5c9f4d0d962d21917ba0b2bdb42",
+      "title": "Dota 2: TEAM VISION vs Team Spirit (BO5) - The International Playoffs",
+      "signalTime": "2026-08-23T04:37:06+00:00",
+      "outcome": "Team Spirit",
+      "winner": "Team Spirit",
+      "won": 1,
+      "triggerPrice": 0.42,
+      "uniqueMakers": 18.0,
+      "marketType": "series winner",
+      "frozenBaseEligible": true,
+      "broadSweep": true,
+      "phase": "before_first_map",
+      "nameMatchScore": 1.0,
+      "seriesScoreAtSignal": {
+        "completedMaps": 0,
+        "targetMapWins": 0,
+        "opponentMapWins": 0
+      },
+      "matchIds": [
+        8960577698,
+        8960655084,
+        8960762254,
+        8960882635,
+        8960991322
+      ],
+      "state": null,
+      "stateModel": null
+    }
+  ],
+  "conclusion": "The broad Falcons-Liquid signal is tightly aligned to live Dota telemetry: the target bought Liquid seven seconds after Liquid destroyed a tier-two tower while about 13.4k gold ahead. That verifies one state-aware trade, not the wallet's general secret: five of the six matched frozen broad Dota series signals occurred before the first map; one additional broad signal could not be matched.",
+  "limitations": [
+    "OpenDota state is replay-derived and generally available after the game; it is independent historical verification, not a live trading feed.",
+    "Team-name and time-window joins are deterministic but not official Polymarket-to-OpenDota identifiers.",
+    "Only one frozen broad Dota series signal occurred during a map; five matched broad signals were pre-map and one was unmatched.",
+    "Settlement outcomes were already known when this mechanism audit was designed; no profitability claim is prospective."
+  ]
+}

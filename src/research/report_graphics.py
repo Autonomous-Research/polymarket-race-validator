@@ -1533,11 +1533,686 @@ def compact_fresh_mechanism(edge: dict, output_dir: Path) -> list[str]:
     return save_figure(fig, output_dir, "compact_fresh_mechanism")
 
 
+def public_follower_lead_lag(edge: dict, output_dir: Path) -> list[str]:
+    audit = edge["publicFollowerLeadLag"]
+    selected_lags = [0, 1, 2, 3, 5, 10, 15, 30, 60]
+    positions = np.arange(len(selected_lags))
+    fig, axis = plt.subplots(figsize=(14.6, 6.8))
+    series = [
+        ("compactFreshBreadth", "Compact + fresh: aligned BUY", POSITIVE, "alignedBuyMove"),
+        ("otherBroad", "Other broad sweeps: aligned BUY", NEGATIVE, "alignedBuyMove"),
+        ("compactFreshBreadth", "Compact + fresh: direction-neutral print", SECONDARY, "directionNeutralMove"),
+    ]
+    for group_key, label, color, measure in series:
+        rows = {
+            row["lagSeconds"]: row for row in audit["groups"][group_key]["lags"]
+        }
+        values = np.array([rows[lag][measure]["meanCents"] for lag in selected_lags])
+        axis.plot(positions, values, marker="o", linewidth=2.3, color=color, label=label)
+        if measure == "alignedBuyMove":
+            lower = np.array([rows[lag][measure]["ci95LowCents"] for lag in selected_lags])
+            upper = np.array([rows[lag][measure]["ci95HighCents"] for lag in selected_lags])
+            axis.fill_between(positions, lower, upper, color=color, alpha=0.12)
+    axis.axhline(0, color=INK, linewidth=1)
+    axis.axvspan(-0.35, 6.35, color=ACCENT, alpha=0.07)
+    axis.text(3.0, axis.get_ylim()[1] * 0.90, "first 15 seconds", ha="center", color=MUTED)
+    axis.set_xticks(positions, [str(lag) for lag in selected_lags])
+    axis.set_xlabel("Seconds after the target transaction became observable")
+    axis.set_ylabel("Mean price move from the pre-signal public mark (cents)")
+    axis.set_title("Aligned public buyers follow the compact-fresh footprint", loc="left")
+    axis.grid(axis="y")
+    axis.spines[["top", "right", "left"]].set_visible(False)
+    axis.legend(loc="lower left", ncols=3, fontsize=9)
+    fig.suptitle(
+        "The target appears before part of the reaction, but that reaction is a copier's cost",
+        x=0.04, ha="left", fontsize=19, fontweight="bold",
+    )
+    fig.text(
+        0.04, 0.012,
+        "Compact + fresh n=12 across 9 UTC-day clusters; other broad n=18. Shading is the day-cluster 95% bootstrap interval for aligned BUY prints. Same-second ordering is unavailable, and this is mechanism evidence rather than a profitable entry rule.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.84, bottom=0.19, left=0.09, right=0.98)
+    return save_figure(fig, output_dir, "public_follower_lead_lag")
+
+
+def esports_moat_audit(edge: dict, output_dir: Path) -> list[str]:
+    audit = edge["esportsMoatAudit"]
+    deployment = audit["walletDeployment"]
+    broad = audit["frozenBreadthSignals"]
+    fig, axes = plt.subplots(1, 3, figsize=(15.8, 6.6), gridspec_kw={"width_ratios": [0.9, 1.1, 1.45]})
+
+    shares = [deployment["shareOfWalletCostBasisPct"], deployment["shareOfWalletRealizedPnlPct"]]
+    labels = ["Cost basis", "Realized P&L"]
+    bars = axes[0].barh(labels, shares, color=[SECONDARY, POSITIVE], height=0.55)
+    axes[0].bar_label(bars, labels=[f"{value:.1f}%" for value in shares], padding=4, fontweight="bold")
+    axes[0].set_xlim(0, 70)
+    axes[0].set_xlabel("Esports share of wallet")
+    axes[0].set_title("Large deployment", loc="left")
+    axes[0].grid(axis="x")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+
+    categories = ["Esports", "Traditional sports"]
+    category_rows = [broad["esports"], broad["traditionalSports"]]
+    positions = np.arange(2)
+    width = 0.36
+    roi = [row["roiPct"] for row in category_rows]
+    calibration = [row["calibration"]["calibrationGapPctPoints"] for row in category_rows]
+    roi_bars = axes[1].bar(positions - width / 2, roi, width, color=POSITIVE, label="Copy ROI")
+    cal_bars = axes[1].bar(positions + width / 2, calibration, width, color=ACCENT, label="Calibration gap")
+    axes[1].bar_label(roi_bars, labels=[f"{value:+.1f}%" for value in roi], padding=3, fontsize=9)
+    axes[1].bar_label(cal_bars, labels=[f"{value:+.1f}pp" for value in calibration], padding=3, fontsize=9)
+    axes[1].set_xticks(positions, [f"{label}\nn={row['bets']}" for label, row in zip(categories, category_rows)])
+    axes[1].set_ylabel("Percent / percentage points")
+    axes[1].set_ylim(0, 52)
+    axes[1].set_title("Frozen broad sweeps", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    axes[1].legend(loc="upper center", ncols=2, fontsize=9)
+
+    discipline_rows = broad["byDiscipline"]
+    short_names = {
+        "Counter-Strike": "CS2",
+        "Dota 2": "Dota 2",
+        "League of Legends": "LoL",
+        "Soccer": "Soccer",
+        "Tennis": "Tennis",
+        "Valorant": "Valorant",
+    }
+    discipline_labels = [short_names[row["discipline"]] for row in discipline_rows]
+    values = [row["roiPct"] for row in discipline_rows]
+    colors = [POSITIVE if row["category"] == "esports" else SECONDARY for row in discipline_rows]
+    discipline_bars = axes[2].bar(np.arange(len(values)), values, color=colors)
+    for bar, row in zip(discipline_bars, discipline_rows):
+        offset = 4 if row["roiPct"] >= 0 else -8
+        axes[2].text(
+            bar.get_x() + bar.get_width() / 2, row["roiPct"] + offset,
+            f"{row['roiPct']:+.0f}%\nn={row['bets']}", ha="center",
+            va="bottom" if row["roiPct"] >= 0 else "top", fontsize=8.5, fontweight="bold",
+        )
+    axes[2].axhline(0, color=INK, linewidth=1)
+    axes[2].set_xticks(np.arange(len(values)), discipline_labels)
+    axes[2].set_ylabel("Frozen broad-sweep ROI")
+    axes[2].set_title("Dota leads esports, not all sports", loc="left")
+    axes[2].grid(axis="y")
+    axes[2].spines[["top", "right", "left"]].set_visible(False)
+    axes[2].set_ylim(min(values) - 25, max(values) + 35)
+
+    fig.suptitle("Esports is important; the evidence does not establish it as the unique moat", x=0.03, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.03, 0.012,
+        f"Wallet esports: USD {deployment['costBasisUsdc'] / 1e6:.1f}M cost basis, USD {deployment['realizedPnlUsdc'] / 1e6:.2f}M P&L, {deployment['roiPct']:.2f}% ROI. Frozen 60s + 5c replay; compact-fresh contains only {broad['esports']['compactFreshSignals']} esports versus {broad['traditionalSports']['compactFreshSignals']} traditional-sports signals. Small discipline samples were inspected retrospectively.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.22, left=0.06, right=0.99, wspace=0.34)
+    return save_figure(fig, output_dir, "esports_moat_audit")
+
+
+def dota_live_telemetry_case(state_audit: dict, output_dir: Path) -> list[str]:
+    spotlight = state_audit["spotlight"]
+    timeline = spotlight["timeline"]
+    fig, axes = plt.subplots(2, 1, figsize=(14.8, 9.0), gridspec_kw={"height_ratios": [1.15, 0.9]})
+
+    gold = timeline["gold"]
+    x_gold = np.array([row["secondsFromSignal"] for row in gold])
+    y_gold = np.array([row["targetGoldAdvantage"] / 1_000 for row in gold])
+    axes[0].plot(x_gold, y_gold, color=POSITIVE, linewidth=2.7, marker="o", markersize=4)
+    axes[0].scatter([0], [spotlight["state"]["targetGoldAdvantage"] / 1_000], color=NEGATIVE, marker="D", s=75, zorder=5, label="Target sweep")
+    axes[0].axvline(0, color=NEGATIVE, linewidth=1.2, linestyle="--")
+    axes[0].axhline(0, color=INK, linewidth=0.8)
+    key_objectives = [
+        row for row in timeline["objectives"]
+        if row.get("key") in ("npc_dota_goodguys_tower2_top", "npc_dota_goodguys_tower3_top")
+    ]
+    objective_labels = {
+        "npc_dota_goodguys_tower2_top": "Top T2",
+        "npc_dota_goodguys_tower3_top": "Top T3",
+    }
+    for index, objective in enumerate(key_objectives):
+        x = objective["secondsFromSignal"]
+        label = objective_labels.get(objective.get("key"), "Objective")
+        axes[0].axvline(x, color=ACCENT, linewidth=1, alpha=0.65)
+        axes[0].text(x - 2.5 + index * 5, 29, f"{label} {x:+.0f}s", rotation=90, va="top", ha="right", fontsize=8.5, color=MUTED)
+    axes[0].axvspan(19, 20, color=ACCENT, alpha=0.18)
+    axes[0].text(26, 17, "Top barracks\n+19/+20s", fontsize=8.5, color=MUTED, va="center")
+    axes[0].set_xlim(-800, 270)
+    axes[0].set_ylim(min(-1, y_gold.min() - 2), max(31, y_gold.max() + 3))
+    axes[0].set_ylabel("Team Liquid gold advantage (thousands)")
+    axes[0].set_title("At the sweep: Liquid +13.4k gold, +10.9k XP, kills 38–32", loc="left")
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+    axes[0].legend(loc="upper left")
+
+    marks = timeline["polymarketMarks"]
+    public_marks = [row for row in marks if row["source"] != "target trigger"]
+    axes[1].scatter(
+        [row["secondsFromSignal"] for row in public_marks],
+        [row["price"] for row in public_marks],
+        color=SECONDARY, s=42, label="First aligned public BUY print",
+    )
+    axes[1].plot(
+        [row["secondsFromSignal"] for row in public_marks],
+        [row["price"] for row in public_marks],
+        color=SECONDARY, linewidth=1, alpha=0.45,
+    )
+    axes[1].scatter([0], [spotlight["triggerPrice"]], color=NEGATIVE, marker="D", s=75, zorder=5, label="Target trigger price")
+    axes[1].axhline(spotlight["stateModel"]["fairWinProbability"], color=POSITIVE, linewidth=2, label="Independent state-model fair value")
+    axes[1].axhline(spotlight["stateModel"]["allInPrice"], color=ACCENT, linewidth=1.5, linestyle="--", label="1s + 1c + fee modeled entry")
+    axes[1].axvline(0, color=NEGATIVE, linewidth=1.2, linestyle="--")
+    axes[1].set_xlim(-5, 305)
+    axes[1].set_ylim(0.20, 0.72)
+    axes[1].set_xlabel("Seconds from target sweep")
+    axes[1].set_ylabel("Liquid contract price / probability")
+    axes[1].set_title("One verified state-aware trade; later BUY prints are not a continuous midprice", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    axes[1].legend(loc="upper right", ncols=2, fontsize=8.8)
+
+    fig.suptitle("Dota case file: Falcons vs Liquid, August 5, 2026", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        "OpenDota match 8930940469. Liquid destroyed the top tier-two tower 7 seconds before the target's 30-maker sweep; the top tier-three fell 12 seconds after. Replay-derived OpenDota state verifies history but is not itself a live feed or a general strategy.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.89, bottom=0.14, left=0.09, right=0.98, hspace=0.42)
+    return save_figure(fig, output_dir, "dota_live_telemetry_case")
+
+
+def dota_state_model_validation(state_audit: dict, output_dir: Path) -> list[str]:
+    model = state_audit["independentStateModel"]
+    test = model["chronologicalTest"]
+    wallet = state_audit["stateModelWalletAudit"]
+    fig, axes = plt.subplots(1, 3, figsize=(15.8, 6.3), gridspec_kw={"width_ratios": [1.3, 0.8, 1.0]})
+
+    calibration = test["calibration"]
+    predicted = [row["meanPrediction"] for row in calibration]
+    actual = [row["actualWinRate"] for row in calibration]
+    sizes = [max(35, row["observations"] / 2.5) for row in calibration]
+    axes[0].plot([0, 1], [0, 1], color=MUTED, linestyle="--", linewidth=1.2, label="Perfect calibration")
+    axes[0].plot(predicted, actual, color=POSITIVE, linewidth=2.2)
+    axes[0].scatter(predicted, actual, s=sizes, color=POSITIVE, alpha=0.75, edgecolor="white", linewidth=0.8)
+    axes[0].set_xlim(0, 1)
+    axes[0].set_ylim(0, 1)
+    axes[0].set_xlabel("Predicted win probability")
+    axes[0].set_ylabel("Observed win rate")
+    axes[0].set_title("Chronological calibration", loc="left")
+    axes[0].grid()
+    axes[0].spines[["top", "right"]].set_visible(False)
+    axes[0].legend(loc="upper left", fontsize=9)
+
+    brier_values = [test["brierScore"], test["coinFlipBrierScore"]]
+    bars = axes[1].bar(["State model", "Coin flip"], brier_values, color=[POSITIVE, MUTED], width=0.62)
+    axes[1].bar_label(bars, labels=[f"{value:.3f}" for value in brier_values], padding=4, fontweight="bold")
+    axes[1].set_ylim(0, 0.29)
+    axes[1].set_ylabel("Brier score (lower is better)")
+    axes[1].set_title("Independent test", loc="left")
+    axes[1].text(0.5, 0.04, f"ROC-AUC\n{test['rocAuc']:.3f}", ha="center", fontsize=12, fontweight="bold", transform=axes[1].transAxes)
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+
+    sign = wallet["modelEdgeSignSeparation"]
+    groups = [sign["nonnegative"], sign["negative"]]
+    group_labels = ["Model edge >= 0", "Model edge < 0"]
+    wins = [row["wins"] for row in groups]
+    losses = [row["bets"] - row["wins"] for row in groups]
+    axes[2].bar(group_labels, wins, color=POSITIVE, label="Wins")
+    axes[2].bar(group_labels, losses, bottom=wins, color=NEGATIVE, label="Losses")
+    for index, row in enumerate(groups):
+        axes[2].text(index, row["bets"] + 0.25, f"{row['wins']}/{row['bets']}", ha="center", fontweight="bold")
+    axes[2].set_ylim(0, max(row["bets"] for row in groups) + 1.5)
+    axes[2].set_ylabel("Wallet-conditioned in-game signals")
+    axes[2].set_title("Promising, but inspected later", loc="left")
+    axes[2].grid(axis="y")
+    axes[2].spines[["top", "right", "left"]].set_visible(False)
+    axes[2].legend(loc="upper right")
+
+    training = model["trainingData"]
+    fig.suptitle("A real Dota state model was built without wallet outcomes", x=0.03, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.03, 0.012,
+        f"Training: {training['matches']:,} professional matches strictly before wallet signals. Chronological test: {test['matches']:,} later matches / {test['observations']:,} side observations. The 7-versus-5 wallet split is only 12 correlated, post-outcome-inspected observations (one-sided Fisher p={sign['fisherExactOneSidedPValue']:.3f}).",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.20, left=0.06, right=0.99, wspace=0.34)
+    return save_figure(fig, output_dir, "dota_state_model_validation")
+
+
+def dota_independent_falsification(state_audit: dict, dota: dict, output_dir: Path) -> list[str]:
+    wallet_gate = state_audit["stateModelWalletAudit"]["fivePointGateAllFormats"]
+    primary = dota["primary"]
+    fig, axes = plt.subplots(1, 3, figsize=(16.0, 6.6), gridspec_kw={"width_ratios": [0.9, 1.25, 1.4]})
+
+    labels = ["Wallet-conditioned\nlead", "Predeclared independent\nDota window"]
+    values = [wallet_gate["roiPct"], primary["roiPct"]]
+    bars = axes[0].bar(labels, values, color=[ACCENT, NEGATIVE], width=0.62)
+    for bar, value, bets in zip(bars, values, [wallet_gate["bets"], primary["bets"]]):
+        axes[0].text(
+            bar.get_x() + bar.get_width() / 2, value + (4 if value >= 0 else -4),
+            f"{value:+.1f}%\nn={bets}", ha="center",
+            va="bottom" if value >= 0 else "top", fontweight="bold",
+        )
+    axes[0].axhline(0, color=INK, linewidth=1)
+    axes[0].set_ylim(-25, 80)
+    axes[0].set_ylabel("Paper ROI")
+    axes[0].set_title("The lead did not replicate", loc="left")
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+
+    sensitivity = [row for row in dota["executionSensitivity"] if row["slippageCents"] == 1 and row["lagSeconds"] in (0, 1, 5, 15, 60)]
+    sensitivity.sort(key=lambda row: row["lagSeconds"])
+    x = np.arange(len(sensitivity))
+    fast_rows = [row for row in sensitivity if row["lagSeconds"] <= 15]
+    axes[1].plot(
+        np.arange(len(fast_rows)), [row["roiPct"] for row in fast_rows],
+        color=NEGATIVE, marker="o", linewidth=2.3, label="Same 9-fill cohort",
+    )
+    sixty_index = next(index for index, row in enumerate(sensitivity) if row["lagSeconds"] == 60)
+    sixty = sensitivity[sixty_index]
+    axes[1].scatter([sixty_index], [sixty["roiPct"]], color=ACCENT, marker="D", s=72, zorder=4, label="Different 12-fill cohort")
+    axes[1].axhline(0, color=INK, linewidth=1)
+    for index, row in enumerate(sensitivity):
+        axes[1].text(index, row["roiPct"] + (2 if row["roiPct"] >= 0 else -3), f"n={row['bets']}", ha="center", va="bottom" if row["roiPct"] >= 0 else "top", fontsize=8.5)
+    axes[1].set_xticks(x, [f"{row['lagSeconds']}s" for row in sensitivity])
+    axes[1].set_xlabel("Minimum delay; first later public print")
+    axes[1].set_ylabel("ROI at +1 adverse cent and 3% fee")
+    axes[1].set_title("The 0–15s cohort stays negative", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    axes[1].legend(loc="lower left", fontsize=8.5)
+
+    bets = dota["primaryBets"]
+    for won, color, label in ((True, POSITIVE, "Won"), (False, NEGATIVE, "Lost")):
+        rows = [row for row in bets if row["won"] is won]
+        axes[2].scatter(
+            [row["gameMinute"] for row in rows], [row["returnPct"] for row in rows],
+            color=color, s=72, label=label, edgecolor="white", linewidth=0.7, zorder=3,
+        )
+    axes[2].axhline(0, color=INK, linewidth=1)
+    axes[2].axvline(8, color=ACCENT, linestyle="--", linewidth=1.3)
+    axes[2].text(8.4, 105, "minute 8\npost-hoc split", color=MUTED, fontsize=8.5)
+    axes[2].set_xlabel("Game minute when the model first signaled")
+    axes[2].set_ylabel("Modeled return per $100")
+    axes[2].set_title("All three losses signaled by minute 6", loc="left")
+    axes[2].grid(axis="y")
+    axes[2].spines[["top", "right", "left"]].set_visible(False)
+    axes[2].legend(loc="upper right")
+
+    fig.suptitle("Independent result: scoreboard state alone is not the target's alpha", x=0.03, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.03, 0.012,
+        f"Window declared before outcome review, August 25–26: {dota['coverage']['heldOutChildMarkets']} parsed markets, {dota['coverage']['modelSignals']} model signals, {primary['bets']} conservative print-proxy fills, {primary['wins']} wins, {primary['roiPct']:+.2f}% ROI. All fills occurred on one UTC day; no historical ask-depth proof. The minute-8 line was noticed after losses and is not a strategy.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.21, left=0.06, right=0.99, wspace=0.33)
+    return save_figure(fig, output_dir, "dota_independent_falsification")
+
+
+def prospective_signal_audit(prospective: dict, output_dir: Path) -> list[str]:
+    coverage = prospective["coverage"]
+    candidates = prospective["candidates"]
+    fig, axes = plt.subplots(1, 2, figsize=(14.8, 6.4), gridspec_kw={"width_ratios": [0.9, 1.4]})
+
+    labels = ["Raw $25k / 70%", "Frozen universe", ">=18 makers"]
+    values = [coverage["rawThresholdSignals"], coverage["frozenBaseEligibleSignals"], coverage["frozenBreadthEligibleSignals"]]
+    bars = axes[0].bar(labels, values, color=[MUTED, SECONDARY, NEGATIVE], width=0.62)
+    axes[0].bar_label(bars, labels=[str(value) for value in values], padding=4, fontweight="bold", fontsize=12)
+    axes[0].set_ylim(0, max(values) + 2)
+    axes[0].set_ylabel("Post-cutoff signals")
+    axes[0].set_title("Frozen-rule funnel", loc="left")
+    axes[0].text(0.02, 0.93, f"{coverage['postCutoffTrades']:,} new target trades\nacross {coverage['markets']} markets", transform=axes[0].transAxes, va="top", color=MUTED)
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+
+    for candidate in candidates:
+        in_universe = candidate["discipline"] != "MLB" and 0.30 <= candidate["triggerPrice"] <= 0.85
+        axes[1].scatter(
+            candidate["triggerPrice"], candidate["uniqueMakers"],
+            s=90 if candidate["uniqueMakers"] >= 18 else 58,
+            color=SECONDARY if in_universe else MUTED,
+            marker="o" if in_universe else "X", edgecolor="white", linewidth=0.7,
+        )
+        if candidate["uniqueMakers"] >= 18:
+            x_offset = -92 if candidate["triggerPrice"] > 0.45 else 12
+            axes[1].annotate(
+                f"MLB, {candidate['uniqueMakers']} makers\nexcluded universe",
+                (candidate["triggerPrice"], candidate["uniqueMakers"]),
+                xytext=(x_offset, -35), textcoords="offset points", fontsize=8.5,
+                arrowprops={"arrowstyle": "-", "color": MUTED},
+            )
+    axes[1].axhline(18, color=NEGATIVE, linestyle="--", linewidth=1.4, label="Frozen breadth threshold")
+    axes[1].axvspan(0.30, 0.85, color=POSITIVE, alpha=0.06, label="Frozen price range")
+    axes[1].set_xlim(0.25, 1.0)
+    axes[1].set_ylim(0, 45)
+    axes[1].set_xlabel("Target trigger price")
+    axes[1].set_ylabel("Distinct makers in decoded transaction")
+    axes[1].set_title("No candidate cleared every frozen guard", loc="left")
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+    axes[1].legend(loc="upper left")
+
+    fig.suptitle("Prospective audit: zero qualifying observations, not zero return", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        "Frozen cutoff: August 25, 2026. Two post-cutoff sweeps reached 18 makers, both excluded MLB: Dodgers–Braves (40 makers; median age 5,597s) and Twins–Athletics (19 makers; median age 15s). With no qualifying breadth signal, this window can neither validate nor falsify profitability.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.20, left=0.07, right=0.98, wspace=0.28)
+    return save_figure(fig, output_dir, "prospective_signal_audit")
+
+
+def live_probe_latency(live_probe: dict, output_dir: Path) -> list[str]:
+    join = live_probe["dynamicGameJoin"]
+    games = sorted(join["games"], key=lambda row: row["sportsToFirstBookMs"])
+    labels = [row["gameId"] for row in games]
+    query = np.array([row["queryLatencyMs"] for row in games])
+    remainder = np.array([row["sportsToFirstBookMs"] - row["queryLatencyMs"] for row in games])
+    positions = np.arange(len(games))
+    fig, axes = plt.subplots(1, 2, figsize=(14.8, 6.4), gridspec_kw={"width_ratios": [1.45, 0.8]})
+
+    axes[0].barh(positions, query, color=SECONDARY, label="Gamma gameId lookup")
+    axes[0].barh(positions, remainder, left=query, color=POSITIVE, label="Subscribe to first book event")
+    for index, row in enumerate(games):
+        axes[0].text(row["sportsToFirstBookMs"] + 1.5, index, f"{row['sportsToFirstBookMs']} ms", va="center", fontsize=8.5, fontweight="bold")
+    axes[0].axvline(100, color=ACCENT, linewidth=1.3, linestyle="--", label="0.1 second")
+    axes[0].set_yticks(positions, labels)
+    axes[0].set_xlim(0, max(125, max(row["sportsToFirstBookMs"] for row in games) + 18))
+    axes[0].set_xlabel("Local receive-to-first-book latency (milliseconds)")
+    axes[0].set_ylabel("Polymarket sports gameId")
+    axes[0].set_title("Public sports-to-book join", loc="left")
+    axes[0].grid(axis="x")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+    axes[0].legend(loc="lower right", fontsize=8.5)
+
+    bars = axes[1].bar(
+        ["Join hits", "Join misses", "Dynamic tokens", "Tokens observed"],
+        [join["hits"], join["misses"], join["dynamicAssets"], join["dynamicAssetsObserved"]],
+        color=[POSITIVE, MUTED, SECONDARY, ACCENT], width=0.62,
+    )
+    axes[1].bar_label(bars, padding=4, fontweight="bold")
+    axes[1].set_ylim(0, max(join["misses"], join["dynamicAssets"]) + 4)
+    axes[1].set_ylabel("Count in 30-second capture")
+    axes[1].set_title("End-to-end coverage", loc="left")
+    axes[1].tick_params(axis="x", labelrotation=20)
+    axes[1].grid(axis="y")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+
+    fig.suptitle("The public plumbing is sub-second; fair value remains the missing input", x=0.04, ha="left", fontsize=19, fontweight="bold")
+    fig.text(
+        0.04, 0.012,
+        f"Paper-only local capture on August 27, 2026: {join['gameIdsQueried']} sports gameIds, {join['hits']} active-market joins, zero errors, {join['observationCoveragePct']:.0f}% observation of newly subscribed tokens. Median sports-to-book latency was {join['sportsToFirstBookMs']['median']:.0f} ms. This measures data arrival, not order fill, signal quality, or parity with a licensed feed.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.22, left=0.08, right=0.98, wspace=0.32)
+    return save_figure(fig, output_dir, "live_probe_latency")
+
+
+def esports_public_feed_reaction(reaction: dict, output_dir: Path) -> list[str]:
+    transitions = [row for row in reaction["transitions"] if row["baselineAtPreviousState"]]
+    offsets = [row["offsetSeconds"] for row in reaction["eventAlignedMidpoint"]]
+    positions = np.arange(len(offsets))
+    fig, axes = plt.subplots(
+        1, 3, figsize=(16.2, 6.8), gridspec_kw={"width_ratios": [1.45, 1.2, 0.85]}
+    )
+
+    palette = [SECONDARY, POSITIVE, ACCENT, NEGATIVE, "#7C6F64", "#358A8A"]
+    for index, transition in enumerate(transitions):
+        values = [next(
+            observation["moveFromPreviousStateCents"]
+            for observation in transition["observations"]
+            if observation["offsetSeconds"] == offset
+        ) for offset in offsets]
+        axes[0].plot(
+            positions, values, color=palette[index % len(palette)],
+            linewidth=1.35, alpha=0.58, marker="o", markersize=3,
+        )
+    aggregate = reaction["eventAlignedMidpoint"]
+    means = [row["meanMoveFromPreviousStateCents"] for row in aggregate]
+    axes[0].plot(
+        positions, means, color=INK, linewidth=3, marker="o", markersize=6,
+        label=f"Mean, n={len(transitions)}",
+    )
+    axes[0].axvline(offsets.index(0), color=NEGATIVE, linestyle="--", linewidth=1.3)
+    axes[0].axhline(0, color=INK, linewidth=0.8)
+    axes[0].set_xticks(positions, [f"{offset:g}s" for offset in offsets])
+    axes[0].set_xlabel("Time from public sports score update")
+    axes[0].set_ylabel("Beneficiary midpoint move from prior poll (cents)")
+    axes[0].set_title("Most repricing was already visible", loc="left")
+    axes[0].grid(axis="y")
+    axes[0].spines[["top", "right", "left"]].set_visible(False)
+    axes[0].legend(loc="upper left", fontsize=9)
+
+    regime_rows = [row for row in transitions
+                   if row["finalHalfCentBeneficialRegimeStartedRelativeToFeedMs"] is not None]
+    game_ids = list(dict.fromkeys(row["gameId"] for row in regime_rows))
+    game_positions = {game_id: index for index, game_id in enumerate(game_ids)}
+    game_labels = {}
+    for game_id in game_ids:
+        row = next(item for item in regime_rows if item["gameId"] == game_id)
+        game_labels[game_id] = f"{row['homeTeam']} vs {row['awayTeam']}"
+    for index, row in enumerate(regime_rows):
+        y = game_positions[row["gameId"]] + (index % 3 - 1) * 0.09
+        value = row["finalHalfCentBeneficialRegimeStartedRelativeToFeedMs"] / 1_000
+        axes[1].scatter(
+            value, y, color=palette[index % len(palette)], s=72,
+            edgecolor="white", linewidth=0.7, zorder=3,
+        )
+        axes[1].text(value + 0.45, y, f"{value:.2f}s", va="center", fontsize=8)
+    axes[1].axvline(0, color=NEGATIVE, linestyle="--", linewidth=1.4, label="Public update")
+    axes[1].set_yticks(
+        np.arange(len(game_ids)), [game_labels[game_id] for game_id in game_ids], fontsize=8.5
+    )
+    axes[1].set_xlim(-22, 2.5)
+    axes[1].set_xlabel("Start of final >=0.5c beneficiary regime")
+    axes[1].set_title("Every persistent crossing came first", loc="left")
+    axes[1].grid(axis="x")
+    axes[1].spines[["top", "right", "left"]].set_visible(False)
+
+    at_minus_one = next(row for row in aggregate if row["offsetSeconds"] == -1)
+    at_feed = next(row for row in aggregate if row["offsetSeconds"] == 0)
+    at_plus_one = next(row for row in aggregate if row["offsetSeconds"] == 1)
+    at_plus_five = next(row for row in aggregate if row["offsetSeconds"] == 5)
+    segments = [
+        at_minus_one["meanMoveFromPreviousStateCents"],
+        at_feed["meanMoveFromPreviousStateCents"] - at_minus_one["meanMoveFromPreviousStateCents"],
+        at_plus_one["meanMoveFromPreviousStateCents"] - at_feed["meanMoveFromPreviousStateCents"],
+        at_plus_five["meanMoveFromPreviousStateCents"] - at_plus_one["meanMoveFromPreviousStateCents"],
+    ]
+    labels = ["By -1s", "Last second", "0 to +1s", "+1 to +5s"]
+    bars = axes[2].bar(
+        labels, segments, color=[POSITIVE, ACCENT, NEGATIVE, SECONDARY], width=0.62
+    )
+    axes[2].bar_label(
+        bars, labels=[f"{value:+.2f}c" for value in segments], padding=4, fontweight="bold"
+    )
+    axes[2].axhline(0, color=INK, linewidth=0.9)
+    axes[2].set_ylabel("Incremental mean midpoint move")
+    axes[2].set_title("Little remained after receipt", loc="left")
+    axes[2].tick_params(axis="x", labelrotation=18)
+    axes[2].grid(axis="y")
+    axes[2].spines[["top", "right", "left"]].set_visible(False)
+
+    games = len(set(row["gameId"] for row in transitions))
+    fig.suptitle(
+        "Live CS2 audit: this public score feed trailed the market in the captured sample",
+        x=0.03, ha="left", fontsize=19, fontweight="bold",
+    )
+    fig.text(
+        0.03, 0.012,
+        f"Local receive-time event study: {len(transitions)} analyzable one-round updates across {games} games. The public feed exposed no authoritative round timestamp and refreshed about every {reaction['publicSportsCadenceMs']['medianDistinctStateInterval'] / 1_000:.1f}s. Midpoints are not fills. This diagnoses feed staleness; it does not identify the target wallet's vendor or prove a private-data moat.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.82, bottom=0.22, left=0.065, right=0.99, wspace=0.33)
+    return save_figure(fig, output_dir, "esports_public_feed_reaction")
+
+
+def cs2_wallet_state_cases(case_audit: dict, output_dir: Path) -> list[str]:
+    m80 = case_audit["cases"]["m80"]
+    g2_m80 = case_audit["cases"]["g2M80"]
+    population = case_audit["populationAudit"]
+    first_timestamp = m80["targetFills"][0]["timestamp"]
+    round_win_timestamp = datetime.fromisoformat(
+        m80["roundWinBroadcastState"]["observedAt"].replace("Z", "+00:00")
+    ).timestamp()
+    round_win_offset = round_win_timestamp - first_timestamp
+    fig, axes = plt.subplots(2, 2, figsize=(16.2, 10.6))
+
+    tape = [row for row in m80["publicTape"]["bySecond"]
+            if -42 <= row["timestamp"] - first_timestamp <= 55]
+    tape_x = np.array([row["timestamp"] - first_timestamp for row in tape])
+    tape_low = np.array([row["equivalentPriceLow"] * 100 for row in tape])
+    tape_high = np.array([row["equivalentPriceHigh"] * 100 for row in tape])
+    tape_vwap = np.array([row["equivalentPriceVwap"] * 100 for row in tape])
+    axes[0, 0].vlines(tape_x, tape_low, tape_high, color=GRID, linewidth=2, alpha=0.8)
+    axes[0, 0].scatter(
+        tape_x, tape_vwap, s=14, color=MUTED, alpha=0.7, label="Public taker prints"
+    )
+
+    fill_groups = {}
+    for fill in m80["targetFills"]:
+        key = (fill["timestamp"], fill["role"])
+        current = fill_groups.setdefault(key, {"quote": 0, "shares": 0, "priceQuote": 0})
+        current["quote"] += fill["quoteNotionalUsdc"]
+        current["shares"] += fill["shares"]
+        current["priceQuote"] += fill["price"] * fill["shares"]
+    maximum_fill = max(row["quote"] for row in fill_groups.values())
+    for role, color, marker in (("TAKER", NEGATIVE, "^"), ("MAKER", POSITIVE, "o")):
+        rows = [(timestamp, row) for (timestamp, row_role), row in fill_groups.items()
+                if row_role == role]
+        axes[0, 0].scatter(
+            [timestamp - first_timestamp for timestamp, _ in rows],
+            [row["priceQuote"] / row["shares"] * 100 for _, row in rows],
+            s=[70 + 480 * np.sqrt(row["quote"] / maximum_fill) for _, row in rows],
+            color=color, marker=marker, edgecolor="white", linewidth=1.1,
+            zorder=4, label=f"Target {role.lower()} fills",
+        )
+    axes[0, 0].axvline(0, color=INK, linestyle="--", linewidth=1.2)
+    axes[0, 0].axvline(round_win_offset, color=ACCENT, linestyle="--", linewidth=1.6)
+    axes[0, 0].annotate(
+        "First target fill: 74c\n9-6, bomb planted, 5v3",
+        xy=(0, 74), xytext=(-39, 68.8),
+        arrowprops={"arrowstyle": "->", "color": INK}, fontsize=9.5, fontweight="bold",
+    )
+    axes[0, 0].annotate(
+        "10-6 visible\non broadcast",
+        xy=(round_win_offset, 75), xytext=(14, 69.7),
+        arrowprops={"arrowstyle": "->", "color": ACCENT}, fontsize=9.5,
+    )
+    axes[0, 0].set_xlim(-42, 55)
+    axes[0, 0].set_ylim(67, 83)
+    axes[0, 0].set_xlabel("Seconds from first target fill")
+    axes[0, 0].set_ylabel("M80-equivalent public price (cents)")
+    axes[0, 0].set_title("NAVI-M80: state first, then passive size", loc="left")
+    axes[0, 0].grid(axis="y")
+    axes[0, 0].spines[["top", "right", "left"]].set_visible(False)
+    axes[0, 0].legend(loc="upper left", fontsize=8.5, ncols=2)
+
+    labels = ["G2-M80\nAug 12", "NAVI-M80\nAug 26"]
+    entry = [g2_m80["passiveCluster"]["makerVwap"] * 100,
+             m80["passiveCluster"]["makerVwap"] * 100]
+    payout = [0, 100]
+    for index, (start, end) in enumerate(zip(entry, payout)):
+        color = NEGATIVE if end < start else POSITIVE
+        axes[0, 1].plot([index, index], [start, end], color=color, linewidth=4, alpha=0.72)
+        axes[0, 1].scatter(index, start, color=INK, s=100, zorder=3)
+        axes[0, 1].scatter(index, end, color=color, s=120, zorder=3)
+        axes[0, 1].text(index + 0.05, start, f"quote {start:.0f}c", va="center", fontsize=9)
+    axes[0, 1].text(
+        0, 57,
+        "G2 12-11 M80\nRound 24, 0:19, no plant, 3v3\n18 counterparties; M80 lost",
+        ha="center", va="center", fontsize=9.5,
+    )
+    axes[0, 1].text(
+        1, 47,
+        "M80 10-6 NAVI\nRound already won before passive burst\n19 counterparties; M80 won",
+        ha="center", va="center", fontsize=9.5,
+    )
+    axes[0, 1].set_xticks([0, 1], labels)
+    axes[0, 1].set_xlim(-0.45, 1.55)
+    axes[0, 1].set_ylim(-5, 106)
+    axes[0, 1].set_ylabel("Cluster quote and settlement value (cents)")
+    axes[0, 1].set_title("Same team and mechanism; different live state", loc="left")
+    axes[0, 1].grid(axis="y")
+    axes[0, 1].spines[["top", "right", "left"]].set_visible(False)
+
+    fill_timestamps = sorted(set(row["timestamp"] for row in m80["targetFills"]))
+    running = {"MAKER": 0, "TAKER": 0}
+    maker_curve = []
+    taker_curve = []
+    for timestamp in fill_timestamps:
+        for row in m80["targetFills"]:
+            if row["timestamp"] == timestamp:
+                running[row["role"]] += row["quoteNotionalUsdc"]
+        maker_curve.append(running["MAKER"] / 1_000)
+        taker_curve.append(running["TAKER"] / 1_000)
+    fill_x = [timestamp - first_timestamp for timestamp in fill_timestamps]
+    axes[1, 0].step(fill_x, taker_curve, where="post", color=NEGATIVE, linewidth=2.5,
+                    label="Aggressive quote")
+    axes[1, 0].step(fill_x, maker_curve, where="post", color=POSITIVE, linewidth=2.5,
+                    label="Passive quote")
+    axes[1, 0].step(
+        fill_x, np.array(taker_curve) + np.array(maker_curve), where="post",
+        color=INK, linewidth=2.7, label="Total",
+    )
+    axes[1, 0].axvline(round_win_offset, color=ACCENT, linestyle="--", linewidth=1.5)
+    axes[1, 0].text(fill_x[-1] + 0.8, maker_curve[-1], f"${maker_curve[-1]:.1f}k passive",
+                    va="center", color=POSITIVE, fontweight="bold")
+    axes[1, 0].text(fill_x[-1] + 0.8, taker_curve[-1], f"${taker_curve[-1]:.1f}k aggressive",
+                    va="center", color=NEGATIVE, fontweight="bold")
+    axes[1, 0].set_xlim(-1, 33)
+    axes[1, 0].set_ylim(0, 70)
+    axes[1, 0].set_xlabel("Seconds from first target fill")
+    axes[1, 0].set_ylabel("Cumulative target quote (thousand USDC)")
+    axes[1, 0].set_title("79% of the winning position was passive", loc="left")
+    axes[1, 0].grid(axis="y")
+    axes[1, 0].spines[["top", "right", "left"]].set_visible(False)
+    axes[1, 0].legend(loc="upper left", ncols=3, fontsize=8.5)
+
+    sensitivity = population["thresholdSensitivity"]
+    threshold_x = [row["minimumCounterparties"] for row in sensitivity]
+    threshold_roi = [row["roiPct"] for row in sensitivity]
+    axes[1, 1].plot(threshold_x, threshold_roi, color=NEGATIVE, linewidth=3, marker="o")
+    axes[1, 1].axhline(0, color=INK, linewidth=1)
+    axes[1, 1].axvline(18, color=ACCENT, linestyle="--", linewidth=1.5)
+    selected = next(row for row in sensitivity if row["minimumCounterparties"] == 18)
+    axes[1, 1].scatter(18, selected["roiPct"], s=130, color=ACCENT, edgecolor="white", zorder=4)
+    axes[1, 1].annotate(
+        f"18 counterparties: {selected['wins']}/{selected['resolvedSignals']} wins\n"
+        f"{selected['roiPct']:.1f}% ROI",
+        xy=(18, selected["roiPct"]), xytext=(12.2, -42),
+        arrowprops={"arrowstyle": "->", "color": ACCENT}, fontsize=9.5, fontweight="bold",
+    )
+    axes[1, 1].set_xlim(9.5, 30.5)
+    axes[1, 1].set_ylim(-106, 8)
+    axes[1, 1].set_xlabel("Minimum observed taker counterparties")
+    axes[1, 1].set_ylabel("Standalone passive-cluster ROI")
+    axes[1, 1].set_title("Reverse breadth fails every threshold", loc="left")
+    axes[1, 1].grid(axis="y")
+    axes[1, 1].spines[["top", "right", "left"]].set_visible(False)
+
+    fig.suptitle(
+        "Wallet-linked CS2 audit: the moat is state selection, not copying or breadth",
+        x=0.035, ha="left", fontsize=20, fontweight="bold",
+    )
+    fig.text(
+        0.035, 0.012,
+        f"Wallet fills and public taker tape are joined by transaction hash. Broadcast frames are aligned to Twitch HLS PROGRAM-DATE-TIME. The generic reverse-breadth scan covered {population['markets']} traded markets: {population['all']['wins']}/{population['all']['resolvedSignals']} signals and {population['all']['roiPct']:.1f}% ROI at the mirrored $25k / 5s / 18-counterparty rule. Post-hoc state reconstruction diagnoses mechanism; it is not a prospective strategy test.",
+        color=MUTED, fontsize=9,
+    )
+    fig.subplots_adjust(top=0.88, bottom=0.13, left=0.07, right=0.97, hspace=0.35, wspace=0.25)
+    return save_figure(fig, output_dir, "cs2_wallet_state_cases")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--edge", default="research/djdjdjekekek/edge_analysis.json")
     parser.add_argument("--features", default="research/djdjdjekekek/edge_features.csv")
     parser.add_argument("--triggers", default="research/djdjdjekekek/trigger_transactions.json")
+    parser.add_argument("--state", default="research/djdjdjekekek/esports_state_analysis.json")
+    parser.add_argument("--dota", default="research/djdjdjekekek/dota_independent_backtest.json")
+    parser.add_argument("--prospective", default="research/djdjdjekekek/prospective/prospective_audit.json")
+    parser.add_argument("--live-probe", default="research/djdjdjekekek/prospective/live_probe_validation.json")
+    parser.add_argument("--sports-reaction", default="research/djdjdjekekek/prospective/esports_reaction_analysis.json")
+    parser.add_argument("--cs2-case", default="research/djdjdjekekek/prospective/cs2_case_audit.json")
     parser.add_argument("--output", default="research/djdjdjekekek/figures")
     args = parser.parse_args()
 
@@ -1546,6 +2221,18 @@ def main() -> None:
     features = pd.read_csv(args.features)
     with Path(args.triggers).open(encoding="utf-8") as handle:
         trigger_data = json.load(handle)
+    with Path(args.state).open(encoding="utf-8") as handle:
+        state_audit = json.load(handle)
+    with Path(args.dota).open(encoding="utf-8") as handle:
+        dota = json.load(handle)
+    with Path(args.prospective).open(encoding="utf-8") as handle:
+        prospective = json.load(handle)
+    with Path(args.live_probe).open(encoding="utf-8") as handle:
+        live_probe = json.load(handle)
+    with Path(args.sports_reaction).open(encoding="utf-8") as handle:
+        sports_reaction = json.load(handle)
+    with Path(args.cs2_case).open(encoding="utf-8") as handle:
+        cs2_case = json.load(handle)
     output_dir = Path(args.output)
     configure_style()
     files = []
@@ -1580,12 +2267,27 @@ def main() -> None:
     files.extend(capacity_reality_gap(edge, output_dir))
     files.extend(closing_line_validation(edge, output_dir))
     files.extend(compact_fresh_mechanism(edge, output_dir))
+    files.extend(public_follower_lead_lag(edge, output_dir))
+    files.extend(esports_moat_audit(edge, output_dir))
+    files.extend(dota_live_telemetry_case(state_audit, output_dir))
+    files.extend(dota_state_model_validation(state_audit, output_dir))
+    files.extend(dota_independent_falsification(state_audit, dota, output_dir))
+    files.extend(prospective_signal_audit(prospective, output_dir))
+    files.extend(live_probe_latency(live_probe, output_dir))
+    files.extend(esports_public_feed_reaction(sports_reaction, output_dir))
+    files.extend(cs2_wallet_state_cases(cs2_case, output_dir))
     manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "source": {
             "edge": args.edge,
             "features": args.features,
             "triggers": args.triggers,
+            "state": args.state,
+            "dota": args.dota,
+            "prospective": args.prospective,
+            "liveProbe": args.live_probe,
+            "sportsReaction": args.sports_reaction,
+            "cs2Case": args.cs2_case,
         },
         "rendering": {
             "preferredFormat": "svg",
