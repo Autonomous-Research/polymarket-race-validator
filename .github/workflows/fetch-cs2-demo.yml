@@ -1,0 +1,38 @@
+name: Fetch CS2 research demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      demo_url:
+        description: Public HLTV demo object URL
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download public demo
+        env:
+          DEMO_URL: ${{ inputs.demo_url }}
+        run: |
+          curl --fail --location --retry 4 --retry-all-errors \
+            --user-agent 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/139 Safari/537.36' \
+            "$DEMO_URL" --output cs2-demo.rar
+          file cs2-demo.rar
+          sha256sum cs2-demo.rar | tee cs2-demo.sha256
+          stat --format='bytes=%s' cs2-demo.rar
+
+      - name: Upload immutable source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs2-research-demo-${{ github.run_id }}
+          path: |
+            cs2-demo.rar
+            cs2-demo.sha256
+          if-no-files-found: error
+          retention-days: 7
